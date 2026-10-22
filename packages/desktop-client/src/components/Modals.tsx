@@ -24,6 +24,7 @@ import { CategoryAutocompleteModal } from './modals/CategoryAutocompleteModal';
 import { CategoryGroupAutocompleteModal } from './modals/CategoryGroupAutocompleteModal';
 import { CategoryGroupMenuModal } from './modals/CategoryGroupMenuModal';
 import { CategoryMenuModal } from './modals/CategoryMenuModal';
+import { ChooseTransactionAccountModal } from './modals/ChooseTransactionAccountModal';
 import { CloseAccountModal } from './modals/CloseAccountModal';
 import { ConfirmCategoryDeleteModal } from './modals/ConfirmCategoryDeleteModal';
 import { ConfirmDeleteModal } from './modals/ConfirmDeleteModal';
@@ -134,6 +135,9 @@ export function Modals() {
 
         case 'add-account':
           return <CreateAccountModal key={key} {...modal.options} />;
+
+        case 'choose-transaction-account':
+          return <ChooseTransactionAccountModal key={key} />;
 
         case 'add-local-account':
           return <CreateLocalAccountModal key={key} />;

@@ -16,6 +16,7 @@ import { css } from '@emotion/css';
 import { useReopenAccountMutation, useUpdateAccountMutation } from '#accounts';
 import { isAccountFailedSync } from '#accounts/syncStatus';
 import { useContextMenu } from '#hooks/useContextMenu';
+import { useSheetValue } from '#hooks/useSheetValue';
 import { useUpdatedAccounts } from '#hooks/useUpdatedAccounts';
 import { openAccountCloseModal, pushModal } from '#modals/modalsSlice';
 import { useDispatch, useSelector } from '#redux';
@@ -47,6 +48,11 @@ export function AccountRow({
   const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
   const updatedAccounts = useUpdatedAccounts();
   const isUpdated = !isClosed && updatedAccounts.includes(account.id);
+  const uncategorizedCount = useSheetValue(
+    bindings.accountUncategorizedCount(account.id),
+  );
+  const hasUncategorized =
+    typeof uncategorizedCount === 'number' && uncategorizedCount > 0;
   const [isEditing, setIsEditing] = useTreeItemEditing(
     treeKeys.account(account.id),
   );
@@ -192,9 +198,30 @@ export function AccountRow({
                   />
                 </InitialFocus>
               ) : (
-                <Text style={{ flex: 1, ...styles.ellipsisText }}>
-                  {account.name}
-                </Text>
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    minWidth: 0,
+                  }}
+                >
+                  <Text style={styles.ellipsisText}>{account.name}</Text>
+                  {hasUncategorized && (
+                    <View
+                      aria-label={t('Uncategorized transactions')}
+                      title={t('Uncategorized transactions')}
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: radius.pill,
+                        flexShrink: 0,
+                        backgroundColor: theme.sidebarItemBackgroundFailed,
+                      }}
+                    />
+                  )}
+                </View>
               )}
               <Text style={styles.visuallyHidden}>{statusLabel}</Text>
               <SidebarBalance

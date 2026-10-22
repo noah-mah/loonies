@@ -57,6 +57,9 @@ export type Modal =
       };
     }
   | {
+      name: 'choose-transaction-account';
+    }
+  | {
       name: 'add-local-account';
     }
   | {
