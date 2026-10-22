@@ -22,10 +22,14 @@ import type { Binding } from '#spreadsheet';
 import { getColumnWidth, PILL_STYLE } from './BudgetTable';
 
 type SpentCellProps = {
-  binding: Binding<'envelope-budget' | 'tracking-budget', 'sum-amount'>;
+  binding: Binding<
+    'envelope-budget' | 'tracking-budget',
+    'sum-amount' | 'debt-balance'
+  >;
   category: CategoryEntity;
   month: string;
   show3Columns?: boolean;
+  isPayment?: boolean;
   onPress?: () => void;
 };
 
@@ -34,6 +38,7 @@ export function SpentCell({
   category,
   month,
   show3Columns,
+  isPayment = false,
   onPress,
 }: SpentCellProps) {
   const { t } = useTranslation();
@@ -47,14 +52,24 @@ export function SpentCell({
       category,
       month,
     });
+  const showScheduleIndicator = !isPayment && schedule && scheduleStatus;
 
   return (
-    <CellValue<'envelope-budget' | 'tracking-budget', 'sum-amount'>
+    <CellValue<
+      'envelope-budget' | 'tracking-budget',
+      'sum-amount' | 'debt-balance'
+    >
       binding={binding}
       type="financial"
-      aria-label={t('Spent amount for {{categoryName}} category', {
-        categoryName: category.name,
-      })}
+      aria-label={
+        isPayment
+          ? t('Balance for {{categoryName}} category', {
+              categoryName: category.name,
+            })
+          : t('Spent amount for {{categoryName}} category', {
+              categoryName: category.name,
+            })
+      }
     >
       {({ type, value }) => (
         <>
@@ -62,11 +77,19 @@ export function SpentCell({
             variant="bare"
             style={{
               ...PILL_STYLE,
+              ...(isPayment || !onPress ? { cursor: 'default' } : null),
             }}
             onPress={onPress}
-            aria-label={t('Show transactions for {{categoryName}} category', {
-              categoryName: category.name,
-            })}
+            isDisabled={!onPress}
+            aria-label={
+              isPayment
+                ? t('Balance for {{categoryName}} category', {
+                    categoryName: category.name,
+                  })
+                : t('Show transactions for {{categoryName}} category', {
+                    categoryName: category.name,
+                  })
+            }
           >
             <PrivacyFilter>
               <AutoTextSize
@@ -87,7 +110,7 @@ export function SpentCell({
               </AutoTextSize>
             </PrivacyFilter>
           </Button>
-          {schedule && scheduleStatus && (
+          {showScheduleIndicator && (
             <View
               style={{
                 position: 'absolute',

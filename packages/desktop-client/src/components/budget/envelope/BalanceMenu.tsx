@@ -7,6 +7,7 @@ import type { MenuItemObject } from '@actual-app/components/menu';
 import type { IntegerAmount } from '@actual-app/core/shared/util';
 
 import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { envelopeBudget } from '#spreadsheet/bindings';
 
 import { useEnvelopeSheetValue } from './EnvelopeBudgetComponents';
@@ -28,6 +29,8 @@ export function useBalanceMenu({
 }: BalanceMenuActions) {
   const { t } = useTranslation();
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const isPayment = paymentCategoryIds.has(categoryId);
 
   const carryover = useEnvelopeSheetValue(
     envelopeBudget.catCarryover(categoryId),
@@ -43,7 +46,11 @@ export function useBalanceMenu({
   const toBudget = useEnvelopeSheetValue(envelopeBudget.toBudget) ?? 0;
 
   const fundAmount =
-    isGoalTemplatesEnabled && onFundGoal && goal != null && longGoal !== 1
+    !isPayment &&
+    isGoalTemplatesEnabled &&
+    onFundGoal &&
+    goal != null &&
+    longGoal !== 1
       ? Math.min(goal - budgeted, toBudget)
       : 0;
 
@@ -66,40 +73,44 @@ export function useBalanceMenu({
     }
   };
 
-  const items: MenuItemObject<string>[] = [
-    ...(balance > 0
-      ? [
-          {
-            name: 'transfer',
-            text: t('Transfer to another category'),
-          },
-        ]
-      : []),
-    ...(balance < 0
-      ? [
-          {
-            name: 'cover',
-            text: t('Cover overspending'),
-          },
-        ]
-      : []),
-    ...(fundAmount > 0
-      ? [
-          {
-            name: 'fund-goal',
-            text: t('Fund goal from To Budget'),
-          },
-        ]
-      : []),
-    {
-      name: 'carryover',
-      text: carryover
-        ? t('Remove overspending rollover')
-        : t('Rollover overspending'),
-    },
-  ];
+  // Payment leftover is available-for-payment; transfer/cover/carryover would
+  // treat it like a normal spending envelope.
+  const items: MenuItemObject<string>[] = isPayment
+    ? []
+    : [
+        ...(balance > 0
+          ? [
+              {
+                name: 'transfer',
+                text: t('Transfer to another category'),
+              },
+            ]
+          : []),
+        ...(balance < 0
+          ? [
+              {
+                name: 'cover',
+                text: t('Cover overspending'),
+              },
+            ]
+          : []),
+        ...(fundAmount > 0
+          ? [
+              {
+                name: 'fund-goal',
+                text: t('Fund goal from To Budget'),
+              },
+            ]
+          : []),
+        {
+          name: 'carryover',
+          text: carryover
+            ? t('Remove overspending rollover')
+            : t('Rollover overspending'),
+        },
+      ];
 
-  return { items, onMenuSelect };
+  return { items, onMenuSelect, isPayment };
 }
 
 type BalanceMenuProps = Omit<

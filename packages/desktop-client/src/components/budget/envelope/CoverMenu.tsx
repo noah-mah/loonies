@@ -20,6 +20,7 @@ import {
   removeCategoriesFromGroups,
 } from '#components/budget/util';
 import { useCategories } from '#hooks/useCategories';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 
 type CoverMenuProps = {
   showToBeBudgeted?: boolean;
@@ -40,6 +41,7 @@ export function CoverMenu({
 
   const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
     useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
 
   const [fromCategoryId, setFromCategoryId] = useState<string | null>(null);
 
@@ -48,10 +50,17 @@ export function CoverMenu({
     const categoryGroups = showToBeBudgeted
       ? addToBeBudgetedGroup(expenseGroups)
       : expenseGroups;
-    return categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
-  }, [categoryId, showToBeBudgeted, originalCategoryGroups]);
+    const excludeIds = [
+      ...paymentCategoryIds,
+      ...(categoryId ? [categoryId] : []),
+    ];
+    return removeCategoriesFromGroups(categoryGroups, ...excludeIds);
+  }, [
+    categoryId,
+    showToBeBudgeted,
+    originalCategoryGroups,
+    paymentCategoryIds,
+  ]);
 
   const _initialAmount = integerToCurrency(Math.abs(initialAmount ?? 0));
   const [amount, setAmount] = useState<string>(_initialAmount);

@@ -8,6 +8,7 @@ import type { CategoryEntity } from '@actual-app/core/types/models';
 import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
 
 import { useCategories } from './useCategories';
+import { usePaymentCategoryIds } from './usePaymentCategoryIds';
 import { useSpreadsheet } from './useSpreadsheet';
 import { useSyncedPref } from './useSyncedPref';
 
@@ -33,6 +34,7 @@ export function useOverspentCategories({
       grouped: [],
     },
   } = useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const categoryGroupsById = useMemo(
     () => groupById(categoryGroups),
     [categoryGroups],
@@ -135,7 +137,9 @@ export function useOverspentCategories({
     const categoriesToReturn = categories
       .filter(
         category =>
-          categoryIdsToReturn.includes(category.id) && !category.is_income,
+          categoryIdsToReturn.includes(category.id) &&
+          !category.is_income &&
+          !paymentCategoryIds.has(category.id),
       )
       .filter(category =>
         budgetType === 'tracking'
@@ -166,5 +170,6 @@ export function useOverspentCategories({
     categories,
     categoryGroupsById,
     overspendingByCategory,
+    paymentCategoryIds,
   ]);
 }

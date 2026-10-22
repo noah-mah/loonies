@@ -11,6 +11,8 @@ import { integerToCurrency, safeNumber } from '#shared/util';
 import type { IntegerAmount } from '#shared/util';
 import type { CategoryEntity } from '#types/models';
 
+import { isPaymentCategory } from './payment';
+
 export async function getSheetValue(
   sheetName: string,
   cell: string,
@@ -268,6 +270,9 @@ export async function setZero({ month }: { month: string }): Promise<void> {
       if (cat.is_income === 1 && !isTrackingBudget()) {
         return;
       }
+      if (isPaymentCategory(cat.id)) {
+        return;
+      }
       void setBudget({ category: cat.id, month, amount: 0 });
     });
   });
@@ -290,6 +295,9 @@ export async function set3MonthAvg({
   await batchMessages(async () => {
     for (const cat of categories) {
       if (cat.is_income === 1 && !isTrackingBudget()) {
+        continue;
+      }
+      if (isPaymentCategory(cat.id)) {
         continue;
       }
 
@@ -327,6 +335,9 @@ export async function set12MonthAvg({
       if (cat.is_income === 1 && !isTrackingBudget()) {
         continue;
       }
+      if (isPaymentCategory(cat.id)) {
+        continue;
+      }
       void setNMonthAvg({ month, N: 12, category: cat.id });
     }
   });
@@ -351,6 +362,9 @@ export async function set6MonthAvg({
       if (cat.is_income === 1 && !isTrackingBudget()) {
         continue;
       }
+      if (isPaymentCategory(cat.id)) {
+        continue;
+      }
       void setNMonthAvg({ month, N: 6, category: cat.id });
     }
   });
@@ -365,6 +379,10 @@ export async function setNMonthAvg({
   N: number;
   category: string;
 }): Promise<void> {
+  if (isPaymentCategory(category)) {
+    return;
+  }
+
   const categoryFromDb = await db.first<Pick<db.DbViewCategory, 'is_income'>>(
     'SELECT is_income FROM v_categories WHERE id = ?',
     [category],
@@ -528,6 +546,13 @@ export async function coverOverspending({
   amount?: IntegerAmount;
   currencyCode: string;
 }): Promise<void> {
+  if (
+    (to !== 'to-budget' && isPaymentCategory(to)) ||
+    (from !== 'to-budget' && from !== 'overbudgeted' && isPaymentCategory(from))
+  ) {
+    return;
+  }
+
   const sheetName = monthUtils.sheetForMonth(month);
   const toBudgeted = await getSheetValue(sheetName, 'budget-' + to);
   const leftoverFrom = await getSheetValue(
@@ -603,6 +628,10 @@ export async function coverOverbudgeted({
   amount?: IntegerAmount;
   currencyCode: string;
 }): Promise<void> {
+  if (isPaymentCategory(category)) {
+    return;
+  }
+
   const sheetName = monthUtils.sheetForMonth(month);
   const categoryBudget = await getSheetValue(sheetName, 'budget-' + category);
   const categoryLeftover = await getSheetValue(
@@ -653,6 +682,13 @@ export async function transferCategory({
   from: CategoryEntity['id'] | 'to-budget';
   currencyCode: string;
 }): Promise<void> {
+  if (
+    (from !== 'to-budget' && isPaymentCategory(from)) ||
+    (to !== 'to-budget' && isPaymentCategory(to))
+  ) {
+    return;
+  }
+
   const sheetName = monthUtils.sheetForMonth(month);
   const fromBudgeted = await getSheetValue(sheetName, 'budget-' + from);
 
@@ -710,6 +746,11 @@ export async function setCategoryCarryover({
   category: string;
   flag: boolean;
 }): Promise<void> {
+  // Payment categories always roll over available-for-payment.
+  if (isPaymentCategory(category)) {
+    return;
+  }
+
   const table = getBudgetTable();
   const months = getAllMonths(startMonth);
 

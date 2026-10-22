@@ -18,6 +18,11 @@ import * as cleanupGroupActions from './cleanup-groups';
 import * as cleanupActions from './cleanup-template';
 import { storeNoteCleanups } from './cleanup-template-notes';
 import * as goalActions from './goal-template';
+import {
+  getLinkedAccountId,
+  isPaymentCategory,
+  uninstallPaymentCategory,
+} from './payment';
 import { sortCategories } from './sort-categories';
 import * as goalNoteActions from './template-notes';
 
@@ -391,6 +396,12 @@ async function deleteCategory({
       throw new Error(`Category with id ${id} not found.`);
     }
 
+    if (transferId && isPaymentCategory(transferId)) {
+      throw new Error(
+        'Cannot transfer into a credit or debt payment category.',
+      );
+    }
+
     const transfer =
       transferId &&
       (await db.first<Pick<db.DbCategory, 'is_income'>>(
@@ -407,6 +418,17 @@ async function deleteCategory({
       row.is_income !== transfer.is_income
     ) {
       throw new Error('Cannot transfer between income and expense categories.');
+    }
+
+    // Unlink payment tracking before the category is removed so accounts and
+    // sheet cells do not keep a dangling payment_category pointer.
+    if (isPaymentCategory(id)) {
+      const accountId = getLinkedAccountId(id);
+      if (accountId) {
+        await db.updateAccount({ id: accountId, payment_category: null });
+      }
+      const months = sheet.get().meta().createdMonths ?? new Set<string>();
+      uninstallPaymentCategory(id, months);
     }
 
     // Update spreadsheet values if it's an expense category

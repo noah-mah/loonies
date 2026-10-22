@@ -22,6 +22,7 @@ import { AutoTextSize } from 'auto-text-size';
 import { PrivacyFilter } from '#components/PrivacyFilter';
 import { CellValue } from '#components/spreadsheet/CellValue';
 import { useFormat } from '#hooks/useFormat';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
 
@@ -281,6 +282,12 @@ function ExpenseGroupCells({
 }: ExpenseGroupCellsProps) {
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const format = useFormat();
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const categories = group.categories ?? [];
+  const isDebtGroup =
+    budgetType === 'envelope' &&
+    categories.length > 0 &&
+    categories.every(category => paymentCategoryIds.has(category.id));
 
   const columnWidth = getColumnWidth({ show3Columns });
 
@@ -301,7 +308,9 @@ function ExpenseGroupCells({
   const spent =
     budgetType === 'tracking'
       ? trackingBudget.groupSumAmount(group.id)
-      : envelopeBudget.groupSumAmount(group.id);
+      : isDebtGroup
+        ? envelopeBudget.groupDebtBalance(group.id)
+        : envelopeBudget.groupSumAmount(group.id);
 
   const balance =
     budgetType === 'tracking'
@@ -349,7 +358,10 @@ function ExpenseGroupCells({
           ...(!show3Columns && showBudgetedColumn && { display: 'none' }),
         }}
       >
-        <CellValue<'envelope-budget' | 'tracking-budget', 'group-sum-amount'>
+        <CellValue<
+          'envelope-budget' | 'tracking-budget',
+          'group-sum-amount' | 'group-debt-balance'
+        >
           binding={spent}
           type="financial"
         >

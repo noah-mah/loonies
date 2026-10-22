@@ -11,6 +11,7 @@ import type { Template } from '#types/models/templates';
 import { getSheetValue, isTrackingBudget, setBudget, setGoal } from './actions';
 import { CategoryTemplateContext } from './category-template-context';
 import { tombstoneOrphanCleanupGroups } from './cleanup-groups';
+import { isPaymentCategory } from './payment';
 import { checkTemplateNotes, storeNoteTemplates } from './template-notes';
 import type { TemplateNotification } from './template-notification';
 
@@ -225,8 +226,10 @@ async function computeTemplates(
   const isTracking = isTrackingBudget();
   if (!categories.length) {
     categories = (await getCategories()).filter(
-      c => isTracking || !c.is_income,
+      c => (isTracking || !c.is_income) && !isPaymentCategory(c.id),
     );
+  } else {
+    categories = categories.filter(c => !isPaymentCategory(c.id));
   }
 
   // setup categories to process

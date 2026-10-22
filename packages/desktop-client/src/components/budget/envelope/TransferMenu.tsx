@@ -15,6 +15,7 @@ import {
 } from '#components/budget/util';
 import { FinancialInput } from '#components/util/FinancialInput';
 import { useCategories } from '#hooks/useCategories';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 
 type TransferMenuProps = {
   categoryId?: CategoryEntity['id'];
@@ -35,6 +36,7 @@ export function TransferMenu({
 
   const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
     useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const filteredCategoryGroups = useMemo(() => {
     const expenseCategoryGroups = originalCategoryGroups.filter(
       g => !g.is_income,
@@ -42,10 +44,17 @@ export function TransferMenu({
     const categoryGroups = showToBeBudgeted
       ? addToBeBudgetedGroup(expenseCategoryGroups)
       : expenseCategoryGroups;
-    return categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
-  }, [originalCategoryGroups, categoryId, showToBeBudgeted]);
+    const excludeIds = [
+      ...paymentCategoryIds,
+      ...(categoryId ? [categoryId] : []),
+    ];
+    return removeCategoriesFromGroups(categoryGroups, ...excludeIds);
+  }, [
+    originalCategoryGroups,
+    categoryId,
+    showToBeBudgeted,
+    paymentCategoryIds,
+  ]);
 
   const [amount, setAmount] = useState<IntegerAmount>(
     Math.max(initialAmount ?? 0, 0),

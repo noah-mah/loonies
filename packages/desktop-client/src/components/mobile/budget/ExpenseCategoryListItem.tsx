@@ -18,6 +18,7 @@ import type { CategoryEntity } from '@actual-app/core/types/models';
 import { useCategoriesById } from '#hooks/useCategories';
 import { useFormat } from '#hooks/useFormat';
 import { useNavigate } from '#hooks/useNavigate';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSheetValue } from '#hooks/useSheetValue';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { useUndo } from '#hooks/useUndo';
@@ -126,6 +127,9 @@ function ExpenseCategoryCells({
     isSidebar: false,
   });
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const isPayment =
+    budgetType === 'envelope' && paymentCategoryIds.has(category.id);
 
   const budgeted =
     budgetType === 'tracking'
@@ -135,7 +139,9 @@ function ExpenseCategoryCells({
   const spent =
     budgetType === 'tracking'
       ? trackingBudget.catSumAmount(category.id)
-      : envelopeBudget.catSumAmount(category.id);
+      : isPayment
+        ? envelopeBudget.catDebtBalance(category.id)
+        : envelopeBudget.catSumAmount(category.id);
 
   const balance =
     budgetType === 'tracking'
@@ -179,7 +185,8 @@ function ExpenseCategoryCells({
           category={category}
           month={month}
           show3Columns={show3Columns}
-          onPress={onShowActivity}
+          isPayment={isPayment}
+          onPress={isPayment ? undefined : onShowActivity}
         />
       </View>
       <View
@@ -194,9 +201,18 @@ function ExpenseCategoryCells({
           category={category}
           show3Columns={show3Columns}
           onPress={onOpenBalanceMenu}
-          aria-label={t('Open balance menu for {{categoryName}} category', {
-            categoryName: category.name,
-          })}
+          aria-label={
+            isPayment
+              ? t(
+                  'Open available for payment menu for {{categoryName}} category',
+                  {
+                    categoryName: category.name,
+                  },
+                )
+              : t('Open balance menu for {{categoryName}} category', {
+                  categoryName: category.name,
+                })
+          }
         />
       </View>
     </View>
