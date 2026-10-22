@@ -12,8 +12,11 @@ import * as budgetActions from './actions';
 import * as envelopeBudget from './envelope';
 import {
   ensurePaymentCategories,
+  excludedExpenseRefundSql,
   installPaymentCategory,
   isPaymentCategory,
+  recomputeCashRefunds,
+  recomputeLaterCoverage,
   recomputePaymentCellsForTransaction,
   uninstallPaymentCategory,
 } from './payment';
@@ -83,9 +86,11 @@ function getSumAmountsByMonth(
             SUM(t.amount) AS amount
        FROM v_transactions_internal_alive t
        LEFT JOIN accounts a ON a.id = t.account
+       LEFT JOIN categories c ON c.id = t.category
       WHERE t.date >= ${rangeStart} AND t.date <= ${rangeEnd}
         AND t.category IS NOT NULL
         AND a.offbudget = 0
+        ${excludedExpenseRefundSql}
       GROUP BY t.category, t.date / 100`,
     [],
     true,
@@ -143,10 +148,12 @@ export function createCategory(cat, sheetName, prevSheetName, start, end) {
     run: () => {
       // Making this sync is faster!
       const rows = db.runQuery<{ amount: number }>(
-        `SELECT SUM(amount) as amount FROM v_transactions_internal_alive t
+        `SELECT SUM(t.amount) as amount FROM v_transactions_internal_alive t
            LEFT JOIN accounts a ON a.id = t.account
+           LEFT JOIN categories c ON c.id = t.category
          WHERE t.date >= ${start} AND t.date <= ${end}
-           AND category = '${cat.id}' AND a.offbudget = 0`,
+           AND t.category = '${cat.id}' AND a.offbudget = 0
+           ${excludedExpenseRefundSql}`,
         [],
         true,
       );
@@ -221,6 +228,9 @@ function handleTransactionChange(transaction, changedFields) {
   }
 
   recomputePaymentCellsForTransaction(transaction);
+  recomputeCashRefunds(
+    monthUtils.monthFromDate(db.fromDateRepr(transaction.date)),
+  );
 }
 
 function handleCategoryMappingChange(months, oldValue, newValue) {
@@ -242,6 +252,15 @@ function handleBudgetMonthChange(budget) {
   sheet.get().set(`${sheetName}!buffered`, budget.buffered);
 }
 
+function monthStringFromBudget(month) {
+  const text = String(month);
+  if (text.includes('-')) {
+    return text;
+  }
+  const padded = text.padStart(6, '0');
+  return `${padded.slice(0, 4)}-${padded.slice(4)}`;
+}
+
 function handleBudgetChange(budget) {
   if (budget.category) {
     const sheetName = monthUtils.sheetForMonth(budget.month.toString());
@@ -255,6 +274,9 @@ function handleBudgetChange(budget) {
         isPaymentCategory(budget.category) ? true : budget.carryover === 1,
       );
     sheet.get().set(`${sheetName}!goal-${budget.category}`, budget.goal);
+    if (getBudgetType() === 'envelope') {
+      recomputeLaterCoverage(monthStringFromBudget(budget.month));
+    }
     sheet
       .get()
       .set(`${sheetName}!long-goal-${budget.category}`, budget.long_goal);

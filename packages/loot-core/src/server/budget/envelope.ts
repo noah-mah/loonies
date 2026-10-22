@@ -6,6 +6,7 @@ import { safeNumber } from '#shared/util';
 
 import { createCategory as createCategoryFromBase } from './base';
 import {
+  createCashRefundCell,
   createExpenseCategory,
   createGroupDebtBalance,
   createPaymentCategory,
@@ -170,6 +171,8 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
     },
   });
 
+  createCashRefundCell(sheetName);
+
   sheet.get().createDynamic(sheetName, 'to-budget', {
     initialValue: 0,
     dependencies: [
@@ -177,13 +180,16 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
       'last-month-overspent',
       'total-budgeted',
       'buffered-selected',
+      'cash-refunds',
     ],
-    run: (available, lastOverspent, totalBudgeted, buffered) => {
+    refresh: true,
+    run: (available, lastOverspent, totalBudgeted, buffered, cashRefunds) => {
       return safeNumber(
         number(available) +
           number(lastOverspent) +
           number(totalBudgeted) -
-          number(buffered),
+          number(buffered) +
+          number(cashRefunds),
       );
     },
   });
