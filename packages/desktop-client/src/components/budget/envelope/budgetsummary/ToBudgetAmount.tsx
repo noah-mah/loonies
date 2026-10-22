@@ -83,7 +83,10 @@ export function ToBudgetAmount({
               className={css([
                 styles.veryLargeText,
                 {
-                  fontWeight: 400,
+                  fontSize: 28,
+                  fontWeight: 600,
+                  letterSpacing: '-0.03em',
+                  lineHeight: '34px',
                   userSelect: 'none',
                   cursor: onClick ? 'pointer' : 'default',
                   color: isPositive

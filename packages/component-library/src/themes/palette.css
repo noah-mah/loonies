@@ -100,4 +100,20 @@
   --palette-chartQual7: #55dbc1;
   --palette-chartQual8: #efda97;
   --palette-chartQual9: #df948a;
+
+  /* Budget canvas tokens. Light theme semantic colors reference these. */
+  --color-text-primary: #000000;
+  --color-text-secondary: #555555;
+  --color-text-muted: #626262;
+  --color-text-subtle: #777777;
+  --color-surface-page: #eeeeee;
+  --color-surface-sidebar: #f2f2f2;
+  --color-surface-raised: #f9f9f9;
+  --color-surface-control: #e9e9e9;
+  --color-border-default: #dddddd;
+  --color-text-on-accent: #f9f9f9;
+  --color-danger: #b42318;
+  --color-danger-surface: #fde8e7;
+  --color-success: #0a9f00;
+  --color-success-surface: #eaf6e8;
 }

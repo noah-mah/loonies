@@ -127,6 +127,7 @@ export function SidebarCategory({
       style={{
         width: 200 + 100 * categoryExpandedState,
         overflow: 'hidden',
+        color: theme.pageTextLight,
         '& .hover-visible': {
           display: 'none',
         },

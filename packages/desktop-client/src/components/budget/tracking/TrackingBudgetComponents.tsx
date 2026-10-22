@@ -233,6 +233,7 @@ export const CategoryMonth = memo(function CategoryMonth({
         backgroundColor: monthUtils.isCurrentMonth(month)
           ? theme.budgetCurrentMonth
           : theme.budgetOtherMonth,
+        color: theme.pageTextLight,
         '& .hover-visible': {
           opacity: 0,
           transition: 'opacity .25s',
