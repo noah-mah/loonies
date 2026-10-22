@@ -8,6 +8,12 @@ import type {
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
 
+import { useBudgetCategoryFilter } from '#components/app-header/BudgetCategoryFilterContext';
+import {
+  categoryMatchesFilter,
+  EMPTY_CATEGORY_BUDGET_NUMBERS,
+} from '#components/app-header/categoryFilter';
+import { useCategoryBudgetStatuses } from '#components/app-header/useCategoryBudgetStatuses';
 import { DropHighlightPosContext } from '#components/sort';
 import type { DragState, OnDropCallback } from '#components/sort';
 import { Row } from '#components/table';
@@ -88,6 +94,18 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
     const [newCategoryForGroup, setNewCategoryForGroup] = useState<
       string | null
     >(null);
+    const { filter } = useBudgetCategoryFilter();
+    const categoryIds = useMemo(
+      () =>
+        categoryGroups.flatMap(group =>
+          (group.categories ?? []).map(category => category.id),
+        ),
+      [categoryGroups],
+    );
+    const categoryStatuses = useCategoryBudgetStatuses(
+      categoryIds,
+      filter !== 'all',
+    );
     const items: BudgetItem[] = useMemo(() => {
       const [expenseGroups, incomeGroup] = separateGroups(categoryGroups);
 
@@ -98,9 +116,24 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
             return [];
           }
 
-          const groupCategories = group.categories?.filter(
-            cat => showHiddenCategories || !cat.hidden,
-          );
+          const groupCategories = (group.categories ?? []).filter(category => {
+            if (!showHiddenCategories && category.hidden) {
+              return false;
+            }
+
+            return categoryMatchesFilter(
+              filter,
+              categoryStatuses[category.id] ?? EMPTY_CATEGORY_BUDGET_NUMBERS,
+            );
+          });
+
+          if (
+            filter !== 'all' &&
+            groupCategories.length === 0 &&
+            newCategoryForGroup !== group.id
+          ) {
+            return [];
+          }
 
           const items: BudgetItem[] = [
             { type: 'expense-group', value: { ...group } },
@@ -110,12 +143,12 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
             items.push({ type: 'new-category' });
           }
 
+          const isCollapsed =
+            filter === 'all' && collapsedGroupIds.includes(group.id);
+
           return [
             ...items,
-            ...(collapsedGroupIds.includes(group.id)
-              ? []
-              : groupCategories || []
-            ).map((cat): BudgetItem => ({
+            ...(isCollapsed ? [] : groupCategories).map((cat): BudgetItem => ({
               type: 'expense-category',
               value: cat,
               group,
@@ -138,16 +171,37 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
           incomeCategoryItems.push({ type: 'new-category' });
         }
 
+        const incomeCategories = (incomeGroup.categories ?? []).filter(
+          category => {
+            if (!showHiddenCategories && category.hidden) {
+              return false;
+            }
+
+            return categoryMatchesFilter(
+              filter,
+              categoryStatuses[category.id] ?? EMPTY_CATEGORY_BUDGET_NUMBERS,
+            );
+          },
+        );
+
+        if (
+          filter !== 'all' &&
+          incomeCategories.length === 0 &&
+          newCategoryForGroup !== incomeGroup.id
+        ) {
+          return items;
+        }
+
+        const isIncomeCollapsed =
+          filter === 'all' && collapsedGroupIds.includes(incomeGroup.id);
+
         incomeCategoryItems.push(
-          ...(collapsedGroupIds.includes(incomeGroup.id)
-            ? []
-            : incomeGroup.categories?.filter(
-                cat => showHiddenCategories || !cat.hidden,
-              ) || []
-          ).map((cat): BudgetItem => ({
-            type: 'income-category',
-            value: cat,
-          })),
+          ...(isIncomeCollapsed ? [] : incomeCategories).map(
+            (cat): BudgetItem => ({
+              type: 'income-category',
+              value: cat,
+            }),
+          ),
         );
 
         items = items.concat(incomeCategoryItems);
@@ -156,7 +210,9 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
       return items;
     }, [
       categoryGroups,
+      categoryStatuses,
       collapsedGroupIds,
+      filter,
       newCategoryForGroup,
       isAddingGroup,
       showHiddenCategories,

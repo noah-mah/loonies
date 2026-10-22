@@ -12,13 +12,10 @@ import { View } from '@actual-app/components/view';
 import { css } from '@emotion/css';
 
 import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { hasMacOSWindowButtons } from '#components/sidebar/SidebarShell';
 import { useDispatch } from '#redux';
 
 import { SidebarBudgetName } from './SidebarBudgetName';
 import { SyncStatusLine } from './SyncStatusLine';
-
-const MAC_WINDOW_BUTTONS_INSET = spacing.xl + spacing.md;
 
 type SidebarHeaderProps = {
   children?: ReactNode;
@@ -36,9 +33,6 @@ export function SidebarHeader({ children }: SidebarHeaderProps) {
         alignItems: 'center',
         gap: spacing.sm,
         padding: `${spacing.md}px ${spacing.md}px ${spacing.sm}px`,
-        paddingTop: hasMacOSWindowButtons()
-          ? MAC_WINDOW_BUTTONS_INSET
-          : spacing.md,
         borderBottom: `1px solid ${theme.sidebarBorder}`,
         // Soft header edge so the light sidebar reads as one panel (Paper).
         backgroundColor: theme.sidebarBackground,
