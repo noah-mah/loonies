@@ -16,8 +16,26 @@ type PaymentLink = {
 type CardActivity = {
   category: string;
   month: number;
+  purchases: number | null;
+  refunds: number | null;
+};
+
+type MonthAmount = {
+  month: number;
   amount: number | null;
 };
+
+// Positive amounts categorized to a spending category are refunds. They are
+// kept out of that category's balance and sent to the card or to To Budget.
+export const excludedExpenseRefundSql = `
+  AND NOT (
+    IFNULL(c.is_income, 0) = 0
+    AND t.amount > 0
+    AND t.transfer_id IS NULL
+    AND IFNULL(t.starting_balance_flag, 0) = 0
+    AND IFNULL(t.is_parent, 0) = 0
+  )
+`;
 
 type AmountRow = {
   amount: number | null;
@@ -346,71 +364,121 @@ function coveredActivity(
   const paymentIds = new Set(listPaymentCategoryIds());
   const currentMonth = yyyymmFromSheet(sheetName);
   const activity = db.runQuery<CardActivity>(
-    `SELECT category, date / 100 AS month, SUM(amount) AS amount
+    `SELECT t.category AS category,
+            t.date / 100 AS month,
+            SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) AS purchases,
+            SUM(
+              CASE
+                WHEN t.amount > 0
+                 AND t.transfer_id IS NULL
+                 AND IFNULL(t.starting_balance_flag, 0) = 0
+                 AND IFNULL(c.is_income, 0) = 0
+                THEN t.amount
+                ELSE 0
+              END
+            ) AS refunds
+       FROM v_transactions_internal_alive t
+       LEFT JOIN categories c ON c.id = t.category
+      WHERE t.date <= ?
+        AND t.account = ?
+        AND t.category IS NOT NULL
+        AND IFNULL(t.is_parent, 0) = 0
+      GROUP BY t.category, t.date / 100`,
+    [end, accountId],
+    true,
+  );
+  const paymentRows = db.runQuery<MonthAmount>(
+    `SELECT date / 100 AS month, SUM(amount) AS amount
        FROM v_transactions_internal_alive
       WHERE date <= ?
         AND account = ?
-        AND category IS NOT NULL
+        AND transfer_id IS NOT NULL
+        AND amount > 0
         AND IFNULL(is_parent, 0) = 0
-      GROUP BY category, date / 100`,
+      GROUP BY date / 100`,
     [end, accountId],
     true,
   );
 
-  const byCategory = new Map<string, Map<number, number>>();
+  const purchasesByMonth = new Map<number, Map<string, number>>();
+  const refundsByMonth = new Map<number, number>();
   for (const row of activity) {
     if (paymentIds.has(row.category)) {
       continue;
     }
-    const months = byCategory.get(row.category) ?? new Map<number, number>();
-    months.set(row.month, row.amount || 0);
-    byCategory.set(row.category, months);
+    const purchases = row.purchases || 0;
+    if (purchases < 0) {
+      const categories =
+        purchasesByMonth.get(row.month) ?? new Map<string, number>();
+      categories.set(row.category, purchases);
+      purchasesByMonth.set(row.month, categories);
+    }
+    const refunds = row.refunds || 0;
+    if (refunds > 0) {
+      refundsByMonth.set(
+        row.month,
+        (refundsByMonth.get(row.month) ?? 0) + refunds,
+      );
+    }
   }
 
-  let covered = 0;
-  for (const [categoryId, months] of byCategory) {
-    covered += categoryCoveredThisMonth(categoryId, months, currentMonth);
+  const paymentsByMonth = new Map<number, number>();
+  for (const row of paymentRows) {
+    paymentsByMonth.set(row.month, row.amount || 0);
   }
 
-  return safeNumber(covered);
+  return safeNumber(
+    cardCoveredThisMonth(
+      currentMonth,
+      purchasesByMonth,
+      refundsByMonth,
+      paymentsByMonth,
+    ),
+  );
 }
 
-// Net card spending this month moves the funded part into the reserve.
-// A net refund moves that money back, but only as far as this category's
-// earlier funded card spending. Unfunded debt that is later refunded never
-// entered the reserve, so it does not push available for payment negative.
-function categoryCoveredThisMonth(
-  categoryId: string,
-  months: Map<number, number>,
+// Funded purchases move into available for payment. A refund stays there
+// instead of going back to its category. If that money was already paid to
+// the card, the refund is added again so the credit shows up on the card.
+function cardCoveredThisMonth(
   currentMonth: number,
+  purchasesByMonth: Map<number, Map<string, number>>,
+  refundsByMonth: Map<number, number>,
+  paymentsByMonth: Map<number, number>,
 ): number {
-  let fundedNet = 0;
+  const months = [
+    ...new Set<number>([
+      ...purchasesByMonth.keys(),
+      ...refundsByMonth.keys(),
+      ...paymentsByMonth.keys(),
+    ]),
+  ]
+    .filter(month => month <= currentMonth)
+    .sort((a, b) => a - b);
 
-  for (const month of [...months.keys()].sort((a, b) => a - b)) {
-    if (month > currentMonth) {
-      continue;
+  let additions = 0;
+  let payments = 0;
+
+  for (const month of months) {
+    let funded = 0;
+    for (const [categoryId, purchases] of purchasesByMonth.get(month) ?? []) {
+      funded += fundedPortion(categoryId, month, purchases);
     }
 
-    const net = months.get(month) ?? 0;
-    if (net === 0) {
-      continue;
+    // Payments in the same month are treated as already sent, so a refund
+    // that month is new credit on the card rather than money still set aside.
+    const reserve = Math.max(
+      0,
+      additions + funded - payments - (paymentsByMonth.get(month) ?? 0),
+    );
+    const extraRefund = Math.max(0, (refundsByMonth.get(month) ?? 0) - reserve);
+    const monthCovered = funded + extraRefund;
+    if (month === currentMonth) {
+      return monthCovered;
     }
 
-    const isCurrent = month === currentMonth;
-    if (net < 0) {
-      const funded = fundedPortion(categoryId, month, net);
-      if (isCurrent) {
-        return funded;
-      }
-      fundedNet += funded;
-      continue;
-    }
-
-    const reversed = Math.min(net, fundedNet);
-    if (isCurrent) {
-      return -reversed;
-    }
-    fundedNet -= reversed;
+    additions += monthCovered;
+    payments += paymentsByMonth.get(month) ?? 0;
   }
 
   return 0;
@@ -464,6 +532,41 @@ function previousYyyymm(yyyymm: number): number {
 
 function yyyymmFromSheet(sheetName: string): number {
   return parseInt(sheetName.slice('budget'.length), 10);
+}
+
+export function createCashRefundCell(sheetName: string): void {
+  const { start, end } = boundsForSheet(sheetName);
+  sheet.get().createDynamic(sheetName, 'cash-refunds', {
+    initialValue: 0,
+    run: () => cashRefunds(start, end),
+  });
+}
+
+export function recomputeCashRefunds(month: string): void {
+  const name = resolveName(monthUtils.sheetForMonth(month), 'cash-refunds');
+  if (sheet.get().hasCell(name)) {
+    sheet.get().recompute(name);
+  }
+}
+
+function cashRefunds(start: number, end: number): number {
+  const rows = db.runQuery<AmountRow>(
+    `SELECT SUM(t.amount) AS amount
+       FROM v_transactions_internal_alive t
+       JOIN accounts a ON a.id = t.account
+       JOIN categories c ON c.id = t.category
+      WHERE t.date >= ? AND t.date <= ?
+        AND a.offbudget = 0
+        AND a.payment_category IS NULL
+        AND IFNULL(c.is_income, 0) = 0
+        AND t.amount > 0
+        AND t.transfer_id IS NULL
+        AND IFNULL(t.starting_balance_flag, 0) = 0
+        AND IFNULL(t.is_parent, 0) = 0`,
+    [start, end],
+    true,
+  );
+  return rows[0]?.amount || 0;
 }
 
 function transferPayments(
