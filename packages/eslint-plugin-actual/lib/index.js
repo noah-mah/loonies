@@ -18,5 +18,6 @@ module.exports = eslintCompatPlugin({
     'prefer-subpath-imports': require('./rules/prefer-subpath-imports'),
     'enforce-boundaries': require('./rules/enforce-boundaries'),
     'no-extraneous-dependencies': require('./rules/no-extraneous-dependencies'),
+    'prefer-lucide-icons': require('./rules/prefer-lucide-icons'),
   },
 });
