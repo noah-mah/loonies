@@ -193,4 +193,168 @@ describe('credit and debt payment categories', () => {
       sheet.getCellValue(sheetName, `debt-balance-${cardCategoryId}`),
     ).toBe(0);
   });
+
+  it('moves a refund back out of available for payment', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName, date } =
+      await setupBudget();
+
+    await setBudget({ category: groceriesId, month, amount: 2000 });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -600,
+      category: groceriesId,
+      date,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    const nextMonth = monthUtils.nextMonth(month);
+    const nextSheet = monthUtils.sheetForMonth(nextMonth);
+    await db.insertTransaction({
+      account: 'amex',
+      amount: 200,
+      category: groceriesId,
+      date: `${nextMonth}-10`,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(nextSheet, `leftover-${cardCategoryId}`)).toBe(
+      400,
+    );
+    expect(sheet.getCellValue(nextSheet, `leftover-${groceriesId}`)).toBe(1600);
+    expect(sheet.getCellValue(nextSheet, 'to-budget')).toBe(
+      sheet.getCellValue(sheetName, 'to-budget'),
+    );
+  });
+
+  it('does not take a refund of unfunded spending out of available for payment', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName } =
+      await setupBudget();
+
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -600,
+      category: groceriesId,
+      date: `${month}-10`,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    const nextMonth = monthUtils.nextMonth(month);
+    const nextSheet = monthUtils.sheetForMonth(nextMonth);
+    await db.insertTransaction({
+      account: 'amex',
+      amount: 200,
+      category: groceriesId,
+      date: `${nextMonth}-10`,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(sheetName, `leftover-${cardCategoryId}`)).toBe(0);
+    expect(sheet.getCellValue(nextSheet, `leftover-${cardCategoryId}`)).toBe(0);
+    expect(sheet.getCellValue(nextSheet, `sum-amount-${groceriesId}`)).toBe(
+      200,
+    );
+  });
+
+  it('lets a refund after the card was paid make available for payment negative', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName, date } =
+      await setupBudget();
+
+    await setBudget({ category: groceriesId, month, amount: 2000 });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -600,
+      category: groceriesId,
+      date,
+    });
+    const cardPaymentId = await db.insertTransaction({
+      account: 'amex',
+      amount: 600,
+      date,
+      transfer_id: 'paid-checking',
+    });
+    await db.insertTransaction({
+      id: 'paid-checking',
+      account: 'checking',
+      amount: -600,
+      date,
+      transfer_id: cardPaymentId,
+    });
+    await sheet.waitOnSpreadsheet();
+    expect(sheet.getCellValue(sheetName, `leftover-${cardCategoryId}`)).toBe(0);
+
+    const nextMonth = monthUtils.nextMonth(month);
+    const nextSheet = monthUtils.sheetForMonth(nextMonth);
+    const toBudget = sheet.getCellValue(nextSheet, 'to-budget');
+    await db.insertTransaction({
+      account: 'amex',
+      amount: 600,
+      category: groceriesId,
+      date: `${nextMonth}-12`,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(nextSheet, `leftover-${cardCategoryId}`)).toBe(
+      -600,
+    );
+    expect(sheet.getCellValue(nextSheet, `leftover-${groceriesId}`)).toBe(2000);
+    expect(sheet.getCellValue(nextSheet, 'to-budget')).toBe(toBudget);
+  });
+
+  it('carries a payment larger than the amount set aside as a negative balance', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName, date } =
+      await setupBudget();
+
+    await setBudget({ category: groceriesId, month, amount: 2000 });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -600,
+      category: groceriesId,
+      date,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    const toBudget = sheet.getCellValue(sheetName, 'to-budget');
+    const cardPaymentId = await db.insertTransaction({
+      account: 'amex',
+      amount: 1000,
+      date,
+      transfer_id: 'overpay-checking',
+    });
+    await db.insertTransaction({
+      id: 'overpay-checking',
+      account: 'checking',
+      amount: -1000,
+      date,
+      transfer_id: cardPaymentId,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(sheetName, `leftover-${cardCategoryId}`)).toBe(
+      -400,
+    );
+    expect(sheet.getCellValue(sheetName, 'to-budget')).toBe(toBudget);
+    expect(sheet.getCellValue(sheetName, `leftover-${groceriesId}`)).toBe(1400);
+
+    const nextMonth = monthUtils.nextMonth(month);
+    const nextSheet = monthUtils.sheetForMonth(nextMonth);
+    expect(sheet.getCellValue(nextSheet, `leftover-${cardCategoryId}`)).toBe(
+      -400,
+    );
+
+    await setBudget({
+      category: cardCategoryId,
+      month: nextMonth,
+      amount: 400,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(nextSheet, `leftover-${cardCategoryId}`)).toBe(0);
+    expect(sheet.getCellValue(nextSheet, 'to-budget')).toBe(
+      numberValue(toBudget) - 400,
+    );
+  });
 });
+
+function numberValue(value: string | number | boolean): number {
+  return typeof value === 'number' ? value : 0;
+}

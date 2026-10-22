@@ -14,6 +14,7 @@ import {
   ensurePaymentCategories,
   installPaymentCategory,
   isPaymentCategory,
+  recomputeLaterCoverage,
   recomputePaymentCellsForTransaction,
   uninstallPaymentCategory,
 } from './payment';
@@ -242,6 +243,15 @@ function handleBudgetMonthChange(budget) {
   sheet.get().set(`${sheetName}!buffered`, budget.buffered);
 }
 
+function monthStringFromBudget(month) {
+  const text = String(month);
+  if (text.includes('-')) {
+    return text;
+  }
+  const padded = text.padStart(6, '0');
+  return `${padded.slice(0, 4)}-${padded.slice(4)}`;
+}
+
 function handleBudgetChange(budget) {
   if (budget.category) {
     const sheetName = monthUtils.sheetForMonth(budget.month.toString());
@@ -255,6 +265,9 @@ function handleBudgetChange(budget) {
         isPaymentCategory(budget.category) ? true : budget.carryover === 1,
       );
     sheet.get().set(`${sheetName}!goal-${budget.category}`, budget.goal);
+    if (getBudgetType() === 'envelope') {
+      recomputeLaterCoverage(monthStringFromBudget(budget.month));
+    }
     sheet
       .get()
       .set(`${sheetName}!long-goal-${budget.category}`, budget.long_goal);
