@@ -6,17 +6,18 @@ import { css, keyframes } from '@emotion/css';
 import { SvgLoading } from './Loading';
 
 const rotation = keyframes({
-  '0%': { transform: 'rotate(-90deg)' },
-  '100%': { transform: 'rotate(666deg)' },
+  '0%': { transform: 'rotate(0deg)' },
+  '100%': { transform: 'rotate(360deg)' },
 });
 
 export function AnimatedLoading(props: SVGProps<SVGSVGElement>) {
   return (
     <span
       className={css({
+        display: 'inline-flex',
         animationName: rotation,
-        animationDuration: '1.6s',
-        animationTimingFunction: 'cubic-bezier(0.17, 0.67, 0.83, 0.67)',
+        animationDuration: '1s',
+        animationTimingFunction: 'linear',
         animationIterationCount: 'infinite',
         lineHeight: 0,
       })}
