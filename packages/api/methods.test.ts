@@ -1383,10 +1383,10 @@ describe('API preferences: setPreference', () => {
 
   // apis: setPreference
   test('can set feature flag preferences', async () => {
-    await api.setPreference('flags.newSidebarUI', 'true');
+    await api.setPreference('flags.formulaMode', 'true');
 
     const preferences = await api.getPreferences();
-    expect(preferences['flags.newSidebarUI']).toBe('true');
+    expect(preferences['flags.formulaMode']).toBe('true');
   });
 
   // apis: setPreference

@@ -13,13 +13,13 @@ import { MobileTransactionEntryPage } from './mobile-transaction-entry-page';
 import { SettingsPage } from './settings-page';
 
 const NAVBAR_ROWS = 2;
-const NAV_LINKS_HIDDEN_BY_DEFAULT = ['Reports', 'Schedules', 'Settings'];
+const NAV_LINKS_HIDDEN_BY_DEFAULT = ['Reports', 'Automations', 'Settings'];
 const ROUTES_BY_PAGE = {
   Budget: '/budget',
   Accounts: '/accounts',
   Transaction: '/transactions/new',
   Reports: '/reports',
-  Schedules: '/schedules',
+  Automations: '/schedules',
   Settings: '/settings',
 };
 
@@ -179,7 +179,7 @@ export class MobileNavigation {
 
   async goToSchedulesPage() {
     return this.navigateToPage(
-      'Schedules',
+      'Automations',
       () => new MobileSchedulesPage(this.page),
     );
   }

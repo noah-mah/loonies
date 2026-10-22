@@ -127,6 +127,7 @@ const sidebars = {
             id: 'accounts/index',
           },
           items: [
+            'accounts/sidebar',
             'accounts/reconciliation',
             {
               type: 'category',
@@ -217,7 +218,6 @@ const sidebars = {
             'experimental/budget-analysis-report',
             'experimental/monte-carlo-analysis',
             'experimental/sankey-report',
-            'experimental/redesigned-sidebar',
           ],
         },
       ],

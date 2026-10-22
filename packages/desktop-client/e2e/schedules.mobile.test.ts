@@ -38,7 +38,7 @@ test.describe('Mobile Schedules', () => {
 
     // Check that the header is present
     await expect(
-      page.getByRole('heading', { name: 'Schedules' }),
+      page.getByRole('heading', { name: 'Automations' }),
     ).toBeVisible();
 
     // Check that the add button is present

@@ -12,7 +12,7 @@ export class MobileSchedulesPage {
     this.page = page;
     this.searchBox = page.getByPlaceholder('Filter schedules…');
     this.addButton = page.getByRole('button', { name: 'Add new schedule' });
-    this.schedulesList = page.getByRole('grid', { name: 'Schedules' });
+    this.schedulesList = page.getByRole('grid', { name: 'Automations' });
     this.emptyMessage = page.getByText(
       'No schedules found. Create your first schedule to get started!',
     );

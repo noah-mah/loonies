@@ -95,7 +95,7 @@ export function SchedulesList({
         }}
       >
         <GridList
-          aria-label={t('Schedules')}
+          aria-label={t('Automations')}
           aria-busy={isLoading || undefined}
           items={listItems}
           style={{

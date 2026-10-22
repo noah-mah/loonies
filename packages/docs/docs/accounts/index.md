@@ -18,7 +18,7 @@ You can add an account to your budget at any time, however when you first instal
 
 ![A new, empty budget with the Add account button in the middle of the accounts page](/img/accounts/accounts-add-account@2x.webp)
 
-You can also add an account using the `+ Add account` button in the sidebar.
+You can also add an account using the **Add account** control in the [sidebar](./sidebar.md).
 
 Two successive screens will appear with boxes asking you to fill in a few options.
 
