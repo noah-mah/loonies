@@ -399,7 +399,7 @@ describe('ComponentName', () => {
 - `packages/desktop-client/src/hooks/` - Custom React hooks
 - `packages/desktop-client/e2e/` - End-to-end tests
 - `packages/component-library/src/` - Reusable components
-- `packages/component-library/src/icons/` - Icon components (auto-generated, don't edit)
+- `packages/component-library/src/icons/` - Icon components (Lucide-backed via `createLucideIcon`; regenerate with `yarn workspace @actual-app/components run generate:icons`)
 - `packages/docs/docs/` - Documentation source files (Markdown)
 - `packages/docs/docs/contributing/` - Developer documentation
 
@@ -447,7 +447,7 @@ yarn workspace @actual-app/web run playwright test --headed --debug accounts.tes
 
 ### Working with Icons
 
-Icons in `packages/component-library/src/icons/` are auto-generated. Don't manually edit them.
+UI icons under `packages/component-library/src/icons/{v0,v1,v2}` are thin wrappers around [Lucide](https://lucide.dev) icons (`lucide-react`). Update mappings in `packages/component-library/scripts/generate-lucide-icons.mjs` and run `yarn workspace @actual-app/components run generate:icons`. Keep `icons/logo` as the Actual brand mark.
 
 ## Troubleshooting
 

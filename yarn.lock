@@ -89,15 +89,13 @@ __metadata:
     "@storybook/addon-a11y": "npm:^10.6.2"
     "@storybook/addon-docs": "npm:^10.6.2"
     "@storybook/react-vite": "npm:^10.6.2"
-    "@svgr/babel-plugin-add-jsx-attribute": "npm:^8.0.0"
-    "@svgr/cli": "npm:^8.1.0"
-    "@svgr/core": "npm:^8.1.0"
     "@testing-library/react": "npm:16.3.3"
     "@types/react": "npm:^19.3.0"
     "@typescript/native-preview": "npm:beta"
     "@vitejs/plugin-react": "npm:^6.1.2"
     babel-plugin-react-compiler: "npm:^1.0.0"
     eslint-plugin-storybook: "npm:^10.6.2"
+    lucide-react: "npm:^1.59.0"
     react: "npm:19.3.0"
     react-aria-components: "npm:^1.22.1"
     react-dom: "npm:19.3.0"
@@ -7923,7 +7921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0, @svgr/babel-plugin-add-jsx-attribute@npm:^8.0.0":
+"@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
   peerDependencies:
@@ -8013,27 +8011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@svgr/cli@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "@svgr/cli@npm:8.1.0"
-  dependencies:
-    "@svgr/core": "npm:8.1.0"
-    "@svgr/plugin-jsx": "npm:8.1.0"
-    "@svgr/plugin-prettier": "npm:8.1.0"
-    "@svgr/plugin-svgo": "npm:8.1.0"
-    camelcase: "npm:^6.2.0"
-    chalk: "npm:^4.1.2"
-    commander: "npm:^9.4.1"
-    dashify: "npm:^2.0.0"
-    glob: "npm:^8.0.3"
-    snake-case: "npm:^3.0.4"
-  bin:
-    svgr: bin/svgr
-  checksum: 10/b3478ebcbc3783160b548af5bfe352decdf6255b54d9256b752b2fabc296d743d55805eb596b82110e482b176fc3eab9ad91f979e92a505f224b27c1b9e3dbb1
-  languageName: node
-  linkType: hard
-
-"@svgr/core@npm:8.1.0, @svgr/core@npm:^8.1.0":
+"@svgr/core@npm:8.1.0":
   version: 8.1.0
   resolution: "@svgr/core@npm:8.1.0"
   dependencies:
@@ -8067,18 +8045,6 @@ __metadata:
   peerDependencies:
     "@svgr/core": "*"
   checksum: 10/0418a9780753d3544912ee2dad5d2cf8d12e1ba74df8053651b3886aeda54d5f0f7d2dece0af5e0d838332c4f139a57f0dabaa3ca1afa4d1a765efce6a7656f2
-  languageName: node
-  linkType: hard
-
-"@svgr/plugin-prettier@npm:8.1.0":
-  version: 8.1.0
-  resolution: "@svgr/plugin-prettier@npm:8.1.0"
-  dependencies:
-    deepmerge: "npm:^4.3.1"
-    prettier: "npm:^2.8.7"
-  peerDependencies:
-    "@svgr/core": "*"
-  checksum: 10/834373d7d34906cfa67191933153c8c71bb5c13eff71e113730c8642b2abcce136cb0e1869d52642fe305593a84c1d54d39543f24091f6b8a2620c1333691638
   languageName: node
   linkType: hard
 
@@ -12082,13 +12048,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^9.4.1":
-  version: 9.5.0
-  resolution: "commander@npm:9.5.0"
-  checksum: 10/41c49b3d0f94a1fbeb0463c85b13f15aa15a9e0b4d5e10a49c0a1d58d4489b549d62262b052ae0aa6cfda53299bee487bfe337825df15e342114dde543f82906
-  languageName: node
-  linkType: hard
-
 "comment-json@npm:^3.0.3":
   version: 3.0.3
   resolution: "comment-json@npm:3.0.3"
@@ -13272,13 +13231,6 @@ __metadata:
     d3: "npm:^7.9.0"
     lodash-es: "npm:^4.17.21"
   checksum: 10/f2787049ae2684de27950dfc61eb23437cbb5c3ca7ec7f58620e19f16059465b6d23324ca861961353a60bb4cdaa5c66edfa9bbe44ac2304b72dd00ab4199714
-  languageName: node
-  linkType: hard
-
-"dashify@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "dashify@npm:2.0.0"
-  checksum: 10/f13233f38fc39ea8dabe3a5bef51421906aa8a52e4403fcb56e3e6464428f5c0bdd75562706929a245c698bceccf68a82e30e9e327a0c582469868522a163f8c
   languageName: node
   linkType: hard
 
@@ -16067,19 +16019,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^8.0.3":
-  version: 8.1.0
-  resolution: "glob@npm:8.1.0"
-  dependencies:
-    fs.realpath: "npm:^1.0.0"
-    inflight: "npm:^1.0.4"
-    inherits: "npm:2"
-    minimatch: "npm:^5.0.1"
-    once: "npm:^1.3.0"
-  checksum: 10/9aab1c75eb087c35dbc41d1f742e51d0507aa2b14c910d96fb8287107a10a22f4bbdce26fc0a3da4c69a20f7b26d62f1640b346a4f6e6becfff47f335bb1dc5e
-  languageName: node
-  linkType: hard
-
 "global-agent@npm:^3.0.0":
   version: 3.0.0
   resolution: "global-agent@npm:3.0.0"
@@ -18849,6 +18788,19 @@ __metadata:
   dependencies:
     yallist: "npm:^4.0.0"
   checksum: 10/fc1fe2ee205f7c8855fa0f34c1ab0bcf14b6229e35579ec1fd1079f31d6fc8ef8eb6fd17f2f4d99788d7e339f50e047555551ebd5e434dda503696e7c6591825
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:^1.59.0":
+  version: 1.59.0
+  resolution: "lucide-react@npm:1.59.0"
+  peerDependencies:
+    "@types/react": "*"
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/12aa2440f23a94a6bcbff1ce37e8a771d567cdd9fa79b9c0de2d6f3867c647b2827d2b9361a3bd0e9a4847151a553f461a59c0eb0f2441b745a2820ad8ab0309
   languageName: node
   linkType: hard
 
@@ -22862,15 +22814,6 @@ __metadata:
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
   checksum: 10/0b9d2c76801ca652a7f64892dd37b7e3fab149a37d2424920099bf894acccc62abb4424af2155ab36dea8744843060a2d8ddc983518d0b1e22265a22324b72ed
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^2.8.7":
-  version: 2.8.8
-  resolution: "prettier@npm:2.8.8"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 10/00cdb6ab0281f98306cd1847425c24cbaaa48a5ff03633945ab4c701901b8e96ad558eb0777364ffc312f437af9b5a07d0f45346266e8245beaf6247b9c62b24
   languageName: node
   linkType: hard
 
