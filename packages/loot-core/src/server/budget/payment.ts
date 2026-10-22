@@ -195,8 +195,8 @@ function recomputePaymentCategoryFrom(
     return;
   }
 
-  // The current month shows the live balance, so a later-dated transaction
-  // still has to refresh it. Every other month stops at that month's end.
+  // This month and every later month show the live balance, so a transaction
+  // in any of them has to refresh all of them. A past month stops at its end.
   const months = new Set<string>();
   for (const createdMonth of createdMonths) {
     if (createdMonth >= fromMonth) {
@@ -206,8 +206,8 @@ function recomputePaymentCategoryFrom(
   if (!options.coveredOnly) {
     const current = monthUtils.currentMonth();
     for (const createdMonth of createdMonths) {
-      if (createdMonth === current) {
-        months.add(current);
+      if (createdMonth >= current) {
+        months.add(createdMonth);
       }
     }
   }
@@ -630,10 +630,10 @@ function transferPayments(
 
 function accountBalance(accountId: string, sheetName: string): number {
   const month = `${sheetName.slice('budget'.length, 'budget'.length + 4)}-${sheetName.slice('budget'.length + 4)}`;
-  const isCurrentMonth = month === monthUtils.currentMonth();
+  const isPastMonth = month < monthUtils.currentMonth();
   const params: Array<string | number> = [accountId];
   let throughMonthEnd = '';
-  if (!isCurrentMonth) {
+  if (isPastMonth) {
     throughMonthEnd = 'AND date <= ?';
     params.push(boundsForSheet(sheetName).end);
   }

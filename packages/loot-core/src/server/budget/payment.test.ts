@@ -387,7 +387,7 @@ describe('credit and debt payment categories', () => {
     );
   });
 
-  it('shows the live balance this month and the month-end balance in other months', async () => {
+  it('shows the month-end balance in past months and the live balance from this month on', async () => {
     const { groceriesId, cardCategoryId, month, sheetName } =
       await setupBudget();
     const previousMonth = monthUtils.prevMonth(month);
@@ -434,7 +434,7 @@ describe('credit and debt payment categories', () => {
         monthUtils.sheetForMonth(nextMonth),
         `debt-balance-${cardCategoryId}`,
       ),
-    ).toBe(-1650);
+    ).toBe(-1730);
     expect(
       sheet.getCellValue(
         monthUtils.sheetForMonth(laterMonth),
