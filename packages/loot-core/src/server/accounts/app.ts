@@ -136,6 +136,7 @@ async function getAccounts(): Promise<AccountEntity[]> {
         bank_sync_status: dbAccount.bank_sync_status ?? null,
         account_group_id: dbAccount.account_group_id ?? null,
         payment_category: dbAccount.payment_category ?? null,
+        loan_category: dbAccount.loan_category ?? null,
       }) satisfies AccountEntity,
   );
 }
@@ -555,6 +556,12 @@ async function linkEnableBankingAccount({
 }
 
 const CREDIT_CARD_GROUP_NAME = 'Credit Cards';
+const DEBT_PAYMENT_GROUP_NAME = 'Debt Payments';
+
+type LoanCategoryChoice =
+  | { mode: 'none' }
+  | { mode: 'existing'; categoryId: string }
+  | { mode: 'new'; name?: string };
 
 async function ensureCreditCardGroup(): Promise<string> {
   const existing = await db.first<{ id: string }>(
@@ -616,18 +623,89 @@ async function linkCreditCard(id: AccountEntity['id']): Promise<void> {
   await db.updateAccount({ id, payment_category: categoryId });
 }
 
+async function ensureDebtPaymentGroup(): Promise<string> {
+  const existing = await db.first<{ id: string }>(
+    `SELECT id FROM category_groups
+      WHERE tombstone = 0
+        AND IFNULL(is_income, 0) = 0
+        AND UPPER(name) = ?
+      LIMIT 1`,
+    [DEBT_PAYMENT_GROUP_NAME.toUpperCase()],
+  );
+  if (existing) {
+    return existing.id;
+  }
+
+  return db.insertCategoryGroup({
+    name: DEBT_PAYMENT_GROUP_NAME,
+    is_income: 0,
+  });
+}
+
+async function pairLoan(
+  id: AccountEntity['id'],
+  accountName: string,
+  loanCategory: LoanCategoryChoice,
+): Promise<void> {
+  if (loanCategory.mode === 'none') {
+    return;
+  }
+
+  if (loanCategory.mode === 'existing') {
+    const category = await db.first<{ id: string }>(
+      `SELECT c.id FROM categories c
+        WHERE c.id = ?
+          AND c.tombstone = 0
+          AND IFNULL(c.is_income, 0) = 0
+          AND NOT EXISTS (
+            SELECT 1 FROM accounts a
+             WHERE a.payment_category = c.id
+               AND IFNULL(a.tombstone, 0) = 0
+          )`,
+      [loanCategory.categoryId],
+    );
+    if (!category) {
+      throw new Error('Choose an expense category to pair with this loan.');
+    }
+    await db.updateAccount({ id, loan_category: category.id });
+    return;
+  }
+
+  const name = loanCategory.name?.trim() || accountName;
+  const groupId = await ensureDebtPaymentGroup();
+  const existingCategory = await db.first<{ id: string }>(
+    `SELECT id FROM categories
+      WHERE cat_group = ?
+        AND UPPER(name) = ?
+        AND tombstone = 0
+      LIMIT 1`,
+    [groupId, name.toUpperCase()],
+  );
+  const categoryId = existingCategory
+    ? existingCategory.id
+    : await db.insertCategory({
+        name,
+        cat_group: groupId,
+        is_income: 0,
+      });
+
+  await db.updateAccount({ id, loan_category: categoryId });
+}
+
 async function createAccount({
   name,
   balance = 0,
   offBudget = false,
   closed = false,
   kind = 'cash',
+  loanCategory = { mode: 'none' },
 }: {
   name: string;
   balance?: number | undefined;
   offBudget?: boolean | undefined;
   closed?: boolean | undefined;
   kind?: 'cash' | 'credit' | 'debt' | undefined;
+  loanCategory?: LoanCategoryChoice | undefined;
 }) {
   let resolvedOffBudget = offBudget;
   if (kind === 'debt') {
@@ -649,6 +727,9 @@ async function createAccount({
 
   if (kind === 'credit') {
     await linkCreditCard(id);
+  }
+  if (kind === 'debt') {
+    await pairLoan(id, name, loanCategory);
   }
 
   if (balance != null && balance !== 0) {

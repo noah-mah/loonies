@@ -38,6 +38,7 @@ export type DbAccount = {
     | null;
   account_group_id?: DbAccountGroup['id'] | null;
   payment_category?: string | null;
+  loan_category?: string | null;
 };
 
 export type DbAccountGroup = {

@@ -59,11 +59,17 @@ const dispatchErrorNotification = (
 
 type PaymentKind = 'cash' | 'credit' | 'debt';
 
+type LoanCategoryChoice =
+  | { mode: 'none' }
+  | { mode: 'existing'; categoryId: string }
+  | { mode: 'new'; name?: string };
+
 type CreateAccountPayload = {
   name: string;
   balance: number;
   offBudget: boolean;
   kind?: PaymentKind;
+  loanCategory?: LoanCategoryChoice;
 };
 
 export function useCreateAccountMutation() {
@@ -77,12 +83,14 @@ export function useCreateAccountMutation() {
       balance,
       offBudget,
       kind = 'cash',
+      loanCategory = { mode: 'none' },
     }: CreateAccountPayload) => {
       const id = await send('account-create', {
         name,
         balance,
         offBudget,
         kind,
+        loanCategory,
       });
       return id;
     },

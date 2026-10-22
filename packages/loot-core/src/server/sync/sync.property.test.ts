@@ -49,6 +49,7 @@ const schema = {
     closed: 'integer',
     tombstone: 'integer',
     payment_category: 'text',
+    loan_category: 'text',
   },
   transactions: {
     isParent: 'integer',

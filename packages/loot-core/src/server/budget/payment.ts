@@ -716,6 +716,7 @@ function listPaymentLinks(): PaymentLink[] {
     `SELECT id, payment_category
        FROM accounts
       WHERE payment_category IS NOT NULL
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0`,
     [],
     true,
@@ -730,6 +731,7 @@ export function getLinkedAccountId(categoryId: string): string | null {
   const rows = db.runQuery<{ id: string }>(
     `SELECT id FROM accounts
       WHERE payment_category = ?
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0
       LIMIT 1`,
     [categoryId],
@@ -742,6 +744,7 @@ function getPaymentCategoryForAccount(accountId: string): string | null {
   const rows = db.runQuery<{ payment_category: string | null }>(
     `SELECT payment_category FROM accounts
       WHERE id = ?
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0`,
     [accountId],
     true,

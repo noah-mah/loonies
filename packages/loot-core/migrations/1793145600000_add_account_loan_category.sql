@@ -1,0 +1,1 @@
+ALTER TABLE accounts ADD COLUMN loan_category TEXT DEFAULT NULL;
