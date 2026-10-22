@@ -51,6 +51,13 @@
   --color-toBudgetPositive: var(--color-numberPositive);
   --color-toBudgetZero: var(--color-numberPositive);
   --color-toBudgetNegative: var(--color-budgetNumberNegative);
+  /* Available / leftover balance pills (Paper budget restyle) */
+  --color-availableBalancePillPositiveBackground: var(--palette-green500);
+  --color-availableBalancePillPositiveText: var(--palette-white);
+  --color-availableBalancePillNegativeBackground: var(--palette-red500);
+  --color-availableBalancePillNegativeText: var(--palette-white);
+  --color-availableBalancePillZeroBackground: var(--palette-navy100);
+  --color-availableBalancePillZeroText: var(--palette-navy500);
 
   --color-sidebarBackground: var(--palette-navy900);
   --color-sidebarItemBackgroundPending: var(--palette-orange200);

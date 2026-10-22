@@ -569,6 +569,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
           }}
         >
           <BalanceWithCarryover
+            appearance="pill"
             carryover={envelopeBudget.catCarryover(category.id)}
             balance={envelopeBudget.catBalance(category.id)}
             goal={envelopeBudget.catGoal(category.id)}

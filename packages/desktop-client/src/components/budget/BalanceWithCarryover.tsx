@@ -9,7 +9,7 @@ import type {
 import { SvgArrowThinRight } from '@actual-app/components/icons/v1';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 
 import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
 import { useFeatureFlag } from '#hooks/useFeatureFlag';
@@ -17,7 +17,11 @@ import { useSheetValue } from '#hooks/useSheetValue';
 import type { Binding } from '#spreadsheet';
 
 import { GoalStatus } from './GoalStatus';
-import { makeBalanceAmountStyle } from './util';
+import {
+  availableBalancePillChrome,
+  makeAvailableBalancePillStyle,
+  makeBalanceAmountStyle,
+} from './util';
 
 type CarryoverIndicatorProps = {
   style?: CSSProperties;
@@ -73,6 +77,11 @@ type BalanceWithCarryoverProps = Omit<
   longGoal: Binding<'envelope-budget' | 'tracking-budget', 'long-goal'>;
   isDisabled?: boolean;
   shouldInlineGoalStatus?: boolean;
+  /**
+   * `pill` matches the Paper Available column: green / gray / red filled
+   * capsules by sign. Goal template colors still apply in `plain` mode.
+   */
+  appearance?: 'plain' | 'pill';
   CarryoverIndicator?: ComponentType<CarryoverIndicatorProps>;
 };
 
@@ -84,6 +93,7 @@ export function BalanceWithCarryover({
   longGoal,
   isDisabled,
   shouldInlineGoalStatus,
+  appearance = 'plain',
   CarryoverIndicator: CarryoverIndicatorComponent = CarryoverIndicator,
   children,
   ...props
@@ -104,8 +114,21 @@ export function BalanceWithCarryover({
   );
 
   const getDefaultClassName = useCallback(
-    (balanceValue: number) =>
-      css({
+    (balanceValue: number) => {
+      if (appearance === 'pill') {
+        return css({
+          ...makeAvailableBalancePillStyle(balanceValue),
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          textAlign: 'right',
+          fontWeight: 500,
+          ...(!isDisabled && {
+            cursor: 'pointer',
+          }),
+        });
+      }
+
+      return css({
         ...getBalanceAmountStyle(balanceValue),
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -114,58 +137,97 @@ export function BalanceWithCarryover({
           cursor: 'pointer',
           ':hover': { textDecoration: 'underline' },
         }),
-      }),
-    [getBalanceAmountStyle, isDisabled],
+      });
+    },
+    [appearance, getBalanceAmountStyle, isDisabled],
   );
 
   return (
     <CellValue binding={balance} type="financial" {...props}>
-      {({ type, name, value: balanceValue }) => (
-        <>
-          <View style={{ minHeight: 'auto', flexShrink: 0, maxWidth: '100%' }}>
-            {children ? (
-              children({
-                type,
-                name,
-                value: balanceValue,
-                className: getDefaultClassName(balanceValue),
-              })
-            ) : (
-              <CellValueText
-                type={type}
-                name={name}
-                value={balanceValue}
-                className={getDefaultClassName(balanceValue)}
-              />
-            )}
-          </View>
+      {({ type, name, value: balanceValue }) => {
+        // Only paint the capsule on the default (no-children) path so
+        // callers that supply their own chrome (e.g. mobile) do not double-wrap.
+        const showPillChrome = appearance === 'pill' && !children;
 
-          {carryoverValue && (
-            <CarryoverIndicatorComponent
-              style={getBalanceAmountStyle(balanceValue)}
-            />
-          )}
-          {shouldInlineGoalStatus &&
-            isGoalTemplatesEnabled &&
-            goalValue != null && (
-              <>
-                <View
+        return (
+          <>
+            <View
+              style={{
+                minHeight: 'auto',
+                flexShrink: 0,
+                maxWidth: '100%',
+                position: 'relative',
+                ...(showPillChrome
+                  ? {
+                      ...availableBalancePillChrome,
+                      ...makeAvailableBalancePillStyle(balanceValue),
+                    }
+                  : null),
+              }}
+            >
+              {children ? (
+                children({
+                  type,
+                  name,
+                  value: balanceValue,
+                  className: getDefaultClassName(balanceValue),
+                })
+              ) : (
+                <CellValueText
+                  type={type}
+                  name={name}
+                  value={balanceValue}
+                  className={cx(
+                    getDefaultClassName(balanceValue),
+                    showPillChrome &&
+                      css({
+                        backgroundColor: 'transparent',
+                        color: 'inherit',
+                      }),
+                  )}
+                />
+              )}
+              {carryoverValue && showPillChrome && (
+                <CarryoverIndicatorComponent
                   style={{
-                    borderTop: '1px solid ' + theme.tableBorderSeparator,
-                    width: '160px',
-                    margin: '3px 0px',
+                    right: 2,
+                    color: 'inherit',
                   }}
                 />
-                <GoalStatus
-                  balance={balance}
-                  goal={goal}
-                  budgeted={budgeted}
-                  longGoal={longGoal}
-                />
-              </>
+              )}
+            </View>
+
+            {carryoverValue && !showPillChrome && (
+              <CarryoverIndicatorComponent
+                style={
+                  appearance === 'pill'
+                    ? { color: 'inherit' }
+                    : getBalanceAmountStyle(balanceValue)
+                }
+              />
             )}
-        </>
-      )}
+            {shouldInlineGoalStatus &&
+              isGoalTemplatesEnabled &&
+              goalValue != null && (
+                <>
+                  <View
+                    style={{
+                      borderTop: '1px solid ' + theme.tableBorderSeparator,
+                      width: '160px',
+                      margin: '3px 0px',
+                    }}
+                  />
+                  <GoalStatus
+                    balance={balance}
+                    goal={goal}
+                    budgeted={budgeted}
+                    longGoal={longGoal}
+                  />
+                </>
+              )}
+          </>
+        );
+      }}
     </CellValue>
   );
 }
