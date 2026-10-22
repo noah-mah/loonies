@@ -52,6 +52,7 @@ import { useSyncedPref } from '#hooks/useSyncedPref';
 import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
 
 import type { TableRef } from './Account';
+import { AccountPaymentTracking } from './AccountPaymentTracking';
 import { Balances } from './Balance';
 import { BalanceHistoryGraph } from './BalanceHistoryGraph';
 import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
@@ -309,6 +310,7 @@ export function AccountHeader({
                 onSaveName={onSaveName}
               />
             </View>
+            {account && <AccountPaymentTracking account={account} />}
 
             <Balances
               balanceQuery={balanceQuery}

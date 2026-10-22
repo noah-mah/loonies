@@ -189,6 +189,8 @@ export const envelopeBudget = {
 
   catBudgeted: envelopeParametrizedField('budget'),
   catSumAmount: envelopeParametrizedField('sum-amount'),
+  catDebtBalance: envelopeParametrizedField('debt-balance'),
+  groupDebtBalance: envelopeParametrizedField('group-debt-balance'),
   catBalance: envelopeParametrizedField('leftover'),
   catCarryover: envelopeParametrizedField('carryover'),
   catGoal: envelopeParametrizedField('goal'),

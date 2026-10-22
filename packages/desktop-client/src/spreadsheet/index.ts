@@ -49,6 +49,8 @@ export type Spreadsheets = {
     'group-leftover': number;
     budget: number;
     'sum-amount': number;
+    'debt-balance': number;
+    'group-debt-balance': number;
     leftover: number;
     carryover: number;
     goal: number;

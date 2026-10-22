@@ -37,6 +37,7 @@ export type DbAccount = {
     | 'not-configured'
     | null;
   account_group_id?: DbAccountGroup['id'] | null;
+  payment_category?: string | null;
 };
 
 export type DbAccountGroup = {

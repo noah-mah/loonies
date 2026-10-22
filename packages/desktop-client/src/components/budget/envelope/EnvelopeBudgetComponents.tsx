@@ -25,6 +25,7 @@ import type { SheetCellProps } from '#components/table';
 import { useCategoryScheduleGoalTemplateIndicator } from '#hooks/useCategoryScheduleGoalTemplateIndicator';
 import { useFormat } from '#hooks/useFormat';
 import { useNavigate } from '#hooks/useNavigate';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSheetName } from '#hooks/useSheetName';
 import { useSheetValue } from '#hooks/useSheetValue';
 import { useUndo } from '#hooks/useUndo';
@@ -138,56 +139,92 @@ export function IncomeHeaderMonth() {
   );
 }
 
+const debtColumnLabelStyle: CSSProperties = {
+  flex: 1,
+  textAlign: 'right',
+  fontSize: 10,
+  lineHeight: '12px',
+  color: theme.tableHeaderText,
+};
+
 export const ExpenseGroupMonth = memo(function ExpenseGroupMonth({
   month,
   group,
 }: CategoryGroupMonthProps) {
   const { id } = group;
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const categories = group.categories ?? [];
+  const isDebtGroup =
+    categories.length > 0 &&
+    categories.every(category => paymentCategoryIds.has(category.id));
+  const backgroundColor = monthUtils.isCurrentMonth(month)
+    ? theme.budgetHeaderCurrentMonth
+    : theme.budgetHeaderOtherMonth;
 
   return (
     <View
       style={{
         flex: 1,
-        flexDirection: 'row',
-        backgroundColor: monthUtils.isCurrentMonth(month)
-          ? theme.budgetHeaderCurrentMonth
-          : theme.budgetHeaderOtherMonth,
+        flexDirection: 'column',
+        backgroundColor,
       }}
     >
-      <EnvelopeSheetCell
-        name="budgeted"
-        width="flex"
-        textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
-        valueProps={{
-          binding: envelopeBudget.groupBudgeted(id),
-          type: 'financial',
-        }}
-      />
-      <EnvelopeSheetCell
-        name="spent"
-        width="flex"
-        textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
-        valueProps={{
-          binding: envelopeBudget.groupSumAmount(id),
-          type: 'financial',
-        }}
-      />
-      <EnvelopeSheetCell
-        name="balance"
-        width="flex"
-        textAlign="right"
-        style={{
-          fontWeight: 600,
-          paddingRight: styles.monthRightPadding,
-          ...styles.tnum,
-        }}
-        valueProps={{
-          binding: envelopeBudget.groupBalance(id),
-          type: 'financial',
-        }}
-      />
+      {isDebtGroup && (
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={debtColumnLabelStyle}>
+            <Trans>Budgeted</Trans>
+          </Text>
+          <Text style={debtColumnLabelStyle}>
+            <Trans>Balance</Trans>
+          </Text>
+          <Text
+            style={{
+              ...debtColumnLabelStyle,
+              paddingRight: styles.monthRightPadding,
+            }}
+          >
+            <Trans>Available for payment</Trans>
+          </Text>
+        </View>
+      )}
+      <View style={{ flex: 1, flexDirection: 'row' }}>
+        <EnvelopeSheetCell
+          name="budgeted"
+          width="flex"
+          textAlign="right"
+          style={{ fontWeight: 600, ...styles.tnum }}
+          valueProps={{
+            binding: envelopeBudget.groupBudgeted(id),
+            type: 'financial',
+          }}
+        />
+        <EnvelopeSheetCell
+          name="spent"
+          width="flex"
+          textAlign="right"
+          style={{ fontWeight: 600, ...styles.tnum }}
+          valueProps={{
+            binding: isDebtGroup
+              ? envelopeBudget.groupDebtBalance(id)
+              : envelopeBudget.groupSumAmount(id),
+            type: 'financial',
+          }}
+        />
+        <EnvelopeSheetCell
+          name="balance"
+          width="flex"
+          textAlign="right"
+          style={{
+            fontWeight: 600,
+            paddingRight: styles.monthRightPadding,
+            ...styles.tnum,
+          }}
+          valueProps={{
+            binding: envelopeBudget.groupBalance(id),
+            type: 'financial',
+          }}
+        />
+      </View>
     </View>
   );
 });
@@ -202,6 +239,8 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
 }: CategoryMonthProps) {
   const { t } = useTranslation();
   const format = useFormat();
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const isPayment = paymentCategoryIds.has(category.id);
 
   const budgetMenuTriggerRef = useRef(null);
   const balanceMenuTriggerRef = useRef(null);
@@ -256,7 +295,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
       month,
     });
 
-  const showScheduleIndicator = schedule && scheduleStatus;
+  const showScheduleIndicator = !isPayment && schedule && scheduleStatus;
 
   return (
     <View
@@ -436,7 +475,12 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
       <Field name="spent" width="flex" style={{ textAlign: 'right' }}>
         <View
           data-testid="category-month-spent"
-          onClick={() => onShowActivity(category.id, month)}
+          title={isPayment ? t('Balance') : undefined}
+          onClick={() => {
+            if (!isPayment) {
+              onShowActivity(category.id, month);
+            }
+          }}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -473,15 +517,21 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
             </View>
           )}
           <EnvelopeCellValue
-            binding={envelopeBudget.catSumAmount(category.id)}
+            binding={
+              isPayment
+                ? envelopeBudget.catDebtBalance(category.id)
+                : envelopeBudget.catSumAmount(category.id)
+            }
             type="financial"
           >
             {props => (
               <CellValueText
                 {...props}
                 className={css({
-                  cursor: 'pointer',
-                  ':hover': { textDecoration: 'underline' },
+                  cursor: isPayment ? 'default' : 'pointer',
+                  ':hover': isPayment
+                    ? undefined
+                    : { textDecoration: 'underline' },
                   ...makeAmountGrey(props.value),
                 })}
               />
@@ -493,6 +543,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
         ref={balanceMenuTriggerRef}
         name="balance"
         width="flex"
+        title={isPayment ? t('Available for payment') : undefined}
         style={{ paddingRight: styles.monthRightPadding, textAlign: 'right' }}
       >
         <Button

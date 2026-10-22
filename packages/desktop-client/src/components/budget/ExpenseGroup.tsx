@@ -17,6 +17,7 @@ import type {
 } from '#components/sort';
 import { Row, ROW_HEIGHT } from '#components/table';
 import { useDragRef } from '#hooks/useDragRef';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 
 import { RenderMonths } from './RenderMonths';
 import { SidebarGroup } from './SidebarGroup';
@@ -60,6 +61,12 @@ export function ExpenseGroup({
   onToggleCollapse,
   onShowNewCategory,
 }: ExpenseGroupProps) {
+  const paymentCategoryIds = usePaymentCategoryIds();
+  const categories = group.categories ?? [];
+  const isDebtGroup =
+    categories.length > 0 &&
+    categories.every(category => paymentCategoryIds.has(category.id));
+  const rowHeight = isDebtGroup ? 52 : ROW_HEIGHT;
   const dragging = dragState && dragState.item === group;
 
   const { dragRef } = useDraggable({
@@ -92,6 +99,7 @@ export function ExpenseGroup({
   return (
     <Row
       collapsed
+      height={rowHeight}
       style={{
         fontWeight: 600,
         opacity: group.hidden ? 0.33 : undefined,
@@ -106,8 +114,8 @@ export function ExpenseGroup({
             left: 0,
             right: 0,
             height: collapsed
-              ? ROW_HEIGHT - 1
-              : (1 + group.categories.length) * (ROW_HEIGHT - 1) + 1,
+              ? rowHeight - 1
+              : rowHeight + group.categories.length * (ROW_HEIGHT - 1),
             zIndex: 10000,
           }}
         >

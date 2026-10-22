@@ -79,6 +79,7 @@ export const schema = {
     last_sync: f('string'),
     bank_sync_status: f('string'),
     account_group_id: f('id', { ref: 'account_groups' }),
+    payment_category: f('id', { ref: 'categories' }),
   },
   account_groups: {
     id: f('id'),
