@@ -44,6 +44,10 @@ vi.mock('./template-notes', () => ({
   storeNoteTemplates: vi.fn(),
 }));
 
+vi.mock('./payment', () => ({
+  isPaymentCategory: vi.fn(() => false),
+}));
+
 const category: CategoryEntity = {
   id: 'cat-1',
   name: 'Groceries',

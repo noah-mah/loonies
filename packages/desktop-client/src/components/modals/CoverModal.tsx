@@ -16,6 +16,7 @@ import { FieldLabel, TapField } from '#components/mobile/MobileForms';
 import { AmountInput } from '#components/util/AmountInput';
 import { useCategories } from '#hooks/useCategories';
 import { useInitialMount } from '#hooks/useInitialMount';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { pushModal } from '#modals/modalsSlice';
 import type { Modal as ModalType } from '#modals/modalsSlice';
@@ -36,19 +37,30 @@ export function CoverModal({
 
   const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
     useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const [categoryGroups, categories] = useMemo(() => {
     const expenseGroups = originalCategoryGroups.filter(g => !g.is_income);
     const categoryGroups = showToBeBudgeted
       ? addToBeBudgetedGroup(expenseGroups)
       : expenseGroups;
-    const filteredCategoryGroups = categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
+    const excludeIds = [
+      ...paymentCategoryIds,
+      ...(categoryId ? [categoryId] : []),
+    ];
+    const filteredCategoryGroups = removeCategoriesFromGroups(
+      categoryGroups,
+      ...excludeIds,
+    );
     const filteredCategoryies = filteredCategoryGroups.flatMap(
       g => g.categories || [],
     );
     return [filteredCategoryGroups, filteredCategoryies];
-  }, [categoryId, originalCategoryGroups, showToBeBudgeted]);
+  }, [
+    categoryId,
+    originalCategoryGroups,
+    showToBeBudgeted,
+    paymentCategoryIds,
+  ]);
 
   const [fromCategoryId, setFromCategoryId] = useState<string | null>(null);
   const dispatch = useDispatch();

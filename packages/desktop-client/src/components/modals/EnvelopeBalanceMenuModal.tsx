@@ -22,7 +22,7 @@ export function EnvelopeBalanceMenuModal({
   onFundGoal,
 }: EnvelopeBalanceMenuModalProps) {
   const { data: category } = useCategory(categoryId);
-  const { items, onMenuSelect } = useBalanceMenu({
+  const { items, onMenuSelect, isPayment } = useBalanceMenu({
     categoryId,
     onCarryover,
     onTransfer,
@@ -37,16 +37,24 @@ export function EnvelopeBalanceMenuModal({
   return (
     <MobileSheet name="envelope-balance-menu" title={category.name}>
       <MobileSheetBalanceHeader
-        label={<Trans>Balance</Trans>}
+        label={
+          isPayment ? (
+            <Trans>Available for payment</Trans>
+          ) : (
+            <Trans>Balance</Trans>
+          )
+        }
         carryover={envelopeBudget.catCarryover(categoryId)}
         balance={envelopeBudget.catBalance(categoryId)}
         goal={envelopeBudget.catGoal(categoryId)}
         budgeted={envelopeBudget.catBudgeted(categoryId)}
         longGoal={envelopeBudget.catLongGoal(categoryId)}
       />
-      <MobileSheetSection>
-        <MobileSheetMenuRows items={items} onSelect={onMenuSelect} />
-      </MobileSheetSection>
+      {items.length > 0 && (
+        <MobileSheetSection>
+          <MobileSheetMenuRows items={items} onSelect={onMenuSelect} />
+        </MobileSheetSection>
+      )}
     </MobileSheet>
   );
 }

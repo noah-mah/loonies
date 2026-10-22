@@ -43,6 +43,7 @@ import {
 import type { AmountOPType, APIScheduleEntity } from './api-models';
 import { aqlQuery } from './aql';
 import { isTrackingBudget } from './budget/actions';
+import { isPaymentCategory } from './budget/payment';
 import * as cloudStorage from './cloud-storage';
 import type { RemoteFile } from './cloud-storage';
 import * as db from './db';
@@ -516,13 +517,27 @@ handlers['api/budget-month'] = async function ({ month }) {
         spent: value(`group-sum-amount-${group.id}`),
         balance: value(`group-leftover-${group.id}`),
 
-        categories: group.categories.map(cat => ({
-          ...categoryModel.toExternal(cat),
-          budgeted: value(`budget-${cat.id}`),
-          spent: value(`sum-amount-${cat.id}`),
-          balance: value(`leftover-${cat.id}`),
-          carryover: value(`carryover-${cat.id}`),
-        })),
+        categories: group.categories.map(cat => {
+          const base = {
+            ...categoryModel.toExternal(cat),
+            budgeted: value(`budget-${cat.id}`),
+            spent: value(`sum-amount-${cat.id}`),
+            balance: value(`leftover-${cat.id}`),
+            carryover: value(`carryover-${cat.id}`),
+          };
+
+          if (!isPaymentCategory(cat.id)) {
+            return base;
+          }
+
+          return {
+            ...base,
+            is_payment: true,
+            // balance is available-for-payment for linked credit/debt rows
+            available_for_payment: value(`leftover-${cat.id}`),
+            debt_balance: value(`debt-balance-${cat.id}`),
+          };
+        }),
       };
     }),
   };

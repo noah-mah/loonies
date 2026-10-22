@@ -17,6 +17,7 @@ import { MobileSheet } from '#components/mobile/MobileSheet';
 import { MobileSheetActions } from '#components/mobile/MobileSheetActions';
 import { MobileSheetCategoryPicker } from '#components/mobile/MobileSheetCategoryPicker';
 import { useCategories } from '#hooks/useCategories';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import type { Modal as ModalType } from '#modals/modalsSlice';
 
 type ConfirmCategoryDeleteModalProps = Extract<
@@ -39,6 +40,7 @@ export function ConfirmCategoryDeleteModal({
       list: [],
     },
   } = useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const group = categoryGroups.find(g => g.id === groupId);
   const category = categories.find(c => c.id === categoryId);
   const subject = category ?? group;
@@ -51,15 +53,24 @@ export function ConfirmCategoryDeleteModal({
   const transferCategoryName =
     categories.find(c => c.id === transferCategory)?.name ?? '';
   const transferGroups = group
-    ? categoryGroups.filter(
-        g => g.id !== group.id && Boolean(g.is_income) === isIncome,
-      )
+    ? categoryGroups
+        .filter(g => g.id !== group.id && Boolean(g.is_income) === isIncome)
+        .map(g => ({
+          ...g,
+          categories: (g.categories ?? []).filter(
+            c => !paymentCategoryIds.has(c.id),
+          ),
+        }))
+        .filter(g => (g.categories ?? []).length > 0)
     : categoryGroups
         .filter(g => Boolean(g.is_income) === isIncome)
         .map(g => ({
           ...g,
-          categories: (g.categories ?? []).filter(c => c.id !== categoryId),
-        }));
+          categories: (g.categories ?? []).filter(
+            c => c.id !== categoryId && !paymentCategoryIds.has(c.id),
+          ),
+        }))
+        .filter(g => (g.categories ?? []).length > 0);
 
   const onSelectTransfer = (id: string | null) => {
     setTransferCategory(id);

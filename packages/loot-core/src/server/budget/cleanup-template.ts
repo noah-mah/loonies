@@ -5,6 +5,7 @@ import type { CleanupTemplate } from '#types/models/cleanup-templates';
 
 import { getSheetValue, setBudget, setGoal } from './actions';
 import { storeNoteCleanups } from './cleanup-template-notes';
+import { isPaymentCategory } from './payment';
 import type { TemplateNotification } from './template-notification';
 
 export async function cleanupTemplate({ month }: { month: string }) {
@@ -171,6 +172,11 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
   const groupOverspend: GroupOverspendRow[] = [];
 
   for (const category of categories) {
+    // Payment leftover is available-for-payment, not spending surplus.
+    if (isPaymentCategory(category.id)) {
+      continue;
+    }
+
     const def = parseCleanupDef(category.cleanup_def);
     if (!def) continue;
 
@@ -207,6 +213,10 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
   warnings.splice(1, 0, ...newWarnings);
 
   for (const category of categories) {
+    if (isPaymentCategory(category.id)) {
+      continue;
+    }
+
     const def = parseCleanupDef(category.cleanup_def);
     if (!def) continue;
 
@@ -244,6 +254,10 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
 
   //funds all underfunded categories first unless the overspending rollover is checked
   for (const category of categories) {
+    if (isPaymentCategory(category.id)) {
+      continue;
+    }
+
     const budgetAvailable = await getSheetValue(sheetName, `to-budget`);
     const balance = await getSheetValue(sheetName, `leftover-${category.id}`);
     const budgeted = await getSheetValue(sheetName, `budget-${category.id}`);

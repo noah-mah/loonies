@@ -22,6 +22,7 @@ import { MonthsContext } from '#components/budget/MonthsContext';
 import { migrateTemplatesToAutomations } from '#components/modals/BudgetAutomationsModal/migrateTemplatesToAutomations';
 import { useCategories } from '#hooks/useCategories';
 import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { pushModal } from '#modals/modalsSlice';
 import { useDispatch } from '#redux';
@@ -88,6 +89,7 @@ export function CategoryAutomationButton({
   const goalTemplatesUIEnabled = useFeatureFlag('goalTemplatesUIEnabled');
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const { data: categoriesData } = useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const hasAutomations =
     category.template_settings?.source === 'ui' &&
     (!!category.goal_def?.length || !!category.cleanup_def?.length);
@@ -99,6 +101,12 @@ export function CategoryAutomationButton({
   // Income categories don't accept templates in envelope budgets (only the
   // tracking budget runs templates against income categories).
   if (category.is_income && budgetType !== 'tracking') {
+    return null;
+  }
+
+  // Payment categories use available-for-payment leftover, not spending
+  // envelope templates or cleanup.
+  if (paymentCategoryIds.has(category.id)) {
     return null;
   }
 

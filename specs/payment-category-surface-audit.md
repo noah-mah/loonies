@@ -1,8 +1,11 @@
 # Payment category surface audit
 
 Where credit/debt **payment categories** (`accounts.payment_category`) are still
-treated as ordinary expense categories. Audit-only — no code changes in this
-document’s PR.
+treated as ordinary expense categories.
+
+**Status:** Critical/High items C1–C2 and H1–H5 from the recommended fix order
+are implemented on this branch. Remaining: budgeted-mode report exclusions (H6)
+and medium polish (M3–M5 pickers / report defaults).
 
 Payment leftover means **available for payment**
 (`budgeted + covered − payments + previous`), not unspent grocery money. Almost

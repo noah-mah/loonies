@@ -10,6 +10,7 @@ import { useCategory } from '#hooks/useCategory';
 import { useCategoryGroup } from '#hooks/useCategoryGroup';
 import { useDeleteCategoryFlow } from '#hooks/useDeleteCategoryFlow';
 import { useNotes } from '#hooks/useNotes';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import type { Modal as ModalType } from '#modals/modalsSlice';
 
 type CategoryMenuModalProps = Extract<
@@ -35,6 +36,7 @@ export function CategoryMenuModal({
     },
   } = useCategories();
   const notes = useNotes(categoryId);
+  const paymentCategoryIds = usePaymentCategoryIds();
   const deleteFlow = useDeleteCategoryFlow({
     categoryIds: [categoryId],
     onDelete: transferCategoryId => onDelete(categoryId, transferCategoryId),
@@ -49,8 +51,11 @@ export function CategoryMenuModal({
     .filter(group => Boolean(group.is_income) === isIncome)
     .map(group => ({
       ...group,
-      categories: (group.categories ?? []).filter(c => c.id !== categoryId),
-    }));
+      categories: (group.categories ?? []).filter(
+        c => c.id !== categoryId && !paymentCategoryIds.has(c.id),
+      ),
+    }))
+    .filter(group => (group.categories ?? []).length > 0);
   const transferName = categories.find(
     c => c.id === deleteFlow.transferId,
   )?.name;

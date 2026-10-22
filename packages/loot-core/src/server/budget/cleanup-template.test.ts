@@ -21,6 +21,10 @@ vi.mock('./cleanup-template-notes', () => ({
   storeNoteCleanups: vi.fn(),
 }));
 
+vi.mock('./payment', () => ({
+  isPaymentCategory: vi.fn(() => false),
+}));
+
 const MONTH = '2026-08';
 const GROUP_ID = 'pool-1';
 
@@ -129,6 +133,40 @@ describe('cleanupTemplate - named pool sources', () => {
     expect(result.pre ?? '').toContain(
       'Category 2 does not have available funds.',
     );
+  });
+
+  test('skips payment categories used as cleanup sources', async () => {
+    const { isPaymentCategory } = await import('./payment');
+    vi.mocked(isPaymentCategory).mockImplementation(
+      (id: string) => id === 'card-payment',
+    );
+
+    setup({
+      categories: [
+        {
+          id: 'cat-1',
+          name: 'Category 1',
+          cleanup_def: [{ role: 'sink', groupId: GROUP_ID, weight: 1 }],
+        },
+        {
+          id: 'card-payment',
+          name: 'Visa',
+          cleanup_def: [{ role: 'source', groupId: GROUP_ID }],
+        },
+      ],
+      sheetValues: {
+        'leftover-cat-1': 0,
+        'budget-cat-1': 6000,
+        'leftover-card-payment': 1000,
+        'budget-card-payment': 5000,
+        'to-budget': 0,
+      },
+    });
+
+    await cleanupTemplate({ month: MONTH });
+
+    expect(budgetedFor('card-payment')).toEqual([]);
+    expect(budgetedFor('cat-1')).toEqual([]);
   });
 
   test('still drains a source that has positive leftover funds', async () => {

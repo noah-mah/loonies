@@ -70,6 +70,7 @@ function renderModal({
   }
   initServer({
     'get-categories': async () => ({ grouped: [], list: [category] }),
+    'accounts-get': async () => [],
     query: async () => ({ data: [], dependencies: [] }),
   });
   render(

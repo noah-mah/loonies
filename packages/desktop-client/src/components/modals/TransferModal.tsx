@@ -15,6 +15,7 @@ import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
 import { FieldLabel, TapField } from '#components/mobile/MobileForms';
 import { AmountInput } from '#components/util/AmountInput';
 import { useCategories } from '#hooks/useCategories';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { pushModal } from '#modals/modalsSlice';
 import type { Modal as ModalType } from '#modals/modalsSlice';
@@ -35,20 +36,31 @@ export function TransferModal({
 
   const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
     useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const [categoryGroups, categories] = useMemo(() => {
     const expenseGroups = originalCategoryGroups.filter(g => !g.is_income);
     const categoryGroups = showToBeBudgeted
       ? addToBeBudgetedGroup(expenseGroups)
       : expenseGroups;
 
-    const filteredCategoryGroups = categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
+    const excludeIds = [
+      ...paymentCategoryIds,
+      ...(categoryId ? [categoryId] : []),
+    ];
+    const filteredCategoryGroups = removeCategoriesFromGroups(
+      categoryGroups,
+      ...excludeIds,
+    );
     const filteredCategories = filteredCategoryGroups.flatMap(
       g => g.categories || [],
     );
     return [filteredCategoryGroups, filteredCategories];
-  }, [categoryId, originalCategoryGroups, showToBeBudgeted]);
+  }, [
+    categoryId,
+    originalCategoryGroups,
+    showToBeBudgeted,
+    paymentCategoryIds,
+  ]);
 
   const [amount, setAmount] = useState<IntegerAmount>(initialAmount);
   const [toCategoryId, setToCategoryId] = useState<string | null>(null);
