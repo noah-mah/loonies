@@ -27,7 +27,9 @@ import {
 import { Checkbox } from '#components/forms';
 import { validateAccountName } from '#components/util/accountValidation';
 import { useAccounts } from '#hooks/useAccounts';
+import { useCategories } from '#hooks/useCategories';
 import { useNavigate } from '#hooks/useNavigate';
+import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
 import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
 import { closeModal } from '#modals/modalsSlice';
 import { useDispatch } from '#redux';
@@ -38,9 +40,13 @@ export function CreateLocalAccountModal() {
   const dispatch = useDispatch();
   const isUsingServer = useSyncServerStatus() !== 'no-server';
   const { data: accounts = [] } = useAccounts();
+  const { data: categories } = useCategories();
+  const paymentCategoryIds = usePaymentCategoryIds();
   const [name, setName] = useState('');
   const [offbudget, setOffbudget] = useState(false);
   const [kind, setKind] = useState<'cash' | 'credit' | 'debt'>('cash');
+  const [loanPairing, setLoanPairing] = useState('none');
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [balance, setBalance] = useState('0');
 
   const [nameError, setNameError] = useState(null);
@@ -69,12 +75,34 @@ export function CreateLocalAccountModal() {
     setBalanceError(balanceError);
 
     if (!nameError && !balanceError) {
+      let resolvedOffBudget = offbudget;
+      if (kind === 'debt') {
+        resolvedOffBudget = true;
+      } else if (kind === 'credit') {
+        resolvedOffBudget = false;
+      }
+
+      let loanCategory: {
+        mode: 'none' | 'new' | 'existing';
+        name?: string;
+        categoryId?: string;
+      } = { mode: 'none' };
+      if (kind === 'debt' && loanPairing === 'new') {
+        loanCategory = {
+          mode: 'new',
+          name: newCategoryName.trim() || name,
+        };
+      } else if (kind === 'debt' && loanPairing !== 'none') {
+        loanCategory = { mode: 'existing', categoryId: loanPairing };
+      }
+
       createAccount.mutate(
         {
           name,
           balance: toRelaxedNumber(balance),
-          offBudget: offbudget,
-          kind: offbudget ? 'cash' : kind,
+          offBudget: resolvedOffBudget,
+          kind,
+          loanCategory,
         },
         {
           onSuccess: id => {
@@ -144,20 +172,21 @@ export function CreateLocalAccountModal() {
                 </FormError>
               )}
 
-              <View
-                style={{
-                  width: '100%',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <View style={{ flexDirection: 'column' }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                    }}
-                  >
+              <InlineField label={t('Account kind')} width="100%">
+                <Select
+                  value={kind}
+                  options={[
+                    ['cash', t('Cash')],
+                    ['credit', t('Credit card')],
+                    ['debt', t('Debt')],
+                  ]}
+                  onChange={setKind}
+                />
+              </InlineField>
+
+              {kind === 'cash' && (
+                <View style={{ alignItems: 'flex-end', marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Checkbox
                       id="offbudget"
                       name="offbudget"
@@ -168,55 +197,110 @@ export function CreateLocalAccountModal() {
                       htmlFor="offbudget"
                       style={{
                         userSelect: 'none',
-                        verticalAlign: 'center',
                       }}
                     >
                       <Trans>Off budget</Trans>
                     </label>
                   </View>
-                  <div
+                  <Text
                     style={{
                       textAlign: 'right',
                       fontSize: '0.7em',
                       color: theme.pageTextLight,
                       marginTop: 3,
+                      maxWidth: 360,
                     }}
                   >
-                    <Text style={{ display: 'block' }}>
-                      <Trans>
-                        Off-budget accounts (like investments, loans, or your
-                        house) are tracked but not part of your spending budget.
-                      </Trans>
-                    </Text>
-                    <Text style={{ display: 'block' }}>
-                      <Trans>
-                        This cannot be changed later. See{' '}
-                        <Link
-                          variant="external"
-                          linkColor="muted"
-                          to="https://actualbudget.org/docs/accounts/#off-budget-accounts"
-                        >
-                          Accounts Overview
-                        </Link>{' '}
-                        for more information.
-                      </Trans>
-                    </Text>
-                  </div>
+                    <Trans>
+                      Off-budget accounts (like investments or your house) are
+                      tracked but not part of your spending budget. This cannot
+                      be changed later. See{' '}
+                      <Link
+                        variant="external"
+                        linkColor="muted"
+                        to="https://actualbudget.org/docs/accounts/#off-budget-accounts"
+                      >
+                        Accounts Overview
+                      </Link>{' '}
+                      for more information.
+                    </Trans>
+                  </Text>
                 </View>
-              </View>
-
-              {!offbudget && (
-                <InlineField label={t('Account kind')} width="100%">
-                  <Select
-                    value={kind}
-                    options={[
-                      ['cash', t('Cash')],
-                      ['credit', t('Credit')],
-                      ['debt', t('Debt')],
-                    ]}
-                    onChange={setKind}
-                  />
-                </InlineField>
+              )}
+              {kind === 'credit' && (
+                <Text
+                  style={{
+                    textAlign: 'right',
+                    fontSize: '0.7em',
+                    color: theme.pageTextLight,
+                    marginBottom: 12,
+                    maxWidth: 360,
+                    alignSelf: 'flex-end',
+                  }}
+                >
+                  <Trans>
+                    Credit cards stay in your budget and get a payment row. This
+                    cannot be changed later.
+                  </Trans>
+                </Text>
+              )}
+              {kind === 'debt' && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={{
+                      textAlign: 'right',
+                      fontSize: '0.7em',
+                      color: theme.pageTextLight,
+                      marginBottom: 8,
+                      maxWidth: 360,
+                      alignSelf: 'flex-end',
+                    }}
+                  >
+                    <Trans>
+                      Loans are tracked off budget. This cannot be changed
+                      later.
+                    </Trans>
+                  </Text>
+                  <InlineField label={t('Payment category')} width="100%">
+                    <Select
+                      value={loanPairing}
+                      options={[
+                        ['none', t('No category')],
+                        ['new', t('Create a new category')],
+                        ...expenseCategoryOptions(
+                          categories,
+                          paymentCategoryIds,
+                        ),
+                      ]}
+                      onChange={setLoanPairing}
+                    />
+                  </InlineField>
+                  {loanPairing === 'new' && (
+                    <InlineField label={t('Category name')} width="100%">
+                      <Input
+                        value={newCategoryName}
+                        placeholder={name || t('Car payment')}
+                        onChangeValue={setNewCategoryName}
+                      />
+                    </InlineField>
+                  )}
+                  {loanPairing !== 'none' && (
+                    <Text
+                      style={{
+                        textAlign: 'right',
+                        fontSize: '0.7em',
+                        color: theme.pageTextLight,
+                        maxWidth: 360,
+                        alignSelf: 'flex-end',
+                      }}
+                    >
+                      <Trans>
+                        Assign money to this category for the payment. A
+                        transfer to this loan uses it.
+                      </Trans>
+                    </Text>
+                  )}
+                </View>
               )}
 
               <InlineField label={t('Balance')} width="100%">
@@ -259,4 +343,36 @@ export function CreateLocalAccountModal() {
       )}
     </Modal>
   );
+}
+
+function expenseCategoryOptions(
+  categories:
+    | {
+        grouped?: Array<{
+          name?: string;
+          is_income?: boolean;
+          hidden?: boolean;
+          categories?: Array<{ id: string; name?: string; hidden?: boolean }>;
+        }>;
+      }
+    | undefined,
+  paymentCategoryIds: Set<string>,
+) {
+  const options: Array<[string, string]> = [];
+  for (const group of categories?.grouped ?? []) {
+    if (group.is_income || group.hidden) {
+      continue;
+    }
+    for (const category of group.categories ?? []) {
+      if (
+        !category.id ||
+        category.hidden ||
+        paymentCategoryIds.has(category.id)
+      ) {
+        continue;
+      }
+      options.push([category.id, `${group.name}: ${category.name}`]);
+    }
+  }
+  return options;
 }

@@ -15,6 +15,7 @@ import {
   excludedExpenseRefundSql,
   installPaymentCategory,
   isPaymentCategory,
+  noteDebtBalanceRefresh,
   recomputeCashRefunds,
   recomputeLaterCoverage,
   recomputePaymentCellsForTransaction,
@@ -179,6 +180,7 @@ function handleAccountChange(months, oldValue, newValue) {
     }
     if (newCategory && newValue.id) {
       installPaymentCategory(newCategory, newValue.id, months);
+      noteDebtBalanceRefresh(newCategory);
     }
   }
 

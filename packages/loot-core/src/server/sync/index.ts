@@ -15,6 +15,7 @@ import {
   setType as setBudgetType,
   triggerBudgetChanges,
 } from '#server/budget/base';
+import { flushDebtBalanceRefreshes } from '#server/budget/payment';
 import * as db from '#server/db';
 import { PostError, SyncError } from '#server/errors';
 import { app } from '#server/main-app';
@@ -570,6 +571,7 @@ async function _applyMessages(messages: Message[], deferUnknownSchema = false) {
     triggerBudgetChanges(oldData, newData);
     sheet.get().triggerDatabaseChanges(oldData, newData);
     sheet.endTransaction();
+    flushDebtBalanceRefreshes();
 
     // Transfers insert the source row in one sync batch and the counterparty in
     // a second. triggerDatabaseChanges should dirty aggregate query cells, but

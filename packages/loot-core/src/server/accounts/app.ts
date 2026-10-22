@@ -63,7 +63,6 @@ export type AccountHandlers = {
   'akahu-accounts-link': typeof linkAkahuAccount;
   'enablebanking-accounts-link': typeof linkEnableBankingAccount;
   'account-create': typeof createAccount;
-  'account-set-payment-tracking': typeof setAccountPaymentTracking;
   'account-close': typeof closeAccount;
   'account-reopen': typeof reopenAccount;
   'account-move': typeof moveAccount;
@@ -137,6 +136,7 @@ async function getAccounts(): Promise<AccountEntity[]> {
         bank_sync_status: dbAccount.bank_sync_status ?? null,
         account_group_id: dbAccount.account_group_id ?? null,
         payment_category: dbAccount.payment_category ?? null,
+        loan_category: dbAccount.loan_category ?? null,
       }) satisfies AccountEntity,
   );
 }
@@ -555,34 +555,34 @@ async function linkEnableBankingAccount({
   return 'ok';
 }
 
-const CREDIT_DEBT_GROUP_NAME = 'Credit & Debt';
+const CREDIT_CARD_GROUP_NAME = 'Credit Cards';
+const DEBT_PAYMENT_GROUP_NAME = 'Debt Payments';
 
-async function ensureCreditDebtGroup(): Promise<string> {
+type LoanCategoryChoice =
+  | { mode: 'none' }
+  | { mode: 'existing'; categoryId: string }
+  | { mode: 'new'; name?: string };
+
+async function ensureCreditCardGroup(): Promise<string> {
   const existing = await db.first<{ id: string }>(
     `SELECT id FROM category_groups
       WHERE tombstone = 0
         AND IFNULL(is_income, 0) = 0
         AND UPPER(name) = ?
       LIMIT 1`,
-    [CREDIT_DEBT_GROUP_NAME.toUpperCase()],
+    [CREDIT_CARD_GROUP_NAME.toUpperCase()],
   );
   if (existing) {
     return existing.id;
   }
 
   return db.insertCategoryGroup({
-    name: CREDIT_DEBT_GROUP_NAME,
+    name: CREDIT_CARD_GROUP_NAME,
     is_income: 0,
   });
 }
 
-async function setAccountPaymentTracking({
-  id,
-  kind,
-}: {
-  id: AccountEntity['id'];
-  kind: 'cash' | 'credit' | 'debt';
-}): Promise<void> {
+async function linkCreditCard(id: AccountEntity['id']): Promise<void> {
   const account = await db.first<db.DbAccount>(
     'SELECT * FROM accounts WHERE id = ? AND tombstone = 0',
     [id],
@@ -591,16 +591,8 @@ async function setAccountPaymentTracking({
     throw new Error('Account not found');
   }
   if (account.offbudget) {
-    throw new Error('Off-budget accounts cannot track payments in the budget.');
+    throw new Error('Credit cards are part of the budget.');
   }
-
-  if (kind === 'cash') {
-    if (account.payment_category) {
-      await db.updateAccount({ id, payment_category: null });
-    }
-    return;
-  }
-
   if (account.payment_category) {
     const linked = await db.first<{ id: string }>(
       'SELECT id FROM categories WHERE id = ? AND tombstone = 0',
@@ -611,7 +603,7 @@ async function setAccountPaymentTracking({
     }
   }
 
-  const groupId = await ensureCreditDebtGroup();
+  const groupId = await ensureCreditCardGroup();
   const existingCategory = await db.first<{ id: string }>(
     `SELECT id FROM categories
       WHERE cat_group = ?
@@ -631,22 +623,100 @@ async function setAccountPaymentTracking({
   await db.updateAccount({ id, payment_category: categoryId });
 }
 
+async function ensureDebtPaymentGroup(): Promise<string> {
+  const existing = await db.first<{ id: string }>(
+    `SELECT id FROM category_groups
+      WHERE tombstone = 0
+        AND IFNULL(is_income, 0) = 0
+        AND UPPER(name) = ?
+      LIMIT 1`,
+    [DEBT_PAYMENT_GROUP_NAME.toUpperCase()],
+  );
+  if (existing) {
+    return existing.id;
+  }
+
+  return db.insertCategoryGroup({
+    name: DEBT_PAYMENT_GROUP_NAME,
+    is_income: 0,
+  });
+}
+
+async function pairLoan(
+  id: AccountEntity['id'],
+  accountName: string,
+  loanCategory: LoanCategoryChoice,
+): Promise<void> {
+  if (loanCategory.mode === 'none') {
+    return;
+  }
+
+  if (loanCategory.mode === 'existing') {
+    const category = await db.first<{ id: string }>(
+      `SELECT c.id FROM categories c
+        WHERE c.id = ?
+          AND c.tombstone = 0
+          AND IFNULL(c.is_income, 0) = 0
+          AND NOT EXISTS (
+            SELECT 1 FROM accounts a
+             WHERE a.payment_category = c.id
+               AND IFNULL(a.tombstone, 0) = 0
+          )`,
+      [loanCategory.categoryId],
+    );
+    if (!category) {
+      throw new Error('Choose an expense category to pair with this loan.');
+    }
+    await db.updateAccount({ id, loan_category: category.id });
+    return;
+  }
+
+  const name = loanCategory.name?.trim() || accountName;
+  const groupId = await ensureDebtPaymentGroup();
+  const existingCategory = await db.first<{ id: string }>(
+    `SELECT id FROM categories
+      WHERE cat_group = ?
+        AND UPPER(name) = ?
+        AND tombstone = 0
+      LIMIT 1`,
+    [groupId, name.toUpperCase()],
+  );
+  const categoryId = existingCategory
+    ? existingCategory.id
+    : await db.insertCategory({
+        name,
+        cat_group: groupId,
+        is_income: 0,
+      });
+
+  await db.updateAccount({ id, loan_category: categoryId });
+}
+
 async function createAccount({
   name,
   balance = 0,
   offBudget = false,
   closed = false,
   kind = 'cash',
+  loanCategory = { mode: 'none' },
 }: {
   name: string;
   balance?: number | undefined;
   offBudget?: boolean | undefined;
   closed?: boolean | undefined;
   kind?: 'cash' | 'credit' | 'debt' | undefined;
+  loanCategory?: LoanCategoryChoice | undefined;
 }) {
+  let resolvedOffBudget = offBudget;
+  if (kind === 'debt') {
+    resolvedOffBudget = true;
+  } else if (kind === 'credit') {
+    resolvedOffBudget = false;
+  }
+
   const id: AccountEntity['id'] = await db.insertAccount({
     name,
-    offbudget: offBudget ? 1 : 0,
+    offbudget: resolvedOffBudget ? 1 : 0,
     closed: closed ? 1 : 0,
   });
 
@@ -655,22 +725,33 @@ async function createAccount({
     transfer_acct: id,
   });
 
+  if (kind === 'credit') {
+    await linkCreditCard(id);
+  }
+  if (kind === 'debt') {
+    await pairLoan(id, name, loanCategory);
+  }
+
   if (balance != null && balance !== 0) {
     const payee = await getStartingBalancePayee();
+    let category: string | null = resolvedOffBudget ? null : payee.category;
+    if (kind === 'credit') {
+      const linked = await db.first<{ payment_category: string | null }>(
+        'SELECT payment_category FROM accounts WHERE id = ?',
+        [id],
+      );
+      category = linked?.payment_category ?? null;
+    }
 
     await db.insertTransaction({
       account: id,
       amount: amountToInteger(balance),
-      category: offBudget ? null : payee.category,
+      category,
       payee: payee.id,
       date: monthUtils.currentDay(),
       cleared: true,
       starting_balance_flag: true,
     });
-  }
-
-  if (!offBudget && (kind === 'credit' || kind === 'debt')) {
-    await setAccountPaymentTracking({ id, kind });
   }
 
   return id;
@@ -1876,10 +1957,6 @@ app.method('pluggyai-accounts-link', linkPluggyAiAccount);
 app.method('akahu-accounts-link', linkAkahuAccount);
 app.method('enablebanking-accounts-link', linkEnableBankingAccount);
 app.method('account-create', mutator(undoable(createAccount)));
-app.method(
-  'account-set-payment-tracking',
-  mutator(undoable(setAccountPaymentTracking)),
-);
 app.method('account-close', mutator(closeAccount));
 app.method('account-reopen', mutator(undoable(reopenAccount)));
 app.method('account-move', mutator(undoable(moveAccount)));

@@ -386,6 +386,62 @@ describe('credit and debt payment categories', () => {
       numberValue(toBudget) - 400,
     );
   });
+
+  it('shows the month-end balance in past months and the live balance from this month on', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName } =
+      await setupBudget();
+    const previousMonth = monthUtils.prevMonth(month);
+    const nextMonth = monthUtils.nextMonth(month);
+    const laterMonth = monthUtils.nextMonth(nextMonth);
+
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -80,
+      category: groceriesId,
+      date: `${laterMonth}-03`,
+    });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -250,
+      category: groceriesId,
+      date: `${nextMonth}-05`,
+    });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -400,
+      category: groceriesId,
+      date: `${month}-10`,
+    });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -1000,
+      category: groceriesId,
+      date: `${previousMonth}-20`,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(
+      sheet.getCellValue(
+        monthUtils.sheetForMonth(previousMonth),
+        `debt-balance-${cardCategoryId}`,
+      ),
+    ).toBe(-1000);
+    expect(
+      sheet.getCellValue(sheetName, `debt-balance-${cardCategoryId}`),
+    ).toBe(-1730);
+    expect(
+      sheet.getCellValue(
+        monthUtils.sheetForMonth(nextMonth),
+        `debt-balance-${cardCategoryId}`,
+      ),
+    ).toBe(-1730);
+    expect(
+      sheet.getCellValue(
+        monthUtils.sheetForMonth(laterMonth),
+        `debt-balance-${cardCategoryId}`,
+      ),
+    ).toBe(-1730);
+  });
 });
 
 function numberValue(value: string | number | boolean): number {

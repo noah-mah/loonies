@@ -133,6 +133,33 @@ export function isPaymentCategory(categoryId: string): boolean {
   return getLinkedAccountId(categoryId) != null;
 }
 
+const pendingDebtBalanceRefreshes: string[] = [];
+
+export function noteDebtBalanceRefresh(categoryId: string): void {
+  pendingDebtBalanceRefreshes.push(categoryId);
+}
+
+// The balance cell is created in the same spreadsheet pass as the account
+// link. Running it again afterwards picks up the starting balance, which is
+// written in that same change.
+export function flushDebtBalanceRefreshes(): void {
+  const categoryIds = pendingDebtBalanceRefreshes.splice(0);
+  const createdMonths = sheet.get().meta().createdMonths;
+  if (!createdMonths) {
+    return;
+  }
+
+  for (const categoryId of categoryIds) {
+    for (const month of createdMonths) {
+      const sheetName = monthUtils.sheetForMonth(month);
+      const name = resolveName(sheetName, `debt-balance-${categoryId}`);
+      if (sheet.get().hasCell(name)) {
+        sheet.get().recompute(name);
+      }
+    }
+  }
+}
+
 export function recomputePaymentCellsForTransaction(transaction: {
   acct?: string | null;
   date?: number | null;
@@ -168,11 +195,24 @@ function recomputePaymentCategoryFrom(
     return;
   }
 
+  // This month and every later month show the live balance, so a transaction
+  // in any of them has to refresh all of them. A past month stops at its end.
+  const months = new Set<string>();
   for (const createdMonth of createdMonths) {
-    if (createdMonth < fromMonth) {
-      continue;
+    if (createdMonth >= fromMonth) {
+      months.add(createdMonth);
     }
+  }
+  if (!options.coveredOnly) {
+    const current = monthUtils.currentMonth();
+    for (const createdMonth of createdMonths) {
+      if (createdMonth >= current) {
+        months.add(createdMonth);
+      }
+    }
+  }
 
+  for (const createdMonth of months) {
     const sheetName = monthUtils.sheetForMonth(createdMonth);
     const spreadsheet = sheet.get();
     const cells = options.coveredOnly
@@ -314,7 +354,7 @@ function createPaymentDynamicCells(
 
   sheet.get().createDynamic(sheetName, `debt-balance-${categoryId}`, {
     initialValue: 0,
-    run: () => accountBalance(accountId),
+    run: () => accountBalance(accountId, sheetName),
   });
 
   sheet.get().createDynamic(sheetName, `leftover-${categoryId}`, {
@@ -588,13 +628,23 @@ function transferPayments(
   return rows[0]?.amount || 0;
 }
 
-function accountBalance(accountId: string): number {
+function accountBalance(accountId: string, sheetName: string): number {
+  const month = `${sheetName.slice('budget'.length, 'budget'.length + 4)}-${sheetName.slice('budget'.length + 4)}`;
+  const isPastMonth = month < monthUtils.currentMonth();
+  const params: Array<string | number> = [accountId];
+  let throughMonthEnd = '';
+  if (isPastMonth) {
+    throughMonthEnd = 'AND date <= ?';
+    params.push(boundsForSheet(sheetName).end);
+  }
+
   const rows = db.runQuery<AmountRow>(
     `SELECT SUM(amount) AS amount
        FROM v_transactions_internal_alive
       WHERE account = ?
-        AND IFNULL(is_parent, 0) = 0`,
-    [accountId],
+        AND IFNULL(is_parent, 0) = 0
+        ${throughMonthEnd}`,
+    params,
     true,
   );
   return rows[0]?.amount || 0;
@@ -666,6 +716,7 @@ function listPaymentLinks(): PaymentLink[] {
     `SELECT id, payment_category
        FROM accounts
       WHERE payment_category IS NOT NULL
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0`,
     [],
     true,
@@ -680,6 +731,7 @@ export function getLinkedAccountId(categoryId: string): string | null {
   const rows = db.runQuery<{ id: string }>(
     `SELECT id FROM accounts
       WHERE payment_category = ?
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0
       LIMIT 1`,
     [categoryId],
@@ -692,6 +744,7 @@ function getPaymentCategoryForAccount(accountId: string): string | null {
   const rows = db.runQuery<{ payment_category: string | null }>(
     `SELECT payment_category FROM accounts
       WHERE id = ?
+        AND IFNULL(offbudget, 0) = 0
         AND IFNULL(tombstone, 0) = 0`,
     [accountId],
     true,

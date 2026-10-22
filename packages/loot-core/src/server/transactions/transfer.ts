@@ -84,11 +84,18 @@ export async function addTransfer(transaction, transferredAccount) {
     ...(matchedSchedule ? { schedule: matchedSchedule } : {}),
   });
   const categoryCleared = await clearCategory(transaction, transferredAccount);
+  const loanCategory = categoryCleared
+    ? null
+    : await applyLoanCategory(
+        { ...transaction, transfer_id: id },
+        transferredAccount,
+      );
 
   return {
     id: transaction.id,
     transfer_id: id,
     ...(categoryCleared ? { category: null } : {}),
+    ...(loanCategory ? { category: loanCategory } : {}),
   };
 }
 
@@ -135,6 +142,60 @@ export async function updateTransfer(transaction, transferredAccount) {
   if (categoryCleared) {
     return { id: transaction.id, category: null };
   }
+
+  const loanCategory = await applyLoanCategory(transaction, transferredAccount);
+  if (loanCategory) {
+    return { id: transaction.id, category: loanCategory };
+  }
+}
+
+async function applyLoanCategory(transaction, transferAcct) {
+  const fromAccount = await db.first<
+    Pick<db.DbAccount, 'offbudget' | 'loan_category'>
+  >('SELECT offbudget, loan_category FROM accounts WHERE id = ?', [
+    transaction.account,
+  ]);
+  const toAccount = await db.first<
+    Pick<db.DbAccount, 'offbudget' | 'loan_category'>
+  >('SELECT offbudget, loan_category FROM accounts WHERE id = ?', [
+    transferAcct,
+  ]);
+  if (
+    !fromAccount ||
+    !toAccount ||
+    fromAccount.offbudget === toAccount.offbudget
+  ) {
+    return null;
+  }
+
+  const loanAccount = fromAccount.offbudget ? fromAccount : toAccount;
+  if (!loanAccount.loan_category) {
+    return null;
+  }
+
+  const budgetTransactionId = fromAccount.offbudget
+    ? transaction.transfer_id
+    : transaction.id;
+  if (!budgetTransactionId) {
+    return null;
+  }
+
+  const budgetTransaction =
+    budgetTransactionId === transaction.id
+      ? transaction
+      : await db.getTransaction(budgetTransactionId);
+  if (budgetTransaction?.category) {
+    return null;
+  }
+
+  await db.updateTransaction({
+    id: budgetTransactionId,
+    category: loanAccount.loan_category,
+  });
+  if (budgetTransactionId !== transaction.id) {
+    return null;
+  }
+  return loanAccount.loan_category;
 }
 
 export async function onInsert(transaction) {
