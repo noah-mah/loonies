@@ -126,6 +126,54 @@ export function makeAmountFullStyle(
   };
 }
 
+/**
+ * Paper-style Available / leftover balance pill: filled green / red / gray
+ * capsule by sign. Used for category (and payment) available amounts.
+ */
+export function makeAvailableBalancePillStyle(
+  value: number | string | null | undefined,
+): CSSProperties {
+  const numeric =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value !== ''
+        ? Number(value)
+        : 0;
+
+  if (numeric < 0) {
+    return {
+      backgroundColor: theme.availableBalancePillNegativeBackground,
+      color: theme.availableBalancePillNegativeText,
+    };
+  }
+
+  if (numeric === 0 || Number.isNaN(numeric)) {
+    return {
+      backgroundColor: theme.availableBalancePillZeroBackground,
+      color: theme.availableBalancePillZeroText,
+    };
+  }
+
+  return {
+    backgroundColor: theme.availableBalancePillPositiveBackground,
+    color: theme.availableBalancePillPositiveText,
+  };
+}
+
+export const availableBalancePillChrome: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  borderRadius: 999,
+  paddingTop: 3,
+  paddingBottom: 3,
+  paddingLeft: 10,
+  paddingRight: 10,
+  minHeight: 22,
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+};
+
 export function findSortDown<T extends { id: string }>(
   arr: T[],
   pos: DropPosition | null,

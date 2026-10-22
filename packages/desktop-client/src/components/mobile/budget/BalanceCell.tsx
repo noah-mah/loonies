@@ -8,17 +8,21 @@ import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import type { CategoryEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { AutoTextSize } from 'auto-text-size';
 
 import { BalanceWithCarryover } from '#components/budget/BalanceWithCarryover';
+import {
+  availableBalancePillChrome,
+  makeAvailableBalancePillStyle,
+} from '#components/budget/util';
 import { PrivacyFilter } from '#components/PrivacyFilter';
 import { useFormat } from '#hooks/useFormat';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import type { Binding } from '#spreadsheet';
 import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
 
-import { getColumnWidth, PILL_STYLE } from './BudgetTable';
+import { getColumnWidth } from './BudgetTable';
 
 type BalanceCellProps = {
   binding: Binding<
@@ -79,38 +83,41 @@ export function BalanceCell({
       longGoal={longGoal}
       CarryoverIndicator={MobileCarryoverIndicator}
     >
-      {({ type, value, className: defaultClassName }) => (
-        <Button
-          variant="bare"
-          style={{
-            ...PILL_STYLE,
-            maxWidth: columnWidth,
-          }}
-          onPress={onPress}
-          aria-label={ariaLabel}
-        >
-          <PrivacyFilter>
-            <AutoTextSize
-              key={value}
-              as={Text}
-              minFontSizePx={6}
-              maxFontSizePx={12}
-              mode="oneline"
-              className={cx(
-                defaultClassName,
-                css({
+      {({ type, value }) => {
+        const pillStyle = makeAvailableBalancePillStyle(value);
+        return (
+          <Button
+            variant="bare"
+            style={{
+              ...availableBalancePillChrome,
+              ...pillStyle,
+              maxWidth: columnWidth,
+            }}
+            onPress={onPress}
+            aria-label={ariaLabel}
+          >
+            <PrivacyFilter>
+              <AutoTextSize
+                key={value}
+                as={Text}
+                minFontSizePx={6}
+                maxFontSizePx={12}
+                mode="oneline"
+                className={css({
                   ...styles.tnum,
                   maxWidth: columnWidth,
                   textAlign: 'right',
                   fontSize: 12,
-                }),
-              )}
-            >
-              {format(value, type)}
-            </AutoTextSize>
-          </PrivacyFilter>
-        </Button>
-      )}
+                  color: 'inherit',
+                  backgroundColor: 'transparent',
+                })}
+              >
+                {format(value, type)}
+              </AutoTextSize>
+            </PrivacyFilter>
+          </Button>
+        );
+      }}
     </BalanceWithCarryover>
   );
 }

@@ -51,6 +51,12 @@
   --color-toBudgetPositive: var(--color-numberPositive);
   --color-toBudgetZero: var(--color-numberPositive);
   --color-toBudgetNegative: var(--color-budgetNumberNegative);
+  --color-availableBalancePillPositiveBackground: var(--palette-green500);
+  --color-availableBalancePillPositiveText: var(--palette-navy900);
+  --color-availableBalancePillNegativeBackground: var(--palette-red400);
+  --color-availableBalancePillNegativeText: var(--palette-navy900);
+  --color-availableBalancePillZeroBackground: var(--palette-navy800);
+  --color-availableBalancePillZeroText: var(--palette-navy300);
 
   --color-sidebarBackground: var(--palette-navy900);
   --color-sidebarItemBackgroundPending: var(--palette-orange200);

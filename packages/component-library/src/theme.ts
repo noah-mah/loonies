@@ -223,6 +223,17 @@ export const theme = {
   budgetNumberNegative: 'var(--color-budgetNumberNegative)',
   budgetNumberNeutral: 'var(--color-budgetNumberNeutral)',
   budgetNumberZero: 'var(--color-budgetNumberZero)',
+  availableBalancePillPositiveBackground:
+    'var(--color-availableBalancePillPositiveBackground)',
+  availableBalancePillPositiveText:
+    'var(--color-availableBalancePillPositiveText)',
+  availableBalancePillNegativeBackground:
+    'var(--color-availableBalancePillNegativeBackground)',
+  availableBalancePillNegativeText:
+    'var(--color-availableBalancePillNegativeText)',
+  availableBalancePillZeroBackground:
+    'var(--color-availableBalancePillZeroBackground)',
+  availableBalancePillZeroText: 'var(--color-availableBalancePillZeroText)',
   toBudgetPositive: 'var(--color-toBudgetPositive)',
   toBudgetZero: 'var(--color-toBudgetZero)',
   toBudgetNegative: 'var(--color-toBudgetNegative)',
