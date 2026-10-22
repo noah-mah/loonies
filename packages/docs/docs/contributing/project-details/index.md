@@ -73,10 +73,10 @@ Reusable React UI components.
 
 - **Purpose**: Shared components like Button, Input, Menu, etc.
 - **Features**: Theme system, design tokens, and icon components
-- **Icons**: Contains 375+ icons in SVG/TSX format (auto-generated, don't edit manually)
+- **Icons**: Lucide-backed `Svg*` wrappers (`lucide-react`). New UI icons must come from [Lucide](https://lucide.dev); add mappings via `scripts/generate-lucide-icons.mjs`. The brand logo under `src/icons/logo/` is the only custom mark.
 - **Key Directories**:
   - `src/` - Component source files
-  - `src/icons/` - Icon components (auto-generated)
+  - `src/icons/` - Lucide icon wrappers (`v0` / `v1` / `v2`) plus the Actual logo
 
 ### 7. crdt (`packages/crdt/` - aliased as `@actual-app/crdt`)
 
@@ -101,6 +101,7 @@ Custom ESLint rules specific to Actual.
   - `no-untranslated-strings` - Enforces i18n usage
   - `prefer-trans-over-t` - Prefers Trans component over t() function
   - `prefer-logger-over-console` - Enforces using logger instead of console
+  - `prefer-lucide-icons` - Requires UI icons to come from Lucide
   - `typography` - Typography rules
   - `prefer-if-statement` - Prefers explicit if statements
 

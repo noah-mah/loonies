@@ -155,7 +155,7 @@ Reusable React UI components.
 
 - Shared components like Button, Input, Menu, etc.
 - Theme system and design tokens
-- Icons (375+ icons in SVG/TSX format)
+- Icons (Lucide-backed `Svg*` wrappers; brand logo is custom)
 
 #### 7. **crdt** (`packages/crdt/` - aliased as `@actual-app/crdt`)
 
@@ -175,6 +175,7 @@ Custom ESLint rules specific to Actual.
 - `no-untranslated-strings`: Enforces i18n usage
 - `prefer-trans-over-t`: Prefers Trans component over t() function
 - `prefer-logger-over-console`: Enforces using logger instead of console in `packages/loot-core/`
+- `prefer-lucide-icons`: Requires UI icons to come from Lucide (`lucide-react` / `Svg*` wrappers)
 - `typography`: Typography rules
 - `prefer-if-statement`: Prefers explicit if statements
 
@@ -447,7 +448,16 @@ yarn workspace @actual-app/web run playwright test --headed --debug accounts.tes
 
 ### Working with Icons
 
-UI icons under `packages/component-library/src/icons/{v0,v1,v2}` are thin wrappers around [Lucide](https://lucide.dev) icons (`lucide-react`). Update mappings in `packages/component-library/scripts/generate-lucide-icons.mjs` and run `yarn workspace @actual-app/components run generate:icons`. Keep `icons/logo` as the Actual brand mark.
+**All new UI icons must come from [Lucide](https://lucide.dev).** Do not add custom SVG icon assets (except the Actual brand mark in `icons/logo`), and do not introduce other icon libraries (`react-icons`, Heroicons, etc.). The `actual/prefer-lucide-icons` lint rule enforces this.
+
+How to add an icon:
+
+1. Find the icon on https://lucide.dev
+2. Prefer reusing an existing `@actual-app/components/icons/v{0,1,2}` `Svg*` export when one already maps to that Lucide icon
+3. Otherwise add a mapping in `packages/component-library/scripts/generate-lucide-icons.mjs`, run `yarn workspace @actual-app/components run generate:icons`, and import the new `Svg*` export
+4. Direct `lucide-react` imports in UI code are allowed when a shared `Svg*` wrapper is not worth adding
+
+Keep `icons/logo` as the only custom brand mark.
 
 ## Troubleshooting
 
@@ -462,7 +472,8 @@ UI icons under `packages/component-library/src/icons/{v0,v1,v2}` are thin wrappe
 
 Run `yarn lint` to check. All rules — including the custom `actual/*` rules
 (`no-untranslated-strings`, `prefer-trans-over-t`, `prefer-logger-over-console`,
-`typography`, …) — are defined in [`.oxlintrc.json`](.oxlintrc.json).
+`prefer-lucide-icons`, `typography`, …) — are defined in
+[`.oxlintrc.json`](.oxlintrc.json).
 
 ### Test Failures
 

@@ -1,0 +1,17 @@
+---
+description: New UI icons must come from Lucide
+alwaysApply: true
+---
+
+# Lucide Icons
+
+When adding or changing UI icons in this app:
+
+- **Use Lucide only** ([lucide.dev](https://lucide.dev) / `lucide-react`).
+- Prefer existing `@actual-app/components/icons/v{0,1,2}` `Svg*` exports.
+- To add a shared icon: map it in `packages/component-library/scripts/generate-lucide-icons.mjs`, then run `yarn workspace @actual-app/components run generate:icons`.
+- Direct `lucide-react` imports are OK for one-off icons.
+- **Do not** add raw `.svg` icon files under `icons/v0|v1|v2`, hand-drawn path icons, or other icon libraries (`react-icons`, Heroicons, etc.).
+- **Exception:** `packages/component-library/src/icons/logo` stays the Actual brand mark.
+
+Enforced by `actual/prefer-lucide-icons` and `lucide-icons.web.test.ts`.
