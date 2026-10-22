@@ -69,12 +69,19 @@ export function CreateLocalAccountModal() {
     setBalanceError(balanceError);
 
     if (!nameError && !balanceError) {
+      let resolvedOffBudget = offbudget;
+      if (kind === 'debt') {
+        resolvedOffBudget = true;
+      } else if (kind === 'credit') {
+        resolvedOffBudget = false;
+      }
+
       createAccount.mutate(
         {
           name,
           balance: toRelaxedNumber(balance),
-          offBudget: offbudget,
-          kind: offbudget ? 'cash' : kind,
+          offBudget: resolvedOffBudget,
+          kind,
         },
         {
           onSuccess: id => {
@@ -144,20 +151,21 @@ export function CreateLocalAccountModal() {
                 </FormError>
               )}
 
-              <View
-                style={{
-                  width: '100%',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <View style={{ flexDirection: 'column' }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                    }}
-                  >
+              <InlineField label={t('Account kind')} width="100%">
+                <Select
+                  value={kind}
+                  options={[
+                    ['cash', t('Cash')],
+                    ['credit', t('Credit card')],
+                    ['debt', t('Debt')],
+                  ]}
+                  onChange={setKind}
+                />
+              </InlineField>
+
+              {kind === 'cash' && (
+                <View style={{ alignItems: 'flex-end', marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Checkbox
                       id="offbudget"
                       name="offbudget"
@@ -168,55 +176,69 @@ export function CreateLocalAccountModal() {
                       htmlFor="offbudget"
                       style={{
                         userSelect: 'none',
-                        verticalAlign: 'center',
                       }}
                     >
                       <Trans>Off budget</Trans>
                     </label>
                   </View>
-                  <div
+                  <Text
                     style={{
                       textAlign: 'right',
                       fontSize: '0.7em',
                       color: theme.pageTextLight,
                       marginTop: 3,
+                      maxWidth: 360,
                     }}
                   >
-                    <Text style={{ display: 'block' }}>
-                      <Trans>
-                        Off-budget accounts (like investments, loans, or your
-                        house) are tracked but not part of your spending budget.
-                      </Trans>
-                    </Text>
-                    <Text style={{ display: 'block' }}>
-                      <Trans>
-                        This cannot be changed later. See{' '}
-                        <Link
-                          variant="external"
-                          linkColor="muted"
-                          to="https://actualbudget.org/docs/accounts/#off-budget-accounts"
-                        >
-                          Accounts Overview
-                        </Link>{' '}
-                        for more information.
-                      </Trans>
-                    </Text>
-                  </div>
+                    <Trans>
+                      Off-budget accounts (like investments or your house) are
+                      tracked but not part of your spending budget. This cannot
+                      be changed later. See{' '}
+                      <Link
+                        variant="external"
+                        linkColor="muted"
+                        to="https://actualbudget.org/docs/accounts/#off-budget-accounts"
+                      >
+                        Accounts Overview
+                      </Link>{' '}
+                      for more information.
+                    </Trans>
+                  </Text>
                 </View>
-              </View>
-
-              {!offbudget && (
-                <InlineField label={t('Account kind')} width="100%">
-                  <Select
-                    value={kind}
-                    options={[
-                      ['cash', t('Cash')],
-                      ['credit', t('Credit')],
-                      ['debt', t('Debt')],
-                    ]}
-                    onChange={setKind}
-                  />
-                </InlineField>
+              )}
+              {kind === 'credit' && (
+                <Text
+                  style={{
+                    textAlign: 'right',
+                    fontSize: '0.7em',
+                    color: theme.pageTextLight,
+                    marginBottom: 12,
+                    maxWidth: 360,
+                    alignSelf: 'flex-end',
+                  }}
+                >
+                  <Trans>
+                    Credit cards stay in your budget and get a payment row. This
+                    cannot be changed later.
+                  </Trans>
+                </Text>
+              )}
+              {kind === 'debt' && (
+                <Text
+                  style={{
+                    textAlign: 'right',
+                    fontSize: '0.7em',
+                    color: theme.pageTextLight,
+                    marginBottom: 12,
+                    maxWidth: 360,
+                    alignSelf: 'flex-end',
+                  }}
+                >
+                  <Trans>
+                    Loans and other debt are tracked off budget. This cannot be
+                    changed later.
+                  </Trans>
+                </Text>
               )}
 
               <InlineField label={t('Balance')} width="100%">

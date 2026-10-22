@@ -170,38 +170,6 @@ type UpdateAccountPayload = {
   account: Pick<AccountEntity, 'id'> & Partial<AccountEntity>;
 };
 
-export function useSetAccountPaymentTrackingMutation() {
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      kind,
-    }: {
-      id: AccountEntity['id'];
-      kind: PaymentKind;
-    }) => {
-      await send('account-set-payment-tracking', { id, kind });
-    },
-    onSuccess: () => {
-      invalidateQueries(queryClient);
-      void queryClient.invalidateQueries({
-        queryKey: categoryQueries.lists(),
-      });
-    },
-    onError: error => {
-      console.error('Error updating payment tracking:', error);
-      dispatchErrorNotification(
-        dispatch,
-        t('There was an error updating the account. Please try again.'),
-        error,
-      );
-    },
-  });
-}
-
 export function useUpdateAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
