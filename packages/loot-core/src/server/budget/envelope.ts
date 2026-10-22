@@ -1,11 +1,18 @@
 import * as db from '#server/db';
 import * as sheet from '#server/sheet';
-import { resolveName } from '#server/spreadsheet/util';
 // @ts-strict-ignore
 import * as monthUtils from '#shared/months';
 import { safeNumber } from '#shared/util';
 
 import { createCategory as createCategoryFromBase } from './base';
+import {
+  createExpenseCategory,
+  createGroupDebtBalance,
+  createPaymentCategory,
+  getLinkedAccountId,
+  unwatchCategoryForCoverage,
+  watchCategoryForCoverage,
+} from './payment';
 import { flatten2, number, sumAmounts, unflatten2 } from './util';
 
 function getBlankSheet(months) {
@@ -31,46 +38,17 @@ function createBlankMonth(categories, sheetName, months) {
 }
 
 export function createCategory(cat, sheetName, prevSheetName) {
-  if (!cat.is_income) {
-    sheet.get().createStatic(sheetName, `budget-${cat.id}`, 0);
-
-    // This makes the app more robust by "fixing up" null budget values.
-    // Those should not be allowed, but in case somehow a null value
-    // ends up there, we are resilient to it. Preferrably the
-    // spreadsheet would have types and be more strict about what is
-    // allowed to be set.
-    if (sheet.get().getCellValue(sheetName, `budget-${cat.id}`) == null) {
-      sheet.get().set(resolveName(sheetName, `budget-${cat.id}`), 0);
-    }
-
-    sheet.get().createStatic(sheetName, `carryover-${cat.id}`, false);
-
-    sheet.get().createDynamic(sheetName, `leftover-${cat.id}`, {
-      initialValue: 0,
-      dependencies: [
-        `budget-${cat.id}`,
-        `sum-amount-${cat.id}`,
-        `${prevSheetName}!carryover-${cat.id}`,
-        `${prevSheetName}!leftover-${cat.id}`,
-        `${prevSheetName}!leftover-pos-${cat.id}`,
-      ],
-      run: (budgeted, spent, prevCarryover, prevLeftover, prevLeftoverPos) => {
-        return safeNumber(
-          number(budgeted) +
-            number(spent) +
-            (prevCarryover ? number(prevLeftover) : number(prevLeftoverPos)),
-        );
-      },
-    });
-
-    sheet.get().createDynamic(sheetName, 'leftover-pos-' + cat.id, {
-      initialValue: 0,
-      dependencies: [`leftover-${cat.id}`],
-      run: leftover => {
-        return leftover < 0 ? 0 : leftover;
-      },
-    });
+  if (cat.is_income) {
+    return;
   }
+
+  const accountId = getLinkedAccountId(cat.id);
+  if (accountId) {
+    createPaymentCategory(cat.id, accountId, sheetName, prevSheetName);
+    return;
+  }
+
+  createExpenseCategory(cat.id, sheetName, prevSheetName);
 }
 
 export function createCategoryGroup(group, sheetName) {
@@ -92,6 +70,8 @@ export function createCategoryGroup(group, sheetName) {
       dependencies: group.categories.map(cat => `leftover-${cat.id}`),
       run: sumAmounts,
     });
+
+    createGroupDebtBalance(group, sheetName);
   }
 }
 
@@ -292,6 +272,7 @@ export function handleCategoryChange(months, oldValue, newValue) {
 
       removeDeps(sheetName, prevSheetName, newValue.cat_group, newValue);
     });
+    unwatchCategoryForCoverage(newValue.id, months);
   } else if (
     newValue.tombstone === 0 &&
     (!oldValue || oldValue.tombstone === 1)
@@ -308,6 +289,7 @@ export function handleCategoryChange(months, oldValue, newValue) {
 
       addDeps(sheetName, prevSheetName, newValue.cat_group, newValue);
     });
+    watchCategoryForCoverage(newValue.id, months);
   } else if (oldValue && oldValue.cat_group !== newValue.cat_group) {
     // The category moved so we need to update the dependencies
     months.forEach(month => {

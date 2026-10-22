@@ -10,6 +10,8 @@ export type AccountEntity = {
   last_reconciled: string | null;
   tombstone: 0 | 1;
   account_group_id: AccountGroupEntity['id'] | null;
+  // Category that holds money set aside to pay this credit or debt account.
+  payment_category?: string | null;
 
   // Sync fields
   account_id: string | null;

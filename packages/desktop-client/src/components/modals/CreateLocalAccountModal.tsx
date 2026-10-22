@@ -9,6 +9,7 @@ import { FormError } from '@actual-app/components/form-error';
 import { InitialFocus } from '@actual-app/components/initial-focus';
 import { InlineField } from '@actual-app/components/inline-field';
 import { Input } from '@actual-app/components/input';
+import { Select } from '@actual-app/components/select';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
@@ -39,6 +40,7 @@ export function CreateLocalAccountModal() {
   const { data: accounts = [] } = useAccounts();
   const [name, setName] = useState('');
   const [offbudget, setOffbudget] = useState(false);
+  const [kind, setKind] = useState<'cash' | 'credit' | 'debt'>('cash');
   const [balance, setBalance] = useState('0');
 
   const [nameError, setNameError] = useState(null);
@@ -72,6 +74,7 @@ export function CreateLocalAccountModal() {
           name,
           balance: toRelaxedNumber(balance),
           offBudget: offbudget,
+          kind: offbudget ? 'cash' : kind,
         },
         {
           onSuccess: id => {
@@ -201,6 +204,20 @@ export function CreateLocalAccountModal() {
                   </div>
                 </View>
               </View>
+
+              {!offbudget && (
+                <InlineField label={t('Account kind')} width="100%">
+                  <Select
+                    value={kind}
+                    options={[
+                      ['cash', t('Cash')],
+                      ['credit', t('Credit')],
+                      ['debt', t('Debt')],
+                    ]}
+                    onChange={setKind}
+                  />
+                </InlineField>
+              )}
 
               <InlineField label={t('Balance')} width="100%">
                 <Input

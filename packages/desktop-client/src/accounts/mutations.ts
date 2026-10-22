@@ -18,6 +18,7 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 
 import { sync } from '#app/appSlice';
+import { categoryQueries } from '#budget';
 import { useAccounts } from '#hooks/useAccounts';
 import { addNotification } from '#notifications/notificationsSlice';
 import { payeeQueries } from '#payees';
@@ -56,10 +57,13 @@ const dispatchErrorNotification = (
   );
 };
 
+type PaymentKind = 'cash' | 'credit' | 'debt';
+
 type CreateAccountPayload = {
   name: string;
   balance: number;
   offBudget: boolean;
+  kind?: PaymentKind;
 };
 
 export function useCreateAccountMutation() {
@@ -68,15 +72,26 @@ export function useCreateAccountMutation() {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name, balance, offBudget }: CreateAccountPayload) => {
+    mutationFn: async ({
+      name,
+      balance,
+      offBudget,
+      kind = 'cash',
+    }: CreateAccountPayload) => {
       const id = await send('account-create', {
         name,
         balance,
         offBudget,
+        kind,
       });
       return id;
     },
-    onSuccess: () => invalidateQueries(queryClient),
+    onSuccess: () => {
+      invalidateQueries(queryClient);
+      void queryClient.invalidateQueries({
+        queryKey: categoryQueries.lists(),
+      });
+    },
     onError: error => {
       console.error('Error creating account:', error);
       dispatchErrorNotification(
@@ -154,6 +169,38 @@ export function useReopenAccountMutation() {
 type UpdateAccountPayload = {
   account: Pick<AccountEntity, 'id'> & Partial<AccountEntity>;
 };
+
+export function useSetAccountPaymentTrackingMutation() {
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      kind,
+    }: {
+      id: AccountEntity['id'];
+      kind: PaymentKind;
+    }) => {
+      await send('account-set-payment-tracking', { id, kind });
+    },
+    onSuccess: () => {
+      invalidateQueries(queryClient);
+      void queryClient.invalidateQueries({
+        queryKey: categoryQueries.lists(),
+      });
+    },
+    onError: error => {
+      console.error('Error updating payment tracking:', error);
+      dispatchErrorNotification(
+        dispatch,
+        t('There was an error updating the account. Please try again.'),
+        error,
+      );
+    },
+  });
+}
 
 export function useUpdateAccountMutation() {
   const queryClient = useQueryClient();

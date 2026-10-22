@@ -10,6 +10,13 @@ import type { CategoryGroupEntity } from '#types/models';
 
 import * as budgetActions from './actions';
 import * as envelopeBudget from './envelope';
+import {
+  ensurePaymentCategories,
+  installPaymentCategory,
+  isPaymentCategory,
+  recomputePaymentCellsForTransaction,
+  uninstallPaymentCategory,
+} from './payment';
 import * as trackingBudget from './tracking';
 
 export function getBudgetType() {
@@ -157,6 +164,17 @@ export function createCategory(cat, sheetName, prevSheetName, start, end) {
 }
 
 function handleAccountChange(months, oldValue, newValue) {
+  const oldCategory = oldValue ? oldValue.payment_category : null;
+  const newCategory = newValue ? newValue.payment_category : null;
+  if (oldCategory !== newCategory && getBudgetType() === 'envelope') {
+    if (oldCategory) {
+      uninstallPaymentCategory(oldCategory, months);
+    }
+    if (newCategory && newValue.id) {
+      installPaymentCategory(newCategory, newValue.id, months);
+    }
+  }
+
   if (!oldValue || oldValue.offbudget !== newValue.offbudget) {
     const rows = db.runQuery<Pick<db.DbTransaction, 'category'>>(
       `
@@ -180,16 +198,20 @@ function handleAccountChange(months, oldValue, newValue) {
 }
 
 function handleTransactionChange(transaction, changedFields) {
-  if (
-    (changedFields.has('date') ||
-      changedFields.has('acct') ||
-      changedFields.has('amount') ||
-      changedFields.has('category') ||
-      changedFields.has('tombstone') ||
-      changedFields.has('isParent')) &&
-    transaction.date &&
-    transaction.category
-  ) {
+  const affectsBudget =
+    changedFields.has('date') ||
+    changedFields.has('acct') ||
+    changedFields.has('amount') ||
+    changedFields.has('category') ||
+    changedFields.has('tombstone') ||
+    changedFields.has('isParent') ||
+    changedFields.has('transferred_id');
+
+  if (!affectsBudget || !transaction.date) {
+    return;
+  }
+
+  if (transaction.category) {
     const month = monthUtils.monthFromDate(db.fromDateRepr(transaction.date));
     const sheetName = monthUtils.sheetForMonth(month);
 
@@ -197,6 +219,8 @@ function handleTransactionChange(transaction, changedFields) {
       .get()
       .recompute(resolveName(sheetName, 'sum-amount-' + transaction.category));
   }
+
+  recomputePaymentCellsForTransaction(transaction);
 }
 
 function handleCategoryMappingChange(months, oldValue, newValue) {
@@ -228,7 +252,7 @@ function handleBudgetChange(budget) {
       .get()
       .set(
         `${sheetName}!carryover-${budget.category}`,
-        budget.carryover === 1 ? true : false,
+        isPaymentCategory(budget.category) ? true : budget.carryover === 1,
       );
     sheet.get().set(`${sheetName}!goal-${budget.category}`, budget.goal);
     sheet
@@ -402,6 +426,10 @@ export async function createBudget(months) {
     meta.createdMonths.add(month);
   });
 
+  if (budgetType === 'envelope') {
+    ensurePaymentCategories(months);
+  }
+
   sheet.get().setMeta(meta);
   sheet.endTransaction();
 
@@ -441,6 +469,11 @@ export async function createAllBudgets() {
 
   if (newMonths.length > 0) {
     await createBudget(range);
+  } else if (getBudgetType() === 'envelope') {
+    sheet.startTransaction();
+    ensurePaymentCategories(range);
+    sheet.endTransaction();
+    await sheet.waitOnSpreadsheet();
   }
 
   return { start, end };
