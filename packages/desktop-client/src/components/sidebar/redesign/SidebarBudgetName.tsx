@@ -1,6 +1,8 @@
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { SvgExpandArrow } from '@actual-app/components/icons/v0';
 import { SvgTime } from '@actual-app/components/icons/v1';
 import { SvgPencil1 } from '@actual-app/components/icons/v2';
 import { InitialFocus } from '@actual-app/components/initial-focus';
@@ -8,13 +10,16 @@ import { Input } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
-import { spacing } from '@actual-app/components/tokens';
+import { radius, spacing } from '@actual-app/components/tokens';
 import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
 import { isElectron } from '@actual-app/core/shared/environment';
 import { css, cx } from '@emotion/css';
 
+import { closeBudget } from '#budgetfiles/budgetfilesSlice';
+import { useContextMenu } from '#hooks/useContextMenu';
 import { useMetadataPref } from '#hooks/useMetadataPref';
+import { useNavigate } from '#hooks/useNavigate';
 import { pushModal } from '#modals/modalsSlice';
 import { useDispatch } from '#redux';
 
@@ -30,6 +35,35 @@ export function SidebarBudgetName({
   const { t } = useTranslation();
   const [budgetName, setBudgetNamePref] = useMetadataPref('budgetName');
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const { handleContextMenu } = useContextMenu({
+    triggerRef,
+    items: [
+      {
+        name: 'rename',
+        text: t('Rename budget'),
+        onClick: () => onEditingChange(true),
+      },
+      {
+        name: 'settings',
+        text: t('Settings'),
+        onClick: () => void navigate('/settings'),
+      },
+      isElectron() && {
+        name: 'loadBackup',
+        text: t('Load Backup…'),
+        onClick: () =>
+          dispatch(pushModal({ modal: { name: 'load-backup', options: {} } })),
+      },
+      {
+        name: 'close',
+        text: t('Switch file'),
+        onClick: () => void dispatch(closeBudget()),
+      },
+    ],
+  });
 
   const iconButtonClassName = cx(
     'hover-visible',
@@ -65,17 +99,43 @@ export function SidebarBudgetName({
           },
         }}
       >
-        <Text
+        <Button
+          ref={triggerRef}
           data-testid="budget-name"
+          variant="bare"
+          aria-label={t('Budget menu')}
+          aria-haspopup="menu"
+          className={css({
+            backgroundColor: theme.sidebarControlBackground,
+            maxWidth: '100%',
+            '&[data-hovered], &[data-focus-visible]': {
+              backgroundColor: theme.sidebarItemBackgroundHover,
+            },
+          })}
           style={{
-            color: theme.sidebarHeaderText,
+            color: theme.sidebarBudgetName,
             fontSize: 13,
             fontWeight: 600,
-            ...styles.ellipsisText,
+            paddingTop: spacing.xs,
+            paddingBottom: spacing.xs,
+            paddingLeft: spacing.sm,
+            paddingRight: spacing.sm,
+            borderRadius: radius.sm,
+            gap: spacing.xs,
+            minWidth: 0,
+            justifyContent: 'flex-start',
           }}
+          onPress={handleContextMenu}
         >
-          {budgetName || t('Unnamed')}
-        </Text>
+          <Text style={{ ...styles.ellipsisText, minWidth: 0 }}>
+            {budgetName || t('Unnamed')}
+          </Text>
+          <SvgExpandArrow
+            width={7}
+            height={7}
+            style={{ flexShrink: 0, color: theme.sidebarTextSubdued }}
+          />
+        </Button>
         <Button
           variant="bare"
           className={iconButtonClassName}

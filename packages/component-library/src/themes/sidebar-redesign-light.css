@@ -1,25 +1,28 @@
 /* Light palette for the redesigned sidebar. ThemeStyle injects this with the
    built-in light theme unless a custom theme or CSS override styles the classic
    sidebar tokens. The sidebarRedesign* values can be overridden one at a time
-   from a custom theme or the CSS override, since those are declared later. */
+   from a custom theme or the CSS override, since those are declared later.
+
+   Soft gray background and 1px edge follow the Paper budget restyle (light
+   sidebar against a white workspace), while keeping semantic purple selection. */
 :root {
-  --color-sidebarRedesignBackground: var(--palette-white);
+  --color-sidebarRedesignBackground: var(--palette-gray50);
   --color-sidebarRedesignItemText: var(--palette-navy800);
   --color-sidebarRedesignItemBackgroundHover: var(--palette-navy100);
   --color-sidebarRedesignItemAccentSelected: var(--palette-purple500);
   --color-sidebarRedesignItemTextSelected: var(--palette-purple600);
   --color-sidebarRedesignItemBackgroundSelected: var(--palette-purple100);
   --color-sidebarRedesignItemBackgroundFailed: var(--palette-red500);
-  --color-sidebarRedesignHeaderText: var(--palette-gray700);
+  --color-sidebarRedesignHeaderText: var(--palette-gray800);
   --color-sidebarRedesignTextSubdued: var(--palette-navy600);
   --color-sidebarRedesignTextMuted: var(--palette-navy400);
-  --color-sidebarRedesignRightBorder: var(--palette-border);
+  --color-sidebarRedesignRightBorder: var(--palette-navy100);
 }
 
 /* Derived tokens are redeclared because var() references in custom
    properties resolve where the property is declared. */
 .sidebar-redesign {
-  border-right: 2px solid var(--color-sidebarRedesignRightBorder);
+  border-right: 1px solid var(--color-sidebarRedesignRightBorder);
   --color-sidebarBackground: var(--color-sidebarRedesignBackground);
   --color-sidebarItemText: var(--color-sidebarRedesignItemText);
   --color-sidebarItemBackgroundHover: var(
@@ -48,4 +51,5 @@
   --color-sidebarBorder: var(--color-sidebarItemBackgroundHover);
   --color-sidebarControlBackground: var(--color-sidebarItemBackgroundHover);
   --color-sidebarBrand: var(--color-sidebarItemAccentSelected);
+  --color-sidebarBudgetName: var(--color-sidebarRedesignHeaderText);
 }

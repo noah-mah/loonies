@@ -8,6 +8,7 @@ import * as bindings from '#spreadsheet/bindings';
 
 import { AccountSearchField } from './AccountSearchField';
 import { AccountsHeaderRow } from './AccountsHeaderRow';
+import { AddAccountRow } from './AddAccountRow';
 import { ClosedSection } from './ClosedSection';
 import { SideGroup } from './SideGroup';
 import {
@@ -98,7 +99,7 @@ export function AccountsSection() {
           onToggle={() => collapse.toggle('closed')}
           isDragDisabled={isSearching}
         />
-        <View style={{ height: spacing.md }} />
+        <AddAccountRow />
       </View>
     </View>
   );

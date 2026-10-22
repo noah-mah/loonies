@@ -27,9 +27,9 @@ To switch back to the classic sidebar, untick the same setting. Your account gro
 
 The screenshot at the top of this page is labeled with the four parts of the sidebar:
 
-- **A. Budget name and sync status.** Hover over the budget name and click the pencil to rename the budget. Click the Actual logo to switch to another budget file. The line underneath tells you whether the budget is synced, syncing, offline, or kept on this device only.
+- **A. Budget name and sync status.** Click the budget name (or its chevron) for rename, settings, backup, and switch-file actions. Hover to show the pencil for a quick rename. Click the Actual logo to switch to another budget file. The line underneath tells you whether the budget is synced, syncing, offline, or kept on this device only.
 - **B. Navigation.** Links to the Budget, Reports and Schedules pages. Payees, Rules, Tags and Bank Sync are in Settings.
-- **C. Accounts.** Your accounts, their balances and your account groups.
+- **C. Accounts.** Your accounts, their balances and your account groups. **Add account** sits at the bottom of this list.
 - **D. Settings.** A shortcut to the Settings page, always at the bottom of the sidebar.
 
 ## The Accounts List

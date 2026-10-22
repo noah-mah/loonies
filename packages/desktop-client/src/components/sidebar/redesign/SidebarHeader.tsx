@@ -40,6 +40,8 @@ export function SidebarHeader({ children }: SidebarHeaderProps) {
           ? MAC_WINDOW_BUTTONS_INSET
           : spacing.md,
         borderBottom: `1px solid ${theme.sidebarBorder}`,
+        // Soft header edge so the light sidebar reads as one panel (Paper).
+        backgroundColor: theme.sidebarBackground,
         userSelect: 'none',
         flexShrink: 0,
       }}

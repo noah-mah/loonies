@@ -10,7 +10,7 @@ export const sectionLabelStyle = {
 export const groupLabelStyle = {
   fontSize: 12,
   fontWeight: 600,
-  color: theme.sidebarTextSubdued,
+  color: theme.sidebarHeaderText,
 } satisfies CSSProperties;
 
 export const dropZoneStyle = {
