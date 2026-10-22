@@ -13,7 +13,7 @@ import { useFeatureFlag } from '#hooks/useFeatureFlag';
 import { useGlobalPref } from '#hooks/useGlobalPref';
 
 import { useBudgetMonthCount } from './BudgetMonthCountContext';
-import { BudgetPageHeader } from './BudgetPageHeader';
+import { BudgetMonthToolbar } from './BudgetMonthToolbar';
 import { BudgetTable } from './BudgetTable';
 
 function getNumPossibleMonths(width: number, categoryWidth: number) {
@@ -60,7 +60,7 @@ const DynamicBudgetTable = ({
     width,
     200 + 100 * categoryExpandedState,
   );
-  const numMonths = Math.min(numPossible, maxMonths);
+  const numMonths = Math.min(numPossible, maxMonths, 2);
   const maxWidth = 200 + 100 * categoryExpandedState + 500 * numMonths;
 
   useEffect(() => {
@@ -141,30 +141,40 @@ const DynamicBudgetTable = ({
   return (
     <View
       style={{
-        width,
-        height,
-        alignItems: 'center',
-        opacity: width <= 0 || height <= 0 ? 0 : 1,
+        width: width > 0 ? width : '100%',
+        height: height > 0 ? height : '100%',
+        opacity: 1,
       }}
     >
-      <View style={{ width: '100%', maxWidth }}>
-        <ErrorBoundary FallbackComponent={FeatureErrorFallback}>
-          <BudgetPageHeader
-            startMonth={prewarmStartMonth}
-            numMonths={numMonths}
-            monthBounds={monthBounds}
-            onMonthSelect={_onMonthSelect}
-          />
-          <BudgetTable
-            type={type}
-            prewarmStartMonth={prewarmStartMonth}
-            startMonth={startMonth}
-            numMonths={numMonths}
-            monthBounds={monthBounds}
-            onBudgetAction={onBudgetAction}
-            {...props}
-          />
-        </ErrorBoundary>
+      <BudgetMonthToolbar
+        startMonth={prewarmStartMonth}
+        numMonths={numMonths}
+        monthBounds={monthBounds}
+        onMonthSelect={_onMonthSelect}
+      />
+      <View
+        style={{
+          flex: 1,
+          minHeight: 0,
+          width: '100%',
+          alignItems: 'center',
+          paddingLeft: 8,
+          paddingRight: 8,
+        }}
+      >
+        <View style={{ width: '100%', maxWidth, flex: 1, minHeight: 0 }}>
+          <ErrorBoundary FallbackComponent={FeatureErrorFallback}>
+            <BudgetTable
+              type={type}
+              prewarmStartMonth={prewarmStartMonth}
+              startMonth={startMonth}
+              numMonths={numMonths}
+              monthBounds={monthBounds}
+              onBudgetAction={onBudgetAction}
+              {...props}
+            />
+          </ErrorBoundary>
+        </View>
       </View>
     </View>
   );
@@ -183,11 +193,8 @@ type AutoSizingBudgetTableProps = Omit<
 export const AutoSizingBudgetTable = (props: AutoSizingBudgetTableProps) => {
   return (
     <AutoSizer
+      style={{ width: '100%', height: '100%' }}
       renderProp={({ width = 0, height = 0 }) => {
-        if (width === 0 || height === 0) {
-          return null;
-        }
-
         return <DynamicBudgetTable width={width} height={height} {...props} />;
       }}
     />

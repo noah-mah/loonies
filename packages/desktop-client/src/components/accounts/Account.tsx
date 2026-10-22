@@ -402,6 +402,16 @@ class AccountInternal extends PureComponent<
     if (lastUndoEvent) {
       void onUndo(lastUndoEvent);
     }
+
+    const locationState = this.props.location.state;
+    if (
+      locationState != null &&
+      typeof locationState === 'object' &&
+      'addTransaction' in locationState &&
+      locationState.addTransaction === true
+    ) {
+      this.setState({ isAdding: true });
+    }
   }
 
   componentDidUpdate(prevProps: AccountInternalProps) {

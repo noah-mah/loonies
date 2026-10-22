@@ -167,6 +167,15 @@ export function uncategorizedCount<SheetName extends SheetNames>() {
   } satisfies Binding<SheetName, 'uncategorized-amount'>;
 }
 
+export function accountUncategorizedCount(accountId: AccountEntity['id']) {
+  return {
+    name: `uncategorized-count-${accountId}` as `uncategorized-count-${string}`,
+    query: uncategorizedTransactions()
+      .filter({ account: accountId })
+      .calculate({ $count: '$id' }),
+  } satisfies Binding<'account', `uncategorized-count-${string}`>;
+}
+
 export const envelopeBudget = {
   incomeAvailable: 'available-funds',
   lastMonthOverspent: 'last-month-overspent',

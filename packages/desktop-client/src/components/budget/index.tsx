@@ -3,6 +3,7 @@ import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import type { ComponentType } from 'react';
 
 import { styles } from '@actual-app/components/styles';
+import { tokens } from '@actual-app/components/tokens';
 import { View } from '@actual-app/components/view';
 import { send } from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
@@ -51,7 +52,7 @@ export function Budget() {
   });
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const [maxMonthsPref] = useGlobalPref('maxMonths');
-  const maxMonths = maxMonthsPref || 1;
+  const maxMonths = Math.min(maxMonthsPref || 1, 2);
   const [initialized, setInitialized] = useState(false);
   const { data: { grouped: categoryGroups } = { grouped: [] } } =
     useCategories();
@@ -251,8 +252,13 @@ export function Budget() {
       <View
         style={{
           ...styles.page,
-          paddingLeft: 8,
-          paddingRight: 8,
+          height: '100%',
+          paddingTop: 0,
+          [`@media (min-width: ${tokens.breakpoint_small})`]: {
+            paddingTop: 0,
+          },
+          paddingLeft: 0,
+          paddingRight: 0,
           overflow: 'hidden',
         }}
       >
