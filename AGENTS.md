@@ -584,6 +584,7 @@ All storage is **SQLite** (file-based via `better-sqlite3`). No external databas
 ### Running the app
 
 - `yarn start` builds the plugins-service worker, loot-core browser backend, and starts the Vite dev server on port **3001**.
+- Cloud Agent VMs launch `yarn start` on boot. If http://localhost:3001/ is already responding, reuse that server.
 - `yarn start:server-dev` starts both the sync server (port 5006) and the web frontend together.
 - The Vite HMR dev server serves many unbundled modules. In constrained environments, the browser may hit `ERR_INSUFFICIENT_RESOURCES`. If that happens, use `yarn build:browser` followed by serving the built output from `packages/desktop-client/build/` with proper COOP/COEP headers (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`).
 
@@ -597,7 +598,7 @@ Standard commands documented in `package.json` scripts and the Quick Start secti
 
 ### Testing and previewing the app
 
-When running the app for manual testing or demos, use **"View demo"** on the initial setup screen (after selecting "Don't use a server"). This creates a test budget pre-populated with realistic sample data (accounts, transactions, categories, and budgeted amounts), which is far more useful than starting with an empty budget.
+When running the app for manual testing or demos, click **"Try the demo"** on the welcome screen. This creates a test budget pre-populated with realistic sample data (accounts, transactions, categories, and budgeted amounts), which is far more useful than starting with an empty budget.
 
 ### Gotchas
 
