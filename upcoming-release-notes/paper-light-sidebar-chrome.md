@@ -3,4 +3,4 @@ category: Enhancements
 authors: [noah-mah]
 ---
 
-Softens the redesigned light sidebar and adds a budget-name menu plus an Add account row to match the Paper layout
+Replace the classic sidebar with the light redesigned sidebar, including account groups and an Add account row
