@@ -7,12 +7,12 @@ import { animated, config, useSpring } from 'react-spring';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import {
   SvgAdd,
+  SvgBolt,
   SvgCog,
   SvgPiggyBank,
   SvgReports,
   SvgWallet,
 } from '@actual-app/components/icons/v1';
-import { SvgCalendar3 } from '@actual-app/components/icons/v2';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
@@ -113,10 +113,10 @@ export function MobileNavTabs() {
       Icon: SvgReports,
     },
     {
-      name: t('Schedules'),
+      name: t('Automations'),
       path: '/schedules',
       style: navTabStyle,
-      Icon: SvgCalendar3,
+      Icon: SvgBolt,
     },
     {
       name: t('Settings'),

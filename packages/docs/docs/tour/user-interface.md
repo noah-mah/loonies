@@ -26,7 +26,7 @@ The sidebar is how you move between the main parts of Actual.
 
 <img width="261" alt="The sidebar with the navigation links, Settings and the accounts list labeled" src="/img/a-tour-of-actual/tour-user-interface-sidebar@2x.webp" />
 
-- **A. Navigation.** The menu at the top links to your Budget, Reports and Schedules. Less used pages, like Payees, Rules and Tags, are in Settings. The [Sidebar](../settings/index.md#sidebar) section of the settings lets you choose which pages appear in the menu.
+- **A. Navigation.** The menu at the top links to your Budget, Reports and Automations. Less used pages, like Payees, Rules and Tags, are in Settings. The [Sidebar](../settings/index.md#sidebar) section of the settings lets you choose which pages appear in the menu.
 - **B. Settings.** Settings is at the bottom of the menu.
 - **C. Accounts.** Below the menu are all of your accounts, both on budget and off budget, listed under their respective heading.
 

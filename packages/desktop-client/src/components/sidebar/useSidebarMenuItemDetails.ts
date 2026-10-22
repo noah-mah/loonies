@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
+  SvgBolt,
   SvgLibrary,
   SvgReports,
   SvgTag,
@@ -9,7 +10,6 @@ import {
   SvgUserGroup,
   SvgWallet,
 } from '@actual-app/components/icons/v1';
-import { SvgCalendar3 } from '@actual-app/components/icons/v2';
 
 import type { SidebarMenuItemId } from './sidebarMenu';
 
@@ -29,7 +29,7 @@ export function useSidebarMenuItemDetails(): Record<
   return {
     budget: { title: t('Budget'), Icon: SvgWallet },
     reports: { title: t('Reports'), Icon: SvgReports },
-    schedules: { title: t('Schedules'), Icon: SvgCalendar3 },
+    schedules: { title: t('Automations'), Icon: SvgBolt },
     payees: { title: t('Payees'), Icon: SvgUserGroup },
     tags: { title: t('Tags'), Icon: SvgTag },
     rules: { title: t('Rules'), Icon: SvgTuning },

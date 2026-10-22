@@ -50,18 +50,18 @@ test.describe('Settings', () => {
 
     const sidebar = page.getByTestId('sidebar-primary-buttons');
     await expect(sidebar.getByRole('link', { name: 'Payees' })).toBeVisible();
-    await expect(sidebar.getByRole('link', { name: 'Schedules' })).toHaveCount(
-      0,
-    );
     await expect(
-      settingsPage.settingsNav.getByRole('link', { name: 'Schedules' }),
+      sidebar.getByRole('link', { name: 'Automations' }),
+    ).toHaveCount(0);
+    await expect(
+      settingsPage.settingsNav.getByRole('link', { name: 'Automations' }),
     ).toBeVisible();
     await expect(
       settingsPage.settingsNav.getByRole('link', { name: 'Payees' }),
     ).toHaveCount(0);
 
     await settingsPage.settingsNav
-      .getByRole('link', { name: 'Schedules' })
+      .getByRole('link', { name: 'Automations' })
       .click();
     await expect(page).toHaveURL(/\/settings\/schedules$/);
     await expect(settingsPage.settingsNav).toBeVisible();

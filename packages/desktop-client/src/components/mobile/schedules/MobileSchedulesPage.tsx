@@ -122,7 +122,7 @@ export function MobileSchedulesPage() {
         <MobilePageHeader
           title={
             <Text style={{ ...styles.underlinedText, fontSize: 16 }}>
-              <Trans>Schedules</Trans>
+              <Trans>Automations</Trans>
             </Text>
           }
           rightContent={<AddScheduleButton />}

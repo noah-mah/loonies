@@ -94,7 +94,7 @@ export class Navigation {
   }
 
   async goToSchedulesPage() {
-    await this.page.getByRole('link', { name: 'Schedules' }).click();
+    await this.page.getByRole('link', { name: 'Automations' }).click();
 
     return new SchedulesPage(this.page);
   }
