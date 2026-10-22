@@ -42,13 +42,13 @@ const triggerClassName = css({
   padding: '4px 8px',
   borderRadius: 6,
   backgroundColor: 'transparent',
-  color: theme.pageTextSubdued,
+  color: theme.pageTextLight,
   fontSize: 14,
   fontWeight: 500,
   lineHeight: '18px',
   '&[data-hovered]': {
     backgroundColor: theme.sidebarItemBackgroundHover,
-    color: theme.pageTextSubdued,
+    color: theme.pageText,
   },
   '&[data-pressed]': {
     backgroundColor: theme.sidebarItemBackgroundHover,
@@ -64,29 +64,29 @@ const menuItemClassName = css({
   padding: 0,
   borderRadius: 4,
   backgroundColor: 'transparent',
-  color: theme.pageTextSubdued,
+  color: theme.pageTextLight,
   fontSize: 14,
   fontWeight: 400,
   lineHeight: '18px',
   '&[data-hovered]': {
-    backgroundColor: 'transparent',
-    color: theme.pageText,
+    backgroundColor: theme.menuItemBackgroundHover,
+    color: theme.menuItemTextHover,
   },
 });
 
 const currentMenuItemClassName = css({
-  color: theme.pageText,
+  color: theme.menuItemTextSelected,
   fontWeight: 500,
   '&[data-hovered]': {
-    color: theme.pageText,
+    color: theme.menuItemTextSelected,
   },
 });
 
 const selectedFilterClassName = css({
   backgroundColor: theme.cardBackground,
   color: theme.pageText,
-  border: `1px solid ${theme.cardBackground}`,
-  boxShadow: '0 0 3px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${theme.cardBorder}`,
+  boxShadow: theme.buttonNormalShadow,
   '&[data-hovered]': {
     backgroundColor: theme.cardBackground,
     color: theme.pageText,
@@ -173,7 +173,7 @@ export function AppHeader() {
         <SvgCheveronDown
           width={16}
           height={16}
-          style={{ color: theme.pageTextSubdued }}
+          style={{ color: theme.pageTextLight }}
         />
       </Button>
 
@@ -188,9 +188,9 @@ export function AppHeader() {
           borderRadius: 6,
           borderWidth: 1,
           borderStyle: 'solid',
-          borderColor: theme.cardBackground,
-          backgroundColor: theme.cardBackground,
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+          borderColor: theme.menuBorder,
+          backgroundColor: theme.menuBackground,
+          boxShadow: theme.buttonPrimaryShadow,
         }}
       >
         <View role="menu" style={{ gap: 8 }}>
