@@ -305,6 +305,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
         backgroundColor: monthUtils.isCurrentMonth(month)
           ? theme.budgetCurrentMonth
           : theme.budgetOtherMonth,
+        color: theme.pageTextLight,
         '& .hover-visible': {
           opacity: 0,
           transition: 'opacity .25s',

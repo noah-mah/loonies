@@ -10,7 +10,6 @@ import {
 } from '@actual-app/components/icons/v2';
 import { Popover } from '@actual-app/components/popover';
 import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
@@ -63,12 +62,9 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
       data-testid="budget-summary"
       data-month={month}
       style={{
-        backgroundColor:
-          month === currentMonth
-            ? theme.budgetCurrentMonth
-            : theme.budgetOtherMonth,
-        boxShadow: styles.cardShadow,
-        borderRadius: 6,
+        backgroundColor: theme.cardBackground,
+        border: '1px solid ' + theme.cardBorder,
+        borderRadius: 8,
         marginLeft: 0,
         marginRight: 0,
         marginTop: 5,

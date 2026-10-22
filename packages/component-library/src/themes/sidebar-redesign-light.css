@@ -3,20 +3,19 @@
    sidebar tokens. The sidebarRedesign* values can be overridden one at a time
    from a custom theme or the CSS override, since those are declared later.
 
-   Soft gray background and 1px edge follow the Paper budget restyle (light
-   sidebar against a white workspace), while keeping semantic purple selection. */
+   Soft gray background and 1px edge follow the Paper budget restyle. */
 :root {
-  --color-sidebarRedesignBackground: var(--palette-gray50);
-  --color-sidebarRedesignItemText: var(--palette-navy800);
-  --color-sidebarRedesignItemBackgroundHover: var(--palette-navy100);
-  --color-sidebarRedesignItemAccentSelected: var(--palette-purple500);
-  --color-sidebarRedesignItemTextSelected: var(--palette-purple600);
-  --color-sidebarRedesignItemBackgroundSelected: var(--palette-purple100);
-  --color-sidebarRedesignItemBackgroundFailed: var(--palette-red500);
-  --color-sidebarRedesignHeaderText: var(--palette-gray800);
-  --color-sidebarRedesignTextSubdued: var(--palette-navy600);
-  --color-sidebarRedesignTextMuted: var(--palette-navy400);
-  --color-sidebarRedesignRightBorder: var(--palette-navy100);
+  --color-sidebarRedesignBackground: var(--color-surface-sidebar);
+  --color-sidebarRedesignItemText: var(--color-text-primary);
+  --color-sidebarRedesignItemBackgroundHover: var(--color-surface-control);
+  --color-sidebarRedesignItemAccentSelected: var(--color-text-primary);
+  --color-sidebarRedesignItemTextSelected: var(--color-text-primary);
+  --color-sidebarRedesignItemBackgroundSelected: var(--color-surface-control);
+  --color-sidebarRedesignItemBackgroundFailed: var(--color-danger);
+  --color-sidebarRedesignHeaderText: var(--color-text-secondary);
+  --color-sidebarRedesignTextSubdued: var(--color-text-muted);
+  --color-sidebarRedesignTextMuted: var(--color-text-subtle);
+  --color-sidebarRedesignRightBorder: var(--color-border-default);
 }
 
 /* Derived tokens are redeclared because var() references in custom
@@ -43,13 +42,9 @@
   --color-sidebarTextMuted: var(--color-sidebarRedesignTextMuted);
   --color-sidebarItemTextUpdated: var(--color-sidebarItemText);
   --color-sidebarTextFailed: var(--color-sidebarItemBackgroundFailed);
-  --color-sidebarBackgroundFailedSubtle: color-mix(
-    in srgb,
-    var(--color-sidebarItemBackgroundFailed) 16%,
-    transparent
-  );
-  --color-sidebarBorder: var(--color-sidebarItemBackgroundHover);
-  --color-sidebarControlBackground: var(--color-sidebarItemBackgroundHover);
+  --color-sidebarBackgroundFailedSubtle: var(--color-danger-surface);
+  --color-sidebarBorder: var(--color-border-default);
+  --color-sidebarControlBackground: var(--color-surface-control);
   --color-sidebarBrand: var(--color-sidebarItemAccentSelected);
   --color-sidebarBudgetName: var(--color-sidebarRedesignHeaderText);
 }

@@ -8,7 +8,6 @@ import {
   SvgArrowButtonUp1,
 } from '@actual-app/components/icons/v2';
 import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
@@ -66,12 +65,9 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
       data-testid="budget-summary"
       data-month={month}
       style={{
-        backgroundColor:
-          month === currentMonth
-            ? theme.budgetCurrentMonth
-            : theme.budgetOtherMonth,
-        boxShadow: styles.cardShadow,
-        borderRadius: 6,
+        backgroundColor: theme.cardBackground,
+        border: '1px solid ' + theme.cardBorder,
+        borderRadius: 8,
         marginLeft: 0,
         marginRight: 0,
         marginTop: 5,
@@ -272,7 +268,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
               style={{
                 padding: '5px 0',
                 marginTop: 17,
-                backgroundColor: theme.budgetHeaderCurrentMonth,
+                backgroundColor: theme.cardBackground,
                 borderTopWidth: 1,
                 borderBottomWidth: 1,
                 borderColor: theme.tableBorder,
