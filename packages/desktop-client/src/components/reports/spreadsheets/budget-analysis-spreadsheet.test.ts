@@ -80,6 +80,19 @@ describe('createBudgetAnalysisSpreadsheet', () => {
       expect(result).toContain(visibleExpense);
       expect(result).toContain(hiddenExpense);
     });
+
+    it('excludes credit and debt payment categories', () => {
+      const paymentCategory = makeCategory({
+        id: 'pay-amex',
+        name: 'Amex',
+      });
+      const paymentIds = new Set(['pay-amex']);
+      const categories = [visibleExpense, paymentCategory];
+
+      expect(
+        categories.filter(cat => isBaseCategory(cat, false, paymentIds)),
+      ).toEqual([visibleExpense]);
+    });
   });
 
   describe('getLastSelectableMonth', () => {

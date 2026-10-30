@@ -12,6 +12,7 @@ import type {
 // @ts-strict-ignore
 import { keyBy } from 'es-toolkit';
 
+import { getPaymentCategoryIds } from '#accounts/paymentCategories';
 import { resolveSpendingAverageRange } from '#components/reports/spendingAverageRange';
 import { fromDateRepr } from '#components/reports/util';
 import type { useSpreadsheet } from '#hooks/useSpreadsheet';
@@ -37,11 +38,13 @@ export function getSpendingBudgetFilters({
   categoryGroups,
   conditions,
   conditionsOp,
+  paymentCategoryIds = new Set<string>(),
 }: {
   categories: CategoryEntity[];
   categoryGroups: CategoryGroupEntity[];
   conditions: RuleConditionEntity[];
   conditionsOp?: 'and' | 'or';
+  paymentCategoryIds?: Set<string>;
 }) {
   const budgetConditions = conditions.filter(
     cond =>
@@ -62,9 +65,27 @@ export function getSpendingBudgetFilters({
     categoryGroups,
     budgetConditions,
     conditionsOp ?? 'and',
-  ).map(category => category.id);
+  )
+    .map(category => category.id)
+    .filter(id => !paymentCategoryIds.has(id));
 
   return [{ category: { $oneof: matchingCategoryIds } }];
+}
+
+export function sumSpendingBudgetAmounts(
+  budgets: Array<{ category: string; amount: number }> | undefined,
+  paymentCategoryIds: Set<string>,
+): number {
+  if (!budgets) {
+    return 0;
+  }
+
+  return budgets.reduce((total, row) => {
+    if (paymentCategoryIds.has(row.category)) {
+      return total;
+    }
+    return total + row.amount;
+  }, 0);
 }
 
 export function createSpendingSpreadsheet({
@@ -199,15 +220,19 @@ export function createSpendingSpreadsheet({
         !cond.customName &&
         (cond.field === 'category' || cond.field === 'category_group'),
     );
+    const [{ list, grouped }, accounts] = await Promise.all([
+      send('get-categories'),
+      send('accounts-get'),
+    ]);
+    const paymentCategoryIds = getPaymentCategoryIds(accounts);
     const budgetFilters = hasBudgetConditions
-      ? await send('get-categories').then(({ list, grouped }) =>
-          getSpendingBudgetFilters({
-            categories: list,
-            categoryGroups: grouped,
-            conditions,
-            conditionsOp,
-          }),
-        )
+      ? getSpendingBudgetFilters({
+          categories: list,
+          categoryGroups: grouped,
+          conditions,
+          conditionsOp,
+          paymentCategoryIds,
+        })
       : [];
     const [budgets] = await Promise.all([
       aqlQuery(
@@ -224,8 +249,8 @@ export function createSpendingSpreadsheet({
     ]);
 
     const dailyBudget =
-      budgets &&
-      budgets.reduce((a, v) => a + v.amount, 0) / compareInterval.length;
+      sumSpendingBudgetAmounts(budgets, paymentCategoryIds) /
+      compareInterval.length;
 
     const intervals = monthUtils.dayRangeInclusive(startDate, endDate);
     if (endDateTo < startDate || startDateTo > endDate) {

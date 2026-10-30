@@ -3,9 +3,9 @@
 Where credit/debt **payment categories** (`accounts.payment_category`) are still
 treated as ordinary expense categories.
 
-**Status:** Critical/High items C1–C2 and H1–H5 from the recommended fix order
-are implemented on this branch. Remaining: budgeted-mode report exclusions (H6)
-and medium polish (M3–M5 pickers / report defaults).
+**Status:** Critical/High items C1–C2 and H1–H6 from the recommended fix order
+are implemented on this branch. Remaining: medium polish (M3–M5 pickers /
+report defaults; M4 spending budget line and grouped Budgeted mode are done).
 
 Payment leftover means **available for payment**
 (`budgeted + covered − payments + previous`), not unspent grocery money. Almost

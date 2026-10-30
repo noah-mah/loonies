@@ -19,6 +19,7 @@ type BudgetMonthCategory = {
   budgeted?: number;
   balance?: number;
   received?: number;
+  is_payment?: boolean;
 };
 
 type BudgetMonthGroup = {
@@ -331,20 +332,22 @@ export function createBudgetSpreadsheet(
 
     const categoryData: CategoryEntry[] = filteredCategoryGroups
       .flatMap(group =>
-        group.categories.map(cat => {
-          const rawValue = group.is_income
-            ? (cat.received ?? 0)
-            : (cat.budgeted ?? 0);
-          return {
-            categoryGroup: group.name,
-            categoryGroupId: group.id,
-            category: cat.name,
-            categoryId: cat.id,
-            isIncome: group.is_income,
-            isNegative: rawValue < 0,
-            value: rawValue,
-          };
-        }),
+        group.categories
+          .filter(cat => group.is_income || !cat.is_payment)
+          .map(cat => {
+            const rawValue = group.is_income
+              ? (cat.received ?? 0)
+              : (cat.budgeted ?? 0);
+            return {
+              categoryGroup: group.name,
+              categoryGroupId: group.id,
+              category: cat.name,
+              categoryId: cat.id,
+              isIncome: group.is_income,
+              isNegative: rawValue < 0,
+              value: rawValue,
+            };
+          }),
       )
       .filter(entry => entry.value !== 0);
 
