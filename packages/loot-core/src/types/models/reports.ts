@@ -84,6 +84,8 @@ export type SpendingEntity = {
   totalDebts: number;
   totalAssets: number;
   totalTotals: number;
+  /** Total budgeted amount for the compare month (expense categories). */
+  monthBudgetTotal?: number;
 };
 
 export type DataEntity = {

@@ -79,6 +79,7 @@ import type {
   ScheduleEntity,
   TransactionEntity,
 } from '@actual-app/core/types/models';
+import { useQueryClient } from '@tanstack/react-query';
 import { format as formatDate, parseISO } from 'date-fns';
 
 import { getAccountsById } from '#accounts/accountsSlice';
@@ -137,7 +138,11 @@ import { useSyncedPref } from '#hooks/useSyncedPref';
 import { pushModal } from '#modals/modalsSlice';
 import { NotesTagFormatter } from '#notes/NotesTagFormatter';
 import { addNotification } from '#notifications/notificationsSlice';
-import { getPayeesById } from '#payees';
+import {
+  discardPayeesCreatedDuringAdd,
+  getPayeesById,
+  payeeQueries,
+} from '#payees';
 import { aqlQuery } from '#queries/aqlQuery';
 import { useDispatch } from '#redux';
 import { getStatusLabel } from '#util/schedule';
@@ -3128,6 +3133,8 @@ export const TransactionTable = forwardRef(
     const { t } = useTranslation();
 
     const dispatch = useDispatch();
+    const queryClient = useQueryClient();
+    const payeesCreatedDuringAddRef = useRef(new Set<PayeeEntity['id']>());
     const [showHiddenCategories] = useLocalPref('budget.showHiddenCategories');
     const [upcomingLength = DEFAULT_UPCOMING_SCHEDULE_DAYS] = useSyncedPref(
       'upcomingScheduledTransactionLength',
@@ -3149,6 +3156,7 @@ export const TransactionTable = forwardRef(
       showGroup,
       showBalances,
       showCleared,
+      onCreatePayee: onCreatePayeeProp,
     } = props;
     const visibleColumns = useMemo(
       () =>
@@ -3380,6 +3388,7 @@ export const TransactionTable = forwardRef(
         }));
         tableNavigator.onEdit(null);
         clearedFields.current.clear();
+        payeesCreatedDuringAddRef.current.clear();
         setNewTransactions(
           makeTemporaryTransactions(
             props.currentAccountId,
@@ -3406,6 +3415,7 @@ export const TransactionTable = forwardRef(
 
         if (shouldAddAndClose.current) {
           props.onAdd(transactions);
+          payeesCreatedDuringAddRef.current.clear();
           clearedFields.current.clear();
           setNewTransactions(
             makeTemporaryTransactions(
@@ -3420,6 +3430,7 @@ export const TransactionTable = forwardRef(
           const lastDate =
             transactions.length > 0 ? transactions[0].date : null;
           clearedFields.current.clear();
+          payeesCreatedDuringAddRef.current.clear();
           setNewTransactions(
             makeTemporaryTransactions(
               props.currentAccountId,
@@ -4061,6 +4072,8 @@ export const TransactionTable = forwardRef(
 
     function onCloseAddTransaction() {
       clearedFields.current.clear();
+      const payeeIds = [...payeesCreatedDuringAddRef.current];
+      payeesCreatedDuringAddRef.current.clear();
       setNewTransactions(
         makeTemporaryTransactions(
           props.currentAccountId,
@@ -4081,7 +4094,23 @@ export const TransactionTable = forwardRef(
 
       tableNavigator.onEdit(null);
       props.onCloseAddTransaction();
+      void discardPayeesCreatedDuringAdd(payeeIds).then(() => {
+        void queryClient.invalidateQueries({
+          queryKey: payeeQueries.lists(),
+        });
+      });
     }
+
+    const onCreatePayeeDuringAdd = useCallback(
+      async (name: string) => {
+        const id = await onCreatePayeeProp(name);
+        if (id) {
+          payeesCreatedDuringAddRef.current.add(id);
+        }
+        return id;
+      },
+      [onCreatePayeeProp],
+    );
 
     const onToggleSplit = useCallback(
       (id: TransactionEntity['id']) =>
@@ -4129,6 +4158,7 @@ export const TransactionTable = forwardRef(
             onDistributeRemainder={onDistributeRemainder}
             onCloseAddTransaction={onCloseAddTransaction}
             onToggleSplit={onToggleSplit}
+            onCreatePayee={onCreatePayeeDuringAdd}
             newTransactions={newTransactions ?? []}
             tableNavigator={tableNavigator}
             newNavigator={newNavigator}

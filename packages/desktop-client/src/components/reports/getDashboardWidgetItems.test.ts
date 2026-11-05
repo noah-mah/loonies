@@ -16,6 +16,7 @@ describe('getDashboardWidgetItems', () => {
       crossoverReportEnabled: false,
       budgetAnalysisReportEnabled: false,
       balanceForecastReportEnabled: false,
+      sankeyReportEnabled: false,
     });
 
     const enabled = getDashboardWidgetItems({
@@ -25,10 +26,36 @@ describe('getDashboardWidgetItems', () => {
       crossoverReportEnabled: false,
       budgetAnalysisReportEnabled: false,
       balanceForecastReportEnabled: true,
+      sankeyReportEnabled: false,
     });
 
     expect(getNames(disabled)).not.toContain('balance-forecast-card');
     expect(getNames(enabled)).toContain('balance-forecast-card');
+  });
+
+  it('includes the sankey card only when the flag is enabled', () => {
+    const disabled = getDashboardWidgetItems({
+      t: value => value,
+      customReports: [],
+      formulaMode: false,
+      crossoverReportEnabled: false,
+      budgetAnalysisReportEnabled: false,
+      balanceForecastReportEnabled: false,
+      sankeyReportEnabled: false,
+    });
+
+    const enabled = getDashboardWidgetItems({
+      t: value => value,
+      customReports: [],
+      formulaMode: false,
+      crossoverReportEnabled: false,
+      budgetAnalysisReportEnabled: false,
+      balanceForecastReportEnabled: false,
+      sankeyReportEnabled: true,
+    });
+
+    expect(getNames(disabled)).not.toContain('sankey-card');
+    expect(getNames(enabled)).toContain('sankey-card');
   });
 
   it('keeps custom report entries after a divider', () => {
@@ -39,6 +66,7 @@ describe('getDashboardWidgetItems', () => {
       crossoverReportEnabled: false,
       budgetAnalysisReportEnabled: false,
       balanceForecastReportEnabled: false,
+      sankeyReportEnabled: false,
     });
 
     expect(items).toContain(Menu.line);

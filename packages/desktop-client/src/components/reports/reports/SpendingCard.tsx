@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Block } from '@actual-app/components/block';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
+import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type { SpendingWidget } from '@actual-app/core/types/models';
@@ -63,6 +64,7 @@ export function SpendingCard({
       compareTo,
       averageRange,
       budgetType,
+      reportMode: spendingReportMode,
     });
   }, [
     meta?.conditions,
@@ -71,6 +73,7 @@ export function SpendingCard({
     compareTo,
     averageRange,
     budgetType,
+    spendingReportMode,
   ]);
 
   const data = useReport('default', getGraphData);
@@ -80,12 +83,27 @@ export function SpendingCard({
       : monthUtils.getDay(monthUtils.currentDay()) - 1 >= 28
         ? 27
         : monthUtils.getDay(monthUtils.currentDay()) - 1;
+  const spentMtd =
+    data == null ? null : Math.abs(data.intervalData[todayDay]?.compare ?? 0);
+  const budgetRemaining =
+    spendingReportMode === 'budget' && data != null
+      ? Math.round((data.monthBudgetTotal ?? 0) - (spentMtd ?? 0))
+      : null;
   const difference =
-    data &&
-    Math.round(
-      data.intervalData[todayDay][selection] -
-        data.intervalData[todayDay].compare,
-    );
+    data == null
+      ? null
+      : spendingReportMode === 'budget'
+        ? budgetRemaining
+        : Math.round(
+            data.intervalData[todayDay][selection] -
+              data.intervalData[todayDay].compare,
+          );
+  const isUnfavorableDifference =
+    difference == null
+      ? false
+      : spendingReportMode === 'budget'
+        ? difference < 0
+        : difference > 0;
 
   return (
     <ReportCard
@@ -123,29 +141,41 @@ export function SpendingCard({
               }
             />
           </View>
-          {data && (
+          {data && difference != null && (
             <View style={{ textAlign: 'right' }}>
-              <Block
-                style={{
-                  ...styles.mediumText,
-                  fontWeight: 500,
-                  marginBottom: 5,
-                  color:
-                    difference === 0 || difference == null
-                      ? theme.reportsNumberNeutral
-                      : difference > 0
-                        ? theme.reportsNumberNegative
-                        : theme.reportsNumberPositive,
-                }}
+              <Tooltip
+                content={
+                  spendingReportMode === 'budget'
+                    ? t(
+                        'Budgeted for the month minus spending so far. The chart compares daily spending to a prorated budget pace.',
+                      )
+                    : undefined
+                }
+                placement="bottom end"
               >
-                <PrivacyFilter activationFilters={[!isCardHovered]}>
-                  <FinancialText>
-                    {data &&
-                      (difference && difference > 0 ? '+' : '') +
-                        format(difference || 0, 'financial')}
-                  </FinancialText>
-                </PrivacyFilter>
-              </Block>
+                <Block
+                  style={{
+                    ...styles.mediumText,
+                    fontWeight: 500,
+                    marginBottom: 5,
+                    color:
+                      difference === 0
+                        ? theme.reportsNumberNeutral
+                        : isUnfavorableDifference
+                          ? theme.reportsNumberNegative
+                          : theme.reportsNumberPositive,
+                  }}
+                >
+                  <PrivacyFilter activationFilters={[!isCardHovered]}>
+                    <FinancialText>
+                      {spendingReportMode !== 'budget' && difference > 0
+                        ? '+'
+                        : ''}
+                      {format(difference, 'financial')}
+                    </FinancialText>
+                  </PrivacyFilter>
+                </Block>
+              </Tooltip>
             </View>
           )}
         </View>

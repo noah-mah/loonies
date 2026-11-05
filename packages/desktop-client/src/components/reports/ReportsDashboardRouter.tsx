@@ -6,8 +6,10 @@ import { Block } from '@actual-app/components/block';
 import { View } from '@actual-app/components/view';
 
 import { useDashboardPages } from '#hooks/useDashboardPages';
+import { useFeatureFlag } from '#hooks/useFeatureFlag';
 import { useNavigate } from '#hooks/useNavigate';
 
+import { ExperimentalReportDisabledMessage } from './ExperimentalReportDisabledMessage';
 import { LoadingIndicator } from './LoadingIndicator';
 import { Overview } from './Overview';
 
@@ -16,6 +18,7 @@ export function ReportsDashboardRouter() {
   const { dashboardId } = useParams<{ dashboardId?: string }>();
   const navigate = useNavigate();
   const { data: dashboardPages = [], isPending } = useDashboardPages();
+  const sankeyReportEnabled = useFeatureFlag('sankeyReport');
 
   // Redirect to first dashboard if no dashboardId in URL
   useEffect(() => {
@@ -35,6 +38,15 @@ export function ReportsDashboardRouter() {
     if (dashboard) {
       return <Overview dashboard={dashboard} />;
     } else {
+      if (dashboardId === 'sankey' && !sankeyReportEnabled) {
+        return (
+          <ExperimentalReportDisabledMessage
+            reportName={t('Sankey')}
+            experimentalSettingName={t('Sankey report')}
+          />
+        );
+      }
+
       // Invalid dashboardId - show error
       return (
         <View

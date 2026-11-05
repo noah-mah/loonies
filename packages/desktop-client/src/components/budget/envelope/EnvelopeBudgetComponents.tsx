@@ -175,7 +175,7 @@ export const ExpenseGroupMonth = memo(function ExpenseGroupMonth({
             <Trans>Budgeted</Trans>
           </Text>
           <Text style={debtColumnLabelStyle}>
-            <Trans>Balance</Trans>
+            <Trans>Card balance</Trans>
           </Text>
           <Text
             style={{
@@ -476,7 +476,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
       <Field name="spent" width="flex" style={{ textAlign: 'right' }}>
         <View
           data-testid="category-month-spent"
-          title={isPayment ? t('Balance') : undefined}
+          title={isPayment ? t('Card balance') : undefined}
           onClick={() => {
             if (!isPayment) {
               onShowActivity(category.id, month);

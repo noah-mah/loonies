@@ -334,6 +334,7 @@ function InputValue({
   value: defaultValue,
   onUpdate,
   onBlur,
+  onFocus,
   ...props
 }: InputValueProps) {
   const [value, setValue] = useState(defaultValue);
@@ -348,6 +349,12 @@ function InputValue({
     if (onBlur) {
       fireBlur(onBlur, e);
     }
+  }
+
+  function onFocus_(e) {
+    const input = e.currentTarget;
+    input.setSelectionRange(0, input.value.length);
+    onFocus?.(e);
   }
 
   function onKeyDown(e) {
@@ -375,7 +382,7 @@ function InputValue({
   }
 
   function setValue_(text) {
-    if (valueIsASingleOperator(text)) {
+    if (valueIsASingleOperator(text) && text !== '-') {
       setValue(defaultValue + text);
     } else {
       setValue(text);
@@ -388,6 +395,7 @@ function InputValue({
       value={value}
       onChangeValue={setValue_}
       onBlur={onBlur_}
+      onFocus={onFocus_}
       onUpdate={onUpdate}
       onKeyDown={onKeyDown}
       onEscape={onEscape}

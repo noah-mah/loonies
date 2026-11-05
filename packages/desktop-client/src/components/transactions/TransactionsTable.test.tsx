@@ -43,6 +43,7 @@ import { SpreadsheetProvider } from '#hooks/useSpreadsheet';
 import { createTestQueryClient, TestProviders } from '#mocks';
 import * as modalsSlice from '#modals/modalsSlice';
 import { payeeQueries } from '#payees';
+import * as discardDraftPayees from '#payees/discardDraftPayees';
 import { tagQueries } from '#tags/queries';
 
 import {
@@ -174,6 +175,7 @@ type LiveTransactionTableProps = {
     transaction: TransactionEntity,
     updatedFieldName?: string | null,
   ) => Promise<TransactionEntity>;
+  onCreatePayee?: (name: string) => Promise<PayeeEntity['id']>;
 };
 
 function LiveTransactionTable(props: LiveTransactionTableProps) {
@@ -208,7 +210,8 @@ function LiveTransactionTable(props: LiveTransactionTableProps) {
     return diff.added[0].id;
   };
 
-  const onCreatePayee = async () => 'id';
+  const onCreatePayee =
+    props.onCreatePayee ?? (async () => 'id' as PayeeEntity['id']);
 
   // It's important that these functions are they same instances
   // across renders. Doing so tests that the transaction table
@@ -283,6 +286,8 @@ function initBasicServer() {
       ...tag,
     }),
     'schedule/create': createScheduleMock,
+    'payees-check-orphaned': async ({ ids }: { ids: string[] }) => ids,
+    'payees-batch-change': vi.fn(),
   });
 }
 
@@ -1149,6 +1154,44 @@ describe('Transactions', () => {
     expect(getTransactions()[1].amount).toBe(-4500);
     expect(getTransactions()[2].is_child).toBe(true);
     expect(getTransactions()[2].amount).toBe(-1000);
+  });
+
+  test('canceling a new split transaction discards payees created while adding', async () => {
+    const discardSpy = vi
+      .spyOn(discardDraftPayees, 'discardPayeesCreatedDuringAdd')
+      .mockResolvedValue(undefined);
+    const onCreatePayee = vi.fn(async () => 'draft-payee-id');
+
+    const { container, updateProps } = renderTransactions({
+      onCreatePayee,
+      onCloseAddTransaction: () => {
+        updateProps({ isAdding: false });
+      },
+    });
+    updateProps({ isAdding: true });
+
+    const payeeInput = await editNewField(container, 'payee');
+    await userEvent.clear(payeeInput);
+    await userEvent.type(payeeInput, 'Split Shop');
+    await userEvent.click(screen.getByTestId('create-payee-button'));
+    await waitFor(() =>
+      expect(onCreatePayee).toHaveBeenCalledWith('Split Shop'),
+    );
+
+    await editNewField(container, 'category');
+    await userEvent.click(screen.getByTestId('split-transaction-button'));
+    await waitForAutocomplete();
+
+    const cancelButton = container.querySelector(
+      '[data-testid="new-transaction"] [data-testid="cancel-button"]',
+    )!;
+    await userEvent.click(cancelButton);
+
+    await waitFor(() =>
+      expect(discardSpy).toHaveBeenCalledWith(['draft-payee-id']),
+    );
+
+    discardSpy.mockRestore();
   });
 
   test('selecting split with the keyboard keeps focus on the parent payment field', async () => {

@@ -1,9 +1,13 @@
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Route, Routes, useLocation } from 'react-router';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
 import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import { dashboardQueries } from '#reports/queries';
 
 import { AgeOfMoney } from './reports/AgeOfMoney';
 import { BalanceForecast } from './reports/BalanceForecast';
@@ -35,13 +39,16 @@ function ReportBoundary({ children }: { children: ReactNode }) {
 export function ReportRouter() {
   const balanceForecastReportEnabled = useFeatureFlag('balanceForecastReport');
   const budgetAnalysisReportEnabled = useFeatureFlag('budgetAnalysisReport');
-  const sankeyReportEnabled = useFeatureFlag('sankeyReport');
   const monteCarloReportEnabled = useFeatureFlag('monteCarloReport');
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    void queryClient.prefetchQuery(dashboardQueries.listDashboardPages());
+    void queryClient.prefetchQuery(dashboardQueries.listDashboardWidgets());
+  }, [queryClient]);
 
   return (
     <Routes>
-      <Route path="/" element={<ReportsDashboardRouter />} />
-      <Route path="/:dashboardId" element={<ReportsDashboardRouter />} />
       <Route
         path="/net-worth"
         element={
@@ -246,26 +253,24 @@ export function ReportRouter() {
           />
         </>
       )}
-      {sankeyReportEnabled && (
-        <>
-          <Route
-            path="/sankey"
-            element={
-              <ReportBoundary>
-                <Sankey />
-              </ReportBoundary>
-            }
-          />
-          <Route
-            path="/sankey/:id"
-            element={
-              <ReportBoundary>
-                <Sankey />
-              </ReportBoundary>
-            }
-          />
-        </>
-      )}
+      <Route
+        path="/sankey"
+        element={
+          <ReportBoundary>
+            <Sankey />
+          </ReportBoundary>
+        }
+      />
+      <Route
+        path="/sankey/:id"
+        element={
+          <ReportBoundary>
+            <Sankey />
+          </ReportBoundary>
+        }
+      />
+      <Route path="/" element={<ReportsDashboardRouter />} />
+      <Route path="/:dashboardId" element={<ReportsDashboardRouter />} />
     </Routes>
   );
 }

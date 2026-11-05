@@ -33,6 +33,7 @@ import type { SankeyData } from 'recharts/types/chart/Sankey';
 import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
 import { MobileBackButton } from '#components/mobile/MobileBackButton';
 import { MobilePageHeader, Page, PageHeader } from '#components/Page';
+import { ExperimentalReportDisabledMessage } from '#components/reports/ExperimentalReportDisabledMessage';
 import { SankeyGraph } from '#components/reports/graphs/SankeyGraph';
 import { Header } from '#components/reports/Header';
 import { LoadingIndicator } from '#components/reports/LoadingIndicator';
@@ -53,6 +54,7 @@ import type {
 import { useReport } from '#components/reports/useReport';
 import { useCategories } from '#hooks/useCategories';
 import { useDashboardWidget } from '#hooks/useDashboardWidget';
+import { useFeatureFlag } from '#hooks/useFeatureFlag';
 import { useFormatList } from '#hooks/useFormatList';
 import { useLocale } from '#hooks/useLocale';
 import { useNavigate } from '#hooks/useNavigate';
@@ -64,6 +66,22 @@ import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
 import { mapField } from '#util/rule';
 
 export function Sankey() {
+  const sankeyReportEnabled = useFeatureFlag('sankeyReport');
+  const { t } = useTranslation();
+
+  if (!sankeyReportEnabled) {
+    return (
+      <ExperimentalReportDisabledMessage
+        reportName={t('Sankey')}
+        experimentalSettingName={t('Sankey report')}
+      />
+    );
+  }
+
+  return <SankeyReportPage />;
+}
+
+function SankeyReportPage() {
   const params = useParams();
   const { data: widget, isLoading } = useDashboardWidget<SankeyWidget>({
     id: params.id ?? '',

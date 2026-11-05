@@ -15,6 +15,7 @@ type GetDashboardWidgetItemsParams = {
   crossoverReportEnabled: boolean;
   budgetAnalysisReportEnabled: boolean;
   balanceForecastReportEnabled: boolean;
+  sankeyReportEnabled: boolean;
 };
 
 type DashboardWidgetMenuName =
@@ -27,6 +28,7 @@ type DashboardWidgetMenuName =
   | 'formula-card'
   | 'markdown-card'
   | 'net-worth-card'
+  | 'sankey-card'
   | 'spending-card'
   | 'summary-card'
   | `custom-report-${string}`;
@@ -48,6 +50,7 @@ export function getDashboardWidgetItems({
   crossoverReportEnabled,
   budgetAnalysisReportEnabled,
   balanceForecastReportEnabled,
+  sankeyReportEnabled,
 }: GetDashboardWidgetItemsParams): MenuItem<DashboardWidgetMenuName>[] {
   const items: MenuItem<DashboardWidgetMenuName>[] = [
     {
@@ -98,6 +101,13 @@ export function getDashboardWidgetItems({
     items.splice(findItemIndex(items, 'markdown-card'), 0, {
       name: 'balance-forecast-card',
       text: t('Balance forecast'),
+    });
+  }
+
+  if (sankeyReportEnabled) {
+    items.splice(findItemIndex(items, 'custom-report'), 0, {
+      name: 'sankey-card',
+      text: t('Sankey card'),
     });
   }
 

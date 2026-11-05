@@ -17,6 +17,8 @@ import { replaceModal } from '#modals/modalsSlice';
 import type { Modal as ModalType } from '#modals/modalsSlice';
 import { useDispatch, useSelector } from '#redux';
 
+import { mergeUnusedPayees } from './mergeUnusedPayees';
+
 const highlightStyle = { color: theme.pageTextPositive };
 
 type MergeUnusedPayeesModalProps = Extract<
@@ -57,29 +59,20 @@ export function MergeUnusedPayeesModal({
   );
 
   const onMerge = useCallback(
-    async (targetPayee: PayeeEntity) => {
-      await send('payees-merge', {
-        targetId: targetPayee.id,
-        mergeIds: payees.map(payee => payee.id),
+    async (targetPayee: PayeeEntity, createRenameRule: boolean) => {
+      return mergeUnusedPayees({
+        targetPayee,
+        payeesToMerge: payees,
+        createRenameRule,
+        isEditingRule,
       });
-
-      let ruleId;
-      if (shouldCreateRule && !isEditingRule) {
-        const id = await send('rule-add-payee-rename', {
-          fromNames: payees.map(payee => payee.name),
-          to: targetPayee.id,
-        });
-        ruleId = id;
-      }
-
-      return ruleId;
     },
-    [shouldCreateRule, isEditingRule, payees],
+    [isEditingRule, payees],
   );
 
   const onMergeAndCreateRule = useCallback(
-    async (targetPayee: PayeeEntity) => {
-      const ruleId = await onMerge(targetPayee);
+    async (targetPayee: PayeeEntity, createRenameRule: boolean) => {
+      const ruleId = await onMerge(targetPayee, createRenameRule);
 
       if (ruleId) {
         const rule = await send('rule-get', { id: ruleId });
@@ -196,7 +189,7 @@ export function MergeUnusedPayeesModal({
                 autoFocus
                 style={{ marginRight: 10 }}
                 onPress={() => {
-                  void onMerge(targetPayee);
+                  void onMerge(targetPayee, shouldCreateRule);
                   state.close();
                 }}
               >
@@ -206,7 +199,7 @@ export function MergeUnusedPayeesModal({
                 <Button
                   style={{ marginRight: 10 }}
                   onPress={() => {
-                    void onMergeAndCreateRule(targetPayee);
+                    void onMergeAndCreateRule(targetPayee, shouldCreateRule);
                     state.close();
                   }}
                 >
