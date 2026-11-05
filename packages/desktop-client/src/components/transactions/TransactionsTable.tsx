@@ -2743,6 +2743,12 @@ function TransactionTableInner({
     }
   }, [isAddingPrev, props.isAdding, newNavigator]);
 
+  useEffect(() => {
+    if (props.isAdding && tableNavigator.editingId != null) {
+      tableNavigator.onEdit(null);
+    }
+  }, [props.isAdding, tableNavigator, tableNavigator.editingId]);
+
   // Don't render reconciled transactions if we're hiding them.
   const transactionsToRender = useMemo(
     () =>
@@ -2757,11 +2763,17 @@ function TransactionTableInner({
     props.balances,
   );
 
+  const preventExistingRowEdit = useCallback(() => {
+    tableNavigator.onEdit(null);
+  }, [tableNavigator]);
+
   const renderRow: TableProps<TransactionEntity>['renderItem'] = ({
     item,
     index,
     editing,
   }) => {
+    const blockExistingRowEdits = props.isAdding;
+    const rowEditing = !blockExistingRowEdits && editing;
     const {
       transactions,
       selectedItems,
@@ -2842,7 +2854,7 @@ function TransactionTableInner({
     return (
       <Transaction
         allTransactions={props.transactions}
-        editing={editing}
+        editing={rowEditing}
         transaction={trans}
         transferAccountsByTransaction={props.transferAccountsByTransaction}
         subtransactions={childTransactions}
@@ -2855,13 +2867,15 @@ function TransactionTableInner({
         showZeroInDeposit={isChildDeposit}
         balance={balances?.[trans.id] ?? 0}
         amountColumnWidths={amountColumnWidths}
-        focusedField={editing ? tableNavigator.focusedField : undefined}
+        focusedField={rowEditing ? tableNavigator.focusedField : undefined}
         accounts={accounts}
         categoryGroups={categoryGroups}
         payees={payees}
         dateFormat={dateFormat}
         hideFraction={hideFraction}
-        onEdit={tableNavigator.onEdit}
+        onEdit={
+          blockExistingRowEdits ? preventExistingRowEdit : tableNavigator.onEdit
+        }
         onSave={props.onSave}
         onDelete={props.onDelete}
         onBatchDelete={props.onBatchDelete}
@@ -2977,7 +2991,11 @@ function TransactionTableInner({
          //   the full height of the container ??? */}
 
       <View
-        style={{ flex: 1, overflow: 'hidden' }}
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          pointerEvents: props.isAdding ? 'none' : 'auto',
+        }}
         data-testid="transaction-table"
       >
         <Table
@@ -3084,6 +3102,29 @@ export type TransactionTableProps = {
   onManagePayees: (id?: PayeeEntity['id']) => void;
 };
 
+function registerTransactionFieldSnapshot(tx: TransactionEntity) {
+  return {
+    payee: tx.payee,
+    amount: tx.amount,
+    date: tx.date,
+    category: tx.category,
+    notes: tx.notes,
+    account: tx.account,
+    cleared: tx.cleared,
+    reconciled: tx.reconciled,
+  };
+}
+
+function registerTransactionsDiffer(
+  a: TransactionEntity,
+  b: TransactionEntity,
+): boolean {
+  return (
+    JSON.stringify(registerTransactionFieldSnapshot(a)) !==
+    JSON.stringify(registerTransactionFieldSnapshot(b))
+  );
+}
+
 export const TransactionTable = forwardRef(
   (
     props: TransactionTableProps,
@@ -3145,6 +3186,9 @@ export const TransactionTable = forwardRef(
       ],
     );
     const [prevIsAdding, setPrevIsAdding] = useState(false);
+    const transactionsSnapshotRef = useRef<readonly TransactionEntity[] | null>(
+      null,
+    );
     const splitsExpanded = useSplitsExpanded();
     const splitsExpandedDispatch = splitsExpanded.dispatch;
     const prevSplitsExpanded = useRef<SplitsExpandedContextValue | null>(null);
@@ -3339,6 +3383,10 @@ export const TransactionTable = forwardRef(
     // Derive new transactions from the `isAdding` prop
     if (prevIsAdding !== props.isAdding) {
       if (!prevIsAdding && props.isAdding) {
+        transactionsSnapshotRef.current = props.transactions.map(t => ({
+          ...t,
+        }));
+        tableNavigator.onEdit(null);
         clearedFields.current.clear();
         payeesCreatedDuringAddRef.current.clear();
         setNewTransactions(
@@ -3375,6 +3423,8 @@ export const TransactionTable = forwardRef(
               props.currentCategoryId,
             ),
           );
+          transactionsSnapshotRef.current = null;
+          tableNavigator.onEdit(null);
           props.onCloseAddTransaction();
         } else {
           const lastDate =
@@ -4030,6 +4080,19 @@ export const TransactionTable = forwardRef(
           props.currentCategoryId,
         ),
       );
+
+      const snapshot = transactionsSnapshotRef.current;
+      transactionsSnapshotRef.current = null;
+      if (snapshot) {
+        for (const snapTx of snapshot) {
+          const current = props.transactions.find(t => t.id === snapTx.id);
+          if (current && registerTransactionsDiffer(current, snapTx)) {
+             onSaveProp(snapTx);
+          }
+        }
+      }
+
+      tableNavigator.onEdit(null);
       props.onCloseAddTransaction();
       void discardPayeesCreatedDuringAdd(payeeIds).then(() => {
         void queryClient.invalidateQueries({

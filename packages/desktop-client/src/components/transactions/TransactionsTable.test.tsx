@@ -342,11 +342,20 @@ function renderTransactions(extraProps?: Partial<LiveTransactionTableProps>) {
   return {
     ...result,
     getTransactions: () => transactions,
-    updateProps: (props: Partial<LiveTransactionTableProps>) =>
-      render(
-        <LiveTransactionTable {...defaultProps} {...extraProps} {...props} />,
+    updateProps: (props: Partial<LiveTransactionTableProps>) => {
+      if (props.transactions) {
+        transactions = props.transactions;
+      }
+      return render(
+        <LiveTransactionTable
+          {...defaultProps}
+          {...extraProps}
+          {...props}
+          transactions={transactions}
+        />,
         { container: result.container },
-      ),
+      );
+    },
   };
 }
 
@@ -1317,6 +1326,15 @@ describe('Transactions', () => {
     expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
       null,
     );
+  });
+
+  test('existing rows ignore edits while Add New is open', () => {
+    const { container, updateProps } = renderTransactions();
+    updateProps({ isAdding: true });
+
+    const table = container.querySelector('[data-testid="transaction-table"]')!;
+    expect(table).toHaveStyle({ pointerEvents: 'none' });
+    expect(queryField(container, 'payee', 'input', 0)).toBeNull();
   });
 
   describe('Schedule button for future-dated new transactions', () => {
