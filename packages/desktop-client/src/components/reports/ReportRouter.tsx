@@ -35,13 +35,10 @@ function ReportBoundary({ children }: { children: ReactNode }) {
 export function ReportRouter() {
   const balanceForecastReportEnabled = useFeatureFlag('balanceForecastReport');
   const budgetAnalysisReportEnabled = useFeatureFlag('budgetAnalysisReport');
-  const sankeyReportEnabled = useFeatureFlag('sankeyReport');
   const monteCarloReportEnabled = useFeatureFlag('monteCarloReport');
 
   return (
     <Routes>
-      <Route path="/" element={<ReportsDashboardRouter />} />
-      <Route path="/:dashboardId" element={<ReportsDashboardRouter />} />
       <Route
         path="/net-worth"
         element={
@@ -246,26 +243,24 @@ export function ReportRouter() {
           />
         </>
       )}
-      {sankeyReportEnabled && (
-        <>
-          <Route
-            path="/sankey"
-            element={
-              <ReportBoundary>
-                <Sankey />
-              </ReportBoundary>
-            }
-          />
-          <Route
-            path="/sankey/:id"
-            element={
-              <ReportBoundary>
-                <Sankey />
-              </ReportBoundary>
-            }
-          />
-        </>
-      )}
+      <Route
+        path="/sankey"
+        element={
+          <ReportBoundary>
+            <Sankey />
+          </ReportBoundary>
+        }
+      />
+      <Route
+        path="/sankey/:id"
+        element={
+          <ReportBoundary>
+            <Sankey />
+          </ReportBoundary>
+        }
+      />
+      <Route path="/" element={<ReportsDashboardRouter />} />
+      <Route path="/:dashboardId" element={<ReportsDashboardRouter />} />
     </Routes>
   );
 }
