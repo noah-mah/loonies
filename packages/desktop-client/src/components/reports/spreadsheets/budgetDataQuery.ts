@@ -8,6 +8,7 @@ import type {
 } from '@actual-app/core/types/models';
 import type { SyncedPrefs } from '@actual-app/core/types/prefs';
 
+import { getPaymentCategoryIds } from '#accounts/paymentCategories';
 import type { QueryDataEntity } from '#components/reports/ReportOptions';
 
 import type { BudgetMonthCell } from './budgetMonthCell';
@@ -200,12 +201,14 @@ export async function fetchBudgetData({
   const assets: QueryDataEntity[] = [];
   const debts: QueryDataEntity[] = [];
 
+  const paymentCategoryIds = getPaymentCategoryIds(await send('accounts-get'));
+
   const filteredCategories = filterCategoriesByConditions(
     categories,
     categoryGroups,
     conditions,
     conditionsOp,
-  );
+  ).filter(cat => !paymentCategoryIds.has(cat.id));
 
   const months = monthUtils.rangeInclusive(
     monthUtils.getMonth(startDate),

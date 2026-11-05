@@ -8,6 +8,7 @@ import type {
 } from '@actual-app/core/types/models';
 import { t } from 'i18next';
 
+import { getPaymentCategoryIds } from '#accounts/paymentCategories';
 import { getColorScale } from '#components/reports/chart-theme';
 import type { useSpreadsheet } from '#hooks/useSpreadsheet';
 import { aqlQuery } from '#queries/aqlQuery';
@@ -21,7 +22,7 @@ type BudgetMonthCategory = {
   received?: number;
 };
 
-type BudgetMonthGroup = {
+export type BudgetMonthGroup = {
   id: string;
   name: string;
   is_income: boolean;
@@ -252,6 +253,32 @@ export function buildSankeyData(
   return convertToSankeyData(sortedGraph, toolTipInfoMap);
 }
 
+export function buildBudgetSankeyCategoryEntries(
+  categoryGroups: BudgetMonthGroup[],
+  paymentCategoryIds: Set<string>,
+): CategoryEntry[] {
+  return categoryGroups
+    .flatMap(group =>
+      group.categories
+        .filter(cat => group.is_income || !paymentCategoryIds.has(cat.id))
+        .map(cat => {
+          const rawValue = group.is_income
+            ? (cat.received ?? 0)
+            : (cat.budgeted ?? 0);
+          return {
+            categoryGroup: group.name,
+            categoryGroupId: group.id,
+            category: cat.name,
+            categoryId: cat.id,
+            isIncome: group.is_income,
+            isNegative: rawValue < 0,
+            value: rawValue,
+          };
+        }),
+    )
+    .filter(entry => entry.value !== 0);
+}
+
 export function createBudgetSpreadsheet(
   start: string,
   end: string,
@@ -262,14 +289,17 @@ export function createBudgetSpreadsheet(
     const months =
       end && end !== start ? monthUtils.rangeInclusive(start, end) : [start];
 
-    const monthResponses = await Promise.all(
-      months.map(
-        m =>
-          send('api/budget-month', {
-            month: m,
-          }) as unknown as Promise<BudgetMonthResponse>,
+    const [paymentCategoryIds, monthResponses] = await Promise.all([
+      send('accounts-get').then(accounts => getPaymentCategoryIds(accounts)),
+      Promise.all(
+        months.map(
+          m =>
+            send('api/budget-month', {
+              month: m,
+            }) as unknown as Promise<BudgetMonthResponse>,
+        ),
       ),
-    );
+    ]);
 
     const accumulate_months = monthResponses.reduce(
       (acc, response, index) => {
@@ -329,24 +359,10 @@ export function createBudgetSpreadsheet(
       conditionsOp,
     );
 
-    const categoryData: CategoryEntry[] = filteredCategoryGroups
-      .flatMap(group =>
-        group.categories.map(cat => {
-          const rawValue = group.is_income
-            ? (cat.received ?? 0)
-            : (cat.budgeted ?? 0);
-          return {
-            categoryGroup: group.name,
-            categoryGroupId: group.id,
-            category: cat.name,
-            categoryId: cat.id,
-            isIncome: group.is_income,
-            isNegative: rawValue < 0,
-            value: rawValue,
-          };
-        }),
-      )
-      .filter(entry => entry.value !== 0);
+    const categoryData = buildBudgetSankeyCategoryEntries(
+      filteredCategoryGroups,
+      paymentCategoryIds,
+    );
 
     const nextMonthResponse = (await send('api/budget-month', {
       month: monthUtils.nextMonth(end),

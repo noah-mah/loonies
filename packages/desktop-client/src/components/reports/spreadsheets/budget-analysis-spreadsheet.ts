@@ -6,6 +6,7 @@ import type {
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
 
+import { getPaymentCategoryIds } from '#accounts/paymentCategories';
 import type { useSpreadsheet } from '#hooks/useSpreadsheet';
 
 import type { BudgetMonthCell } from './budgetMonthCell';
@@ -39,8 +40,15 @@ type createBudgetAnalysisSpreadsheetProps = {
 export function isBaseCategory(
   cat: CategoryEntity,
   showHiddenCategories: boolean,
+  paymentCategoryIds?: Set<string>,
 ): boolean {
-  return !cat.is_income && (showHiddenCategories || !cat.hidden);
+  if (cat.is_income) {
+    return false;
+  }
+  if (paymentCategoryIds?.has(cat.id)) {
+    return false;
+  }
+  return showHiddenCategories || !cat.hidden;
 }
 
 /**
@@ -182,9 +190,9 @@ export function createBudgetAnalysisSpreadsheet({
     spreadsheet: ReturnType<typeof useSpreadsheet>,
     setData: (data: BudgetAnalysisData) => void,
   ) => {
-    // Get all categories
-    const { list: allCategories, grouped: allCategoryGroups } =
-      await send('get-categories');
+    const [{ list: allCategories, grouped: allCategoryGroups }, accounts] =
+      await Promise.all([send('get-categories'), send('accounts-get')]);
+    const paymentCategoryIds = getPaymentCategoryIds(accounts);
 
     // Build a UUID → name map for category groups so text-based operators
     // (contains, doesNotContain, matches) can match against the group name.
@@ -204,7 +212,7 @@ export function createBudgetAnalysisSpreadsheet({
     // Base set: expense categories only; hidden categories are included when
     // showHiddenCategories is true so historic data is not misrepresented.
     const baseCategories = allCategories.filter((cat: CategoryEntity) =>
-      isBaseCategory(cat, showHiddenCategories),
+      isBaseCategory(cat, showHiddenCategories, paymentCategoryIds),
     );
 
     let categoriesToInclude: CategoryEntity[];

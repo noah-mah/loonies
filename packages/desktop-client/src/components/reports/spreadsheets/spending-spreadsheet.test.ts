@@ -5,7 +5,10 @@ import type {
 } from '@actual-app/core/types/models';
 import { describe, expect, it } from 'vitest';
 
-import { getSpendingBudgetFilters } from './spending-spreadsheet';
+import {
+  getSpendingBudgetFilters,
+  sumSpendingBudgetAmounts,
+} from './spending-spreadsheet';
 
 const categoryGroups = [
   { id: 'group-bills', name: 'Bills' },
@@ -69,5 +72,43 @@ describe('getSpendingBudgetFilters', () => {
     expect(result).toEqual([
       { category: { $oneof: ['cat-rent', 'cat-dining'] } },
     ]);
+  });
+
+  it('drops payment categories from budget filters', () => {
+    const categoriesWithPayment = [
+      ...categories,
+      { id: 'cat-amex', name: 'Amex', group: 'group-bills' },
+    ] satisfies CategoryEntity[];
+
+    const result = getSpendingBudgetFilters({
+      categories: categoriesWithPayment,
+      categoryGroups,
+      conditions: [
+        {
+          field: 'category_group',
+          op: 'is',
+          value: 'group-bills',
+        },
+      ] satisfies RuleConditionEntity[],
+      paymentCategoryIds: new Set(['cat-amex']),
+    });
+
+    expect(result).toEqual([
+      { category: { $oneof: ['cat-rent', 'cat-electric'] } },
+    ]);
+  });
+});
+
+describe('sumSpendingBudgetAmounts', () => {
+  it('ignores payment category budget rows', () => {
+    const total = sumSpendingBudgetAmounts(
+      [
+        { category: 'cat-rent', amount: 1000 },
+        { category: 'cat-amex', amount: 500 },
+      ],
+      new Set(['cat-amex']),
+    );
+
+    expect(total).toBe(1000);
   });
 });
