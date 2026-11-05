@@ -37,7 +37,7 @@ test.describe('Reports', () => {
     expect(reports).toEqual([
       'Total Income (YTD)',
       'Total Expenses (YTD)',
-      'Avg Per Month',
+      'Avg Per Month (YTD)',
       'Avg Per Transaction',
       'Net Worth',
       'Cash Flow',

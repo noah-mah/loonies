@@ -31,6 +31,7 @@ type createSpendingSpreadsheetProps = {
   compareTo?: string;
   averageRange?: SpendingAverageRange;
   budgetType?: 'envelope' | 'tracking';
+  reportMode?: 'single-month' | 'budget' | 'average';
 };
 
 export function getSpendingBudgetFilters({
@@ -95,9 +96,11 @@ export function createSpendingSpreadsheet({
   compareTo,
   averageRange,
   budgetType = 'envelope',
+  reportMode = 'single-month',
 }: createSpendingSpreadsheetProps) {
   const compareMonth = compare ?? monthUtils.currentMonth();
   const compareToMonth = compareTo ?? monthUtils.subMonths(compareMonth, 1);
+  const isSameCompareMonth = compareMonth === compareToMonth;
   const endDate = monthUtils.getMonthEnd(compareMonth + '-01');
   const startDateTo = compareToMonth + '-01';
   const endDateTo = monthUtils.getMonthEnd(compareToMonth + '-01');
@@ -111,20 +114,31 @@ export function createSpendingSpreadsheet({
     spreadsheet: ReturnType<typeof useSpreadsheet>,
     setData: (data: SpendingEntity) => void,
   ) => {
+    const useAverageRange = reportMode === 'average';
     const earliestTrans =
-      averageRange?.mode === 'all-time'
+      useAverageRange && averageRange?.mode === 'all-time'
         ? await send('get-earliest-transaction')
         : null;
     const earliestMonth = earliestTrans
       ? monthUtils.monthFromDate(fromDateRepr(earliestTrans.date))
       : null;
-    const resolvedAverageRange = resolveSpendingAverageRange({
-      averageRange,
-      compare: compareMonth,
-      earliestMonth,
-    });
+    const resolvedAverageRange = useAverageRange
+      ? resolveSpendingAverageRange({
+          averageRange,
+          compare: compareMonth,
+          earliestMonth,
+        })
+      : {
+          startMonth: compareMonth,
+          endMonth: compareMonth,
+          months: [] as string[],
+        };
     const averageMonths = new Set(resolvedAverageRange.months);
-    const startDate = (resolvedAverageRange.startMonth ?? compareMonth) + '-01';
+    const earliestMonthStart =
+      compareMonth <= compareToMonth ? compareMonth : compareToMonth;
+    const startDate = useAverageRange
+      ? (resolvedAverageRange.startMonth ?? compareMonth) + '-01'
+      : earliestMonthStart + '-01';
 
     const { filters } = await send('make-filters-from-conditions', {
       conditions: conditions.filter(cond => !cond.customName),
@@ -155,28 +169,30 @@ export function createSpendingSpreadsheet({
       ).then(({ data }) => data),
     ]);
 
-    const [assetsTo, debtsTo] = await Promise.all([
-      aqlQuery(
-        makeQuery(
-          'assets',
-          startDateTo,
-          endDateTo,
-          interval,
-          conditionsOpKey,
-          filters,
-        ),
-      ).then(({ data }) => data),
-      aqlQuery(
-        makeQuery(
-          'debts',
-          startDateTo,
-          endDateTo,
-          interval,
-          conditionsOpKey,
-          filters,
-        ),
-      ).then(({ data }) => data),
-    ]);
+    const [assetsTo, debtsTo] = isSameCompareMonth
+      ? [[], []]
+      : await Promise.all([
+          aqlQuery(
+            makeQuery(
+              'assets',
+              startDateTo,
+              endDateTo,
+              interval,
+              conditionsOpKey,
+              filters,
+            ),
+          ).then(({ data }) => data),
+          aqlQuery(
+            makeQuery(
+              'debts',
+              startDateTo,
+              endDateTo,
+              interval,
+              conditionsOpKey,
+              filters,
+            ),
+          ).then(({ data }) => data),
+        ]);
 
     const overlapAssets =
       endDateTo < startDate || startDateTo > endDate ? assetsTo : [];
@@ -248,9 +264,11 @@ export function createSpendingSpreadsheet({
       ).then(({ data }) => data),
     ]);
 
-    const dailyBudget =
-      sumSpendingBudgetAmounts(budgets, paymentCategoryIds) /
-      compareInterval.length;
+    const monthBudgetTotal = sumSpendingBudgetAmounts(
+      budgets,
+      paymentCategoryIds,
+    );
+    const dailyBudget = monthBudgetTotal / compareInterval.length;
 
     const intervals = monthUtils.dayRangeInclusive(startDate, endDate);
     if (endDateTo < startDate || startDateTo > endDate) {
@@ -374,6 +392,7 @@ export function createSpendingSpreadsheet({
       totalDebts,
       totalAssets,
       totalTotals: totalAssets + totalDebts,
+      monthBudgetTotal,
     });
   };
 }

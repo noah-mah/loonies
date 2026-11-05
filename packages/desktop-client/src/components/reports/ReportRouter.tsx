@@ -1,9 +1,13 @@
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Route, Routes, useLocation } from 'react-router';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
 import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import { dashboardQueries } from '#reports/queries';
 
 import { AgeOfMoney } from './reports/AgeOfMoney';
 import { BalanceForecast } from './reports/BalanceForecast';
@@ -36,6 +40,12 @@ export function ReportRouter() {
   const balanceForecastReportEnabled = useFeatureFlag('balanceForecastReport');
   const budgetAnalysisReportEnabled = useFeatureFlag('budgetAnalysisReport');
   const monteCarloReportEnabled = useFeatureFlag('monteCarloReport');
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    void queryClient.prefetchQuery(dashboardQueries.listDashboardPages());
+    void queryClient.prefetchQuery(dashboardQueries.listDashboardWidgets());
+  }, [queryClient]);
 
   return (
     <Routes>
