@@ -7,6 +7,7 @@ import {
   addPercentageLabels,
   addValueToLink,
   aggregateTransferPairs,
+  buildBudgetSankeyCategoryEntries,
   buildSankeyData,
   cleanUpNodes,
   convertToSankeyData,
@@ -348,6 +349,58 @@ describe('sankey-spreadsheet', () => {
 
       expect(entries[0][0]).toBe('node1');
       expect(entries[1][0]).toBe('node2');
+    });
+  });
+
+  describe('buildBudgetSankeyCategoryEntries', () => {
+    it('excludes payment categories from expense groups but keeps income', () => {
+      const groups = [
+        {
+          id: 'expense',
+          name: 'Everyday',
+          is_income: false,
+          categories: [
+            {
+              id: 'groceries',
+              name: 'Groceries',
+              budgeted: 5000,
+            },
+            {
+              id: 'pay-amex',
+              name: 'Amex',
+              budgeted: 2000,
+            },
+          ],
+        },
+        {
+          id: 'income',
+          name: 'Income',
+          is_income: true,
+          categories: [
+            {
+              id: 'salary',
+              name: 'Salary',
+              received: 100000,
+            },
+          ],
+        },
+      ];
+
+      const entries = buildBudgetSankeyCategoryEntries(
+        groups,
+        new Set(['pay-amex']),
+      );
+
+      expect(entries.map(entry => entry.categoryId)).toEqual([
+        'groceries',
+        'salary',
+      ]);
+      expect(
+        entries.find(entry => entry.categoryId === 'groceries')?.value,
+      ).toBe(5000);
+      expect(
+        entries.find(entry => entry.categoryId === 'salary')?.isIncome,
+      ).toBe(true);
     });
   });
 
