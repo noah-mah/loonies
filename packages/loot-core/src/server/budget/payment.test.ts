@@ -91,6 +91,8 @@ describe('credit and debt payment categories', () => {
     expect(sheet.getCellValue(sheetName, `leftover-${cardCategoryId}`)).toBe(
       600,
     );
+    expect(sheet.getCellValue(sheetName, 'total-spent')).toBe(-600);
+    expect(sheet.getCellValue(sheetName, 'total-leftover')).toBe(1400);
     expect(
       sheet.getCellValue(sheetName, `debt-balance-${cardCategoryId}`),
     ).toBe(-600);
@@ -100,6 +102,28 @@ describe('credit and debt payment categories', () => {
         `leftover-${cardCategoryId}`,
       ),
     ).toBe(600);
+  });
+
+  it('keeps header balance aligned with spending categories only', async () => {
+    const { groceriesId, cardCategoryId, month, sheetName, date } =
+      await setupBudget();
+
+    await setBudget({ category: groceriesId, month, amount: 10000 });
+    await setBudget({ category: cardCategoryId, month, amount: 2500 });
+    await db.insertTransaction({
+      account: 'amex',
+      amount: -4000,
+      category: groceriesId,
+      date,
+    });
+    await sheet.waitOnSpreadsheet();
+
+    expect(sheet.getCellValue(sheetName, `leftover-${groceriesId}`)).toBe(6000);
+    expect(sheet.getCellValue(sheetName, `leftover-${cardCategoryId}`)).toBe(
+      6500,
+    );
+    expect(sheet.getCellValue(sheetName, 'total-spent')).toBe(-4000);
+    expect(sheet.getCellValue(sheetName, 'total-leftover')).toBe(6000);
   });
 
   it('moves only the funded part of a card purchase', async () => {

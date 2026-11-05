@@ -11,6 +11,7 @@ import {
   createGroupDebtBalance,
   createPaymentCategory,
   getLinkedAccountId,
+  isPaymentCategory,
   unwatchCategoryForCoverage,
   watchCategoryForCoverage,
 } from './payment';
@@ -194,19 +195,21 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
     },
   });
 
+  const spendingCategories = expenseCategories.filter(
+    cat => !isPaymentCategory(cat.id),
+  );
+
   sheet.get().createDynamic(sheetName, 'total-spent', {
     initialValue: 0,
-    dependencies: groups
-      .filter(group => !group.is_income)
-      .map(group => `group-sum-amount-${group.id}`),
+    dependencies: spendingCategories.map(cat => `sum-amount-${cat.id}`),
     run: sumAmounts,
   });
 
+  // Spending-category leftover only. Payment rows track available-for-payment
+  // separately and stay out of this total so the header matches total-spent.
   sheet.get().createDynamic(sheetName, 'total-leftover', {
     initialValue: 0,
-    dependencies: groups
-      .filter(group => !group.is_income)
-      .map(group => `group-leftover-${group.id}`),
+    dependencies: spendingCategories.map(cat => `leftover-${cat.id}`),
     run: sumAmounts,
   });
 }
@@ -248,6 +251,11 @@ export function handleCategoryChange(months, oldValue, newValue) {
           `${prevSheetName}!carryover-${cat.id}`,
         ],
       ]);
+
+      if (!isPaymentCategory(cat.id)) {
+        deps.push(['total-spent', [`sum-amount-${cat.id}`]]);
+        deps.push(['total-leftover', [`leftover-${cat.id}`]]);
+      }
     }
 
     return deps;
@@ -317,16 +325,6 @@ export function handleCategoryGroupChange(months, oldValue, newValue) {
       .addDependencies(sheetName, 'total-budgeted', [
         `group-budget-${groupId}`,
       ]);
-    sheet
-      .get()
-      .addDependencies(sheetName, 'total-spent', [
-        `group-sum-amount-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .addDependencies(sheetName, 'total-leftover', [
-        `group-leftover-${groupId}`,
-      ]);
   }
 
   function removeDeps(sheetName, groupId) {
@@ -334,16 +332,6 @@ export function handleCategoryGroupChange(months, oldValue, newValue) {
       .get()
       .removeDependencies(sheetName, 'total-budgeted', [
         `group-budget-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .removeDependencies(sheetName, 'total-spent', [
-        `group-sum-amount-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .removeDependencies(sheetName, 'total-leftover', [
-        `group-leftover-${groupId}`,
       ]);
   }
 

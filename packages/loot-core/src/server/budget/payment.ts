@@ -99,6 +99,16 @@ export function installPaymentCategory(
     createPaymentDynamicCells(categoryId, accountId, sheetName, prevSheetName);
     sheet.get().set(`${sheetName}!carryover-${categoryId}`, true);
     ensureGroupDebtBalance(categoryId, sheetName);
+    sheet
+      .get()
+      .removeDependencies(sheetName, 'total-spent', [
+        `sum-amount-${categoryId}`,
+      ]);
+    sheet
+      .get()
+      .removeDependencies(sheetName, 'total-leftover', [
+        `leftover-${categoryId}`,
+      ]);
   }
 }
 
@@ -120,6 +130,12 @@ export function uninstallPaymentCategory(
     sheet.get().deleteCell(sheetName, `leftover-${categoryId}`);
     createExpenseLeftover(categoryId, sheetName, prevSheetName);
     removeGroupDebtBalance(categoryId, sheetName);
+    sheet
+      .get()
+      .addDependencies(sheetName, 'total-spent', [`sum-amount-${categoryId}`]);
+    sheet
+      .get()
+      .addDependencies(sheetName, 'total-leftover', [`leftover-${categoryId}`]);
   }
 }
 
