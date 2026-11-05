@@ -89,7 +89,10 @@ export const RuleRow = memo(
         onMouseLeave={() => onHover && onHover(null)}
       >
         <SelectCell
-          exposed={hovered || selected}
+          exposed
+          buttonProps={{
+            className: selected ? undefined : 'hover-visible',
+          }}
           focused
           onSelect={e => {
             dispatchSelected({
