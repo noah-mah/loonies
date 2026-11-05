@@ -102,8 +102,8 @@ export function BudgetTable(props: BudgetTableProps) {
     }
   }, []);
 
-  const onEditMonth = (id: string, month: string) => {
-    setEditing(id ? { id, cell: month } : null);
+  const onEditMonth = (id: CategoryEntity['id'] | null, month?: string) => {
+    setEditing(id && month ? { id, cell: month } : null);
   };
 
   const onEditName = (id: string) => {
@@ -199,6 +199,8 @@ export function BudgetTable(props: BudgetTableProps) {
           break;
         }
       }
+
+      onEditMonth(null);
     }
   };
 

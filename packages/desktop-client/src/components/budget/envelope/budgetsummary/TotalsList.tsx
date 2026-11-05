@@ -11,35 +11,9 @@ import { View } from '@actual-app/components/view';
 import { EnvelopeCellValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
 import { CellValueText } from '#components/spreadsheet/CellValue';
 import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
 import { envelopeBudget } from '#spreadsheet/bindings';
 
-/**
- * Creates a formatter that displays values with explicit +/- signs.
- * Uses Math.abs to avoid double-negative display (e.g., "--$0.00").
- *
- * @param format - The format function from useFormat hook
- * @param invert - If true, shows '-' for positive and '+' for negative
- */
-function makeSignedFormatter(
-  format: ReturnType<typeof useFormat>,
-  invert = false,
-) {
-  return (value: number, type?: FormatType) => {
-    const v = format(Math.abs(value), type);
-    if (value === 0) {
-      return '-' + v;
-    }
-    const isPositive = value > 0;
-    return invert
-      ? isPositive
-        ? '-' + v
-        : '+' + v
-      : isPositive
-        ? '+' + v
-        : '-' + v;
-  };
-}
+import { makeSignedBudgetAmountFormatter } from './signedBudgetAmountFormatter';
 
 type TotalsListProps = {
   prevMonthName: string;
@@ -48,8 +22,8 @@ type TotalsListProps = {
 
 export function TotalsList({ prevMonthName, style }: TotalsListProps) {
   const format = useFormat();
-  const signedFormatter = makeSignedFormatter(format);
-  const invertedSignedFormatter = makeSignedFormatter(format, true);
+  const signedFormatter = makeSignedBudgetAmountFormatter(format);
+  const invertedSignedFormatter = makeSignedBudgetAmountFormatter(format, true);
   return (
     <View
       style={{
