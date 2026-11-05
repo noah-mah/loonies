@@ -157,8 +157,17 @@ function SpendingInternal({ widget }: SpendingInternalProps) {
         compareTo,
         averageRange,
         budgetType,
+        reportMode,
       }),
-    [conditions, conditionsOp, compare, compareTo, averageRange, budgetType],
+    [
+      conditions,
+      conditionsOp,
+      compare,
+      compareTo,
+      averageRange,
+      budgetType,
+      reportMode,
+    ],
   );
 
   const data = useReport('default', getGraphData);

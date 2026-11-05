@@ -184,7 +184,7 @@ export function summarySpreadsheet(
   };
 }
 
-function calculatePerMonth(
+export function calculatePerMonth(
   data: Array<{
     date: string;
     amount: number;

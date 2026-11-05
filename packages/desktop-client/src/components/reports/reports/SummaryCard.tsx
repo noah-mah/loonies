@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
 import { send } from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
@@ -121,12 +122,28 @@ export function SummaryCard({
           }}
         >
           {data ? (
-            <SummaryNumber
-              value={data?.total ?? 0}
-              contentType={content.type}
-              suffix={content.type === 'percentage' ? '%' : ''}
-              loading={!data}
-            />
+            content.type === 'avgPerMonth' ? (
+              <Tooltip
+                content={t(
+                  'Average expense total divided by elapsed months in the range, including a fraction of the current month ({{divisor}} months).',
+                  { divisor: data.divisor.toFixed(2) },
+                )}
+                placement="bottom"
+              >
+                <SummaryNumber
+                  value={data?.total ?? 0}
+                  contentType={content.type}
+                  loading={!data}
+                />
+              </Tooltip>
+            ) : (
+              <SummaryNumber
+                value={data?.total ?? 0}
+                contentType={content.type}
+                suffix={content.type === 'percentage' ? '%' : ''}
+                loading={!data}
+              />
+            )
           ) : (
             <ReportCardValueSkeleton />
           )}

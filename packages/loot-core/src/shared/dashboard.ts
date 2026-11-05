@@ -83,7 +83,7 @@ export const DEFAULT_DASHBOARD_STATE: NewDashboardWidgetEntity[] = [
     x: 6,
     y: 0,
     meta: {
-      name: 'Avg Per Month',
+      name: 'Avg Per Month (YTD)',
       content: JSON.stringify({
         type: 'avgPerMonth',
         fontSize: 20,

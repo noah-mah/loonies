@@ -128,14 +128,18 @@ export function Overview({ dashboard }: OverviewProps) {
     () => new Map(customReports.map(report => [report.id, report])),
     [customReports],
   );
-  const { data: dashboardPages = [], isPending: isDashboardPageLoading } =
-    useDashboardPages();
+  const { data: dashboardPages = [] } = useDashboardPages();
 
   const { data: widgets = [], isPending: isWidgetsLoading } =
     useDashboardPageWidgets(dashboard.id);
 
+  const hasCustomReportWidgets = useMemo(
+    () => widgets.some(widget => widget.type === 'custom-report'),
+    [widgets],
+  );
+
   const isLoading =
-    isCustomReportsLoading || isWidgetsLoading || isDashboardPageLoading;
+    isWidgetsLoading || (hasCustomReportWidgets && isCustomReportsLoading);
 
   const navigate = useNavigate();
 
