@@ -15,6 +15,7 @@ import { useHotkeysContext } from 'react-hotkeys-hook';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, keyframes } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import { SvgLogo } from '@actual-app/components/icons/logo';
@@ -26,7 +27,6 @@ import { TextOneLine } from '@actual-app/components/text-one-line';
 import { theme } from '@actual-app/components/theme';
 import { radius, spacing, tokens } from '@actual-app/components/tokens';
 import { View } from '@actual-app/components/view';
-import { css, keyframes } from '@emotion/css';
 import { AutoTextSize } from 'auto-text-size';
 
 import { FeatureErrorFallback } from '#components/FeatureErrorFallback';

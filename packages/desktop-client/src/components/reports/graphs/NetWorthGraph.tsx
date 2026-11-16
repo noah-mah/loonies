@@ -3,10 +3,10 @@ import React, { useId, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AlignedText } from '@actual-app/components/aligned-text';
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 import { getDay, parse } from 'date-fns';
 import {
   Area,

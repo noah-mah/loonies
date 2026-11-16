@@ -3,11 +3,11 @@ import type { ComponentProps, MouseEventHandler, ReactNode } from 'react';
 import { NavLink, useMatch } from 'react-router';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 
 import { useNavigate } from '#hooks/useNavigate';
 

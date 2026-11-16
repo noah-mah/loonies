@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import {
   SvgCog,
   SvgLibrary,
@@ -12,7 +13,6 @@ import { SvgHelp, SvgNotesPaperText } from '@actual-app/components/icons/v2';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 import { Command } from 'cmdk';
 
 import { getSidebarMenuItemPath } from '#components/sidebar/sidebarMenu';

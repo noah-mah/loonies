@@ -8,6 +8,7 @@ import type {
 } from 'react';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import type { CSSProperties as EmotionCSSProperties } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
@@ -18,7 +19,6 @@ import {
   currencyToAmount,
   reapplyThousandSeparators,
 } from '@actual-app/core/shared/util';
-import { css } from '@emotion/css';
 
 import { makeAmountFullStyle } from '#components/budget/util';
 import { useMergedRefs } from '#hooks/useMergedRefs';

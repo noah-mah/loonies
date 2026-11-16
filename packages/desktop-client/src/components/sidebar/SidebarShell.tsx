@@ -2,12 +2,12 @@ import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as Platform from '@actual-app/core/shared/platform';
-import { css, cx } from '@emotion/css';
 import { Resizable } from 're-resizable';
 
 import { FeatureErrorFallback } from '#components/FeatureErrorFallback';

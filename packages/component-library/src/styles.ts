@@ -1,5 +1,4 @@
-import { keyframes } from '@emotion/css';
-
+import { keyframes } from './css';
 import { theme } from './theme';
 import { tokens } from './tokens';
 

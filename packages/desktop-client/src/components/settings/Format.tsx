@@ -2,11 +2,11 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
 import { theme } from '@actual-app/components/theme';
 import { numberFormats } from '@actual-app/core/shared/util';
 import type { SyncedPrefs } from '@actual-app/core/types/prefs';
-import { css } from '@emotion/css';
 
 import { Checkbox } from '#components/forms';
 import { useDateFormat } from '#hooks/useDateFormat';

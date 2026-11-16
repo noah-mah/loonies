@@ -8,6 +8,7 @@ import {
   MenuPopup,
   MenuTrigger,
 } from '@actual-app/components/coss';
+import { css } from '@actual-app/components/css';
 import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
 import {
   SvgArrowButtonDown1,
@@ -16,7 +17,6 @@ import {
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
 
 import { useEnvelopeBudget } from '#components/budget/envelope/EnvelopeBudgetContext';
 import {

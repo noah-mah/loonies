@@ -7,6 +7,7 @@ import {
 } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { InitialFocus } from '@actual-app/components/initial-focus';
 import { Input } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
@@ -18,7 +19,6 @@ import type {
   AccountEntity,
   AccountGroupEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import {
   useDeleteAccountGroupMutation,

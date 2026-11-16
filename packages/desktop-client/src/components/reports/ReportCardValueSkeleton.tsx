@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { css, keyframes } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css, keyframes } from '@emotion/css';
 
 import { useReducedMotion } from '#hooks/useReducedMotion';
 

@@ -1,7 +1,6 @@
 import type { HTMLProps } from 'react';
 
-import { css } from '@emotion/css';
-
+import { css } from './css';
 import type { CSSProperties } from './styles';
 
 type ParagraphProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {

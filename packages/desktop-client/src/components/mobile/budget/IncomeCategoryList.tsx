@@ -2,9 +2,9 @@ import type { DragItem } from 'react-aria';
 import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import type { CategoryEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { useMoveCategoryMutation } from '#budget';
 

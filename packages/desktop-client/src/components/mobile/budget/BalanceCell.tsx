@@ -2,13 +2,13 @@ import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgArrowThickRight } from '@actual-app/components/icons/v1';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import type { CategoryEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import { AutoTextSize } from 'auto-text-size';
 
 import { BalanceWithCarryover } from '#components/budget/BalanceWithCarryover';

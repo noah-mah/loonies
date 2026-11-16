@@ -1,11 +1,11 @@
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgAdd } from '@actual-app/components/icons/v1';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { radius, spacing } from '@actual-app/components/tokens';
-import { css } from '@emotion/css';
 
 import { replaceModal } from '#modals/modalsSlice';
 import { useDispatch } from '#redux';

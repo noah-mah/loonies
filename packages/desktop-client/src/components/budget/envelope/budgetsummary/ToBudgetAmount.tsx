@@ -3,11 +3,11 @@ import type { CSSProperties, MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Block } from '@actual-app/components/block';
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import {
   useEnvelopeSheetName,

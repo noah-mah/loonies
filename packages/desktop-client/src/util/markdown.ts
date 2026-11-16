@@ -1,8 +1,8 @@
 // @ts-strict-ignore
 
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 import { newlineToBreak } from 'mdast-util-newline-to-break';
 
 export function sequentialNewlinesPlugin() {

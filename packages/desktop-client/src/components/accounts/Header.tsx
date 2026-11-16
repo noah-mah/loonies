@@ -13,6 +13,7 @@ import {
   PopoverPopup,
   PopoverTrigger,
 } from '@actual-app/components/coss';
+import { css, cx } from '@actual-app/components/css';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import {
   SvgAdd,
@@ -40,7 +41,6 @@ import type {
   TransactionEntity,
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 import { format as formatDate } from 'date-fns';
 
 import { isAccountFailedSync } from '#accounts/syncStatus';

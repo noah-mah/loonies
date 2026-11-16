@@ -7,13 +7,13 @@ import type {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { styles } from '@actual-app/components/styles';
 import { TextOneLine } from '@actual-app/components/text-one-line';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import type { AccountGroupEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 
 import { Autocomplete } from './Autocomplete';
 

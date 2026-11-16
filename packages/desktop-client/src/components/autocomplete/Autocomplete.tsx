@@ -8,6 +8,7 @@ import type {
 } from 'react';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { SvgRemove } from '@actual-app/components/icons/v2';
 import { Input } from '@actual-app/components/input';
@@ -16,7 +17,6 @@ import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View, viewStyles } from '@actual-app/components/view';
 import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { css, cx } from '@emotion/css';
 import Downshift from 'downshift';
 import type { StateChangeTypes } from 'downshift';
 

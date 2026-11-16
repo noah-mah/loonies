@@ -3,9 +3,9 @@ import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 
 import {
   getDefaultSidebarMenuItems,

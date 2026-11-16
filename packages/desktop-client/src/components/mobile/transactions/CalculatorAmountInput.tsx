@@ -7,13 +7,13 @@ import React, {
 } from 'react';
 import type { CSSProperties, FocusEvent, ReactNode, RefObject } from 'react';
 
+import { css, cx } from '@actual-app/components/css';
 import { defaultInputClassName } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
 import { isIOS } from '@actual-app/core/shared/platform';
 import { amountToCurrency } from '@actual-app/core/shared/util';
-import { css, cx } from '@emotion/css';
 
 import { makeAmountFullStyle } from '#components/budget/util';
 

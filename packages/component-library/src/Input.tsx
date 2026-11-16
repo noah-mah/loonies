@@ -8,9 +8,8 @@ import type {
 } from 'react';
 import { Input as ReactAriaInput } from 'react-aria-components';
 
-import { css, cx } from '@emotion/css';
-
 import { Input as CossInput } from './coss/components/input';
+import { css, cx } from './css';
 import { useResponsive } from './hooks/useResponsive';
 import type { ComponentSize } from './tokens';
 

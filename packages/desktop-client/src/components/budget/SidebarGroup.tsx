@@ -4,6 +4,7 @@ import type { CSSProperties, RefCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import { SvgAdd, SvgExpandArrow } from '@actual-app/components/icons/v0';
 import { SvgCheveronDown } from '@actual-app/components/icons/v1';
 import { Menu } from '@actual-app/components/menu';
@@ -15,7 +16,6 @@ import type {
   CategoryEntity,
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 
 import { NotesButton } from '#components/NotesButton';
 import { InputCell } from '#components/table';

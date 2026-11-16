@@ -12,6 +12,7 @@ import type {
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import {
   SvgAdd,
@@ -29,7 +30,6 @@ import type {
   NearbyPayeeEntity,
   PayeeEntity,
 } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 import { byLengthAsc, byStartAsc, Fzf } from 'fzf';
 
 import { useAccounts } from '#hooks/useAccounts';

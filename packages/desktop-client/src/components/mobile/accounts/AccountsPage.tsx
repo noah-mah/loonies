@@ -11,6 +11,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import {
   SvgAdd,
   SvgCheveronDown,
@@ -23,7 +24,6 @@ import { TextOneLine } from '@actual-app/components/text-one-line';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import type { AccountEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { useMoveAccountMutation, useSyncAndDownloadMutation } from '#accounts';
 import { isAccountFailedSync } from '#accounts/syncStatus';

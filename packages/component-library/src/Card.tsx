@@ -1,9 +1,8 @@
 import { forwardRef } from 'react';
 import type { ComponentProps } from 'react';
 
-import { css, cx } from '@emotion/css';
-
 import { Card as CossCard } from './coss/components/card';
+import { css, cx } from './css';
 import { View } from './View';
 
 type CardProps = ComponentProps<typeof View>;

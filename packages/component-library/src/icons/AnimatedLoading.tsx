@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SVGProps } from 'react';
 
-import { css, keyframes } from '@emotion/css';
+import { css, keyframes } from '../css';
 
 import { SvgLoading } from './Loading';
 

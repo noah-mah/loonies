@@ -10,6 +10,7 @@ import type {
 } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { SvgSplit } from '@actual-app/components/icons/v0';
 import { styles } from '@actual-app/components/styles';
@@ -22,7 +23,6 @@ import type {
   CategoryEntity,
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 
 import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
 import { makeAmountFullStyle } from '#components/budget/util';

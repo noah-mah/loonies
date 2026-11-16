@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import {
   SvgAdd,
@@ -40,7 +41,6 @@ import type {
   RuleActionEntity,
   RuleEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import { v4 as uuidv4 } from 'uuid';
 
 import { TagMultiAutocomplete } from '#components/autocomplete/TagMultiAutocomplete';

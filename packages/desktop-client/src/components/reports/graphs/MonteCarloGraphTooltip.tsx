@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import { FinancialText } from '#components/FinancialText';
 import { useFormat } from '#hooks/useFormat';

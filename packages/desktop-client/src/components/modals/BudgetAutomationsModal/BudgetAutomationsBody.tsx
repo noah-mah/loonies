@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Trans } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgDelete } from '@actual-app/components/icons/v0';
 import { SvgInformationCircle } from '@actual-app/components/icons/v2';
 import { Text } from '@actual-app/components/text';
@@ -13,7 +14,6 @@ import type {
   ScheduleEntity,
 } from '@actual-app/core/types/models';
 import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
-import { css } from '@emotion/css';
 
 import type { AutomationEntry } from '#components/budget/goals/automationExamples';
 import { isCleanupConfigured } from '#components/budget/goals/cleanupModel';

@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { css, cx } from '@emotion/css';
-
 import {
   Select as CossSelect,
   SelectGroup,
@@ -12,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './coss/components/select';
+import { css, cx } from './css';
 import { Menu } from './Menu';
 
 /** A non-selectable heading above the options that follow it */

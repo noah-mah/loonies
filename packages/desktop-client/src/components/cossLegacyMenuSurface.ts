@@ -1,5 +1,5 @@
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 
 /** Legacy {@link Menu} lists inside Coss {@link MenuPopup}. */
 export const cossLegacyMenuPopup = css({

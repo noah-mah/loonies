@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'react-router';
 import { animated, config, useSpring } from 'react-spring';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import {
   SvgArrowThickDown,
@@ -26,7 +27,6 @@ import type {
   TimeFrame,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import { useDrag } from '@use-gesture/react';
 import { format as formatDate, parseISO } from 'date-fns';
 

@@ -5,6 +5,7 @@ import { animated, to, useSpring } from 'react-spring';
 import { useSwipeable } from 'react-swipeable';
 
 import { Button, ButtonWithLoading } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import { SvgDelete } from '@actual-app/components/icons/v0';
@@ -13,7 +14,6 @@ import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import { removeNotification } from '#notifications/notificationsSlice';
 import type { NotificationWithId } from '#notifications/notificationsSlice';

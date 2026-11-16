@@ -1,8 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { HTMLProps, Ref } from 'react';
 
-import { css, cx } from '@emotion/css';
-
+import { css, cx } from './css';
 import type { CSSProperties } from './styles';
 
 export const viewStyles = css({

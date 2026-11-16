@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Tree } from 'react-aria-components';
 import type { Key } from 'react-aria-components';
 
-import { css } from '@emotion/css';
+import { css } from '@actual-app/components/css';
 
 import { AccountGroupHeader } from './AccountGroupHeader';
 import { AccountRow } from './AccountRow';

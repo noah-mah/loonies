@@ -3,12 +3,12 @@ import type { CSSProperties } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AlignedText } from '@actual-app/components/aligned-text';
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import { useTrackingSheetValue } from '#components/budget/tracking/TrackingBudgetComponents';
 import { makeAmountFullStyle } from '#components/budget/util';

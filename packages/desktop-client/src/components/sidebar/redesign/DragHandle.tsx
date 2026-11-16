@@ -1,10 +1,10 @@
 import { Button } from 'react-aria-components';
 
+import { css } from '@actual-app/components/css';
 import { SvgMenu } from '@actual-app/components/icons/v1';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { radius } from '@actual-app/components/tokens';
-import { css } from '@emotion/css';
 
 export function DragHandle() {
   return (

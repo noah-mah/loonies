@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FocusEvent, MouseEvent } from 'react';
 
+import { css, cx } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { Input } from '@actual-app/components/input';
 import type { InputProps } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
 import type { IntegerAmount } from '@actual-app/core/shared/util';
-import { css, cx } from '@emotion/css';
 
 import { useFormat } from '#hooks/useFormat';
 import { usePrivacyMode } from '#hooks/usePrivacyMode';

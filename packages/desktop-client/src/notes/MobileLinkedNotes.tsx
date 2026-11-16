@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { isElectron } from '@actual-app/core/shared/environment';
-import { css } from '@emotion/css';
 
 import { addNotification } from '#notifications/notificationsSlice';
 import { useDispatch } from '#redux';

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 
 type PayloadItem = {
   payload: {
