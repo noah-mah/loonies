@@ -31,6 +31,7 @@
       "default": "./src/coss/styles/globals.css"
     },
     "./card": "./src/Card.tsx",
+    "./coss": "./src/coss/index.ts",
     "./form-error": "./src/FormError.tsx",
     "./initial-focus": "./src/InitialFocus.ts",
     "./inline-field": "./src/InlineField.tsx",

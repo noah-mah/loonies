@@ -25,15 +25,17 @@ export function AlertDialogTrigger(
 
 export function AlertDialogBackdrop({
   className,
+  style,
   ...props
 }: AlertDialogPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <AlertDialogPrimitive.Backdrop
       className={cn(
-        'fixed inset-0 z-50 bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
+        'fixed inset-0 z-[4000] bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
         className,
       )}
       data-slot="alert-dialog-backdrop"
+      style={{ zIndex: 4000, ...style }}
       {...props}
     />
   );
@@ -41,15 +43,17 @@ export function AlertDialogBackdrop({
 
 export function AlertDialogViewport({
   className,
+  style,
   ...props
 }: AlertDialogPrimitive.Viewport.Props): React.ReactElement {
   return (
     <AlertDialogPrimitive.Viewport
       className={cn(
-        'fixed inset-0 z-50 grid grid-rows-[1fr_auto_3fr] justify-items-center p-4',
+        'fixed inset-0 z-[4000] grid grid-rows-[1fr_auto_3fr] justify-items-center p-4',
         className,
       )}
       data-slot="alert-dialog-viewport"
+      style={{ zIndex: 4000, ...style }}
       {...props}
     />
   );

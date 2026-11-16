@@ -30,15 +30,17 @@ export function SheetClose(
 
 export function SheetBackdrop({
   className,
+  style,
   ...props
 }: SheetPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <SheetPrimitive.Backdrop
       className={cn(
-        'fixed inset-0 z-50 bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
+        'fixed inset-0 z-[4000] bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
         className,
       )}
       data-slot="sheet-backdrop"
+      style={{ zIndex: 4000, ...style }}
       {...props}
     />
   );
@@ -48,6 +50,7 @@ export function SheetViewport({
   className,
   side,
   variant = 'default',
+  style,
   ...props
 }: SheetPrimitive.Viewport.Props & {
   side?: 'right' | 'left' | 'top' | 'bottom';
@@ -55,8 +58,9 @@ export function SheetViewport({
 }): React.ReactElement {
   return (
     <SheetPrimitive.Viewport
+      style={{ zIndex: 4000, ...style }}
       className={cn(
-        'fixed inset-0 z-50 grid',
+        'fixed inset-0 z-[4000] grid',
         side === 'bottom' && 'grid grid-rows-[1fr_auto] pt-12',
         side === 'top' && 'grid grid-rows-[auto_1fr] pb-12',
         side === 'left' && 'flex justify-start',

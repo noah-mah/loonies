@@ -1,20 +1,22 @@
-// @ts-strict-ignore
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ComponentPropsWithoutRef, ComponentType, FormEvent } from 'react';
-import { Form } from 'react-aria-components';
 
 import { Button } from '@actual-app/components/button';
-import { FormError } from '@actual-app/components/form-error';
+import {
+  Dialog,
+  DialogPopup,
+  Field,
+  FieldError,
+} from '@actual-app/components/coss';
 import { InitialFocus } from '@actual-app/components/initial-focus';
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
 
-import { Modal, ModalCloseButton } from '#components/common/Modal';
 import type { ModalHeader } from '#components/common/Modal';
+import { ModalCloseButton } from '#components/common/Modal';
 import { InputField } from '#components/mobile/MobileForms';
+import { useCossModal } from '#hooks/useCossModal';
 
 type SingleInputModalProps = {
-  name: string;
+  name: Parameters<typeof useCossModal>[0];
   Header: ComponentType<ComponentPropsWithoutRef<typeof ModalHeader>>;
   buttonText: string;
   onSubmit: (value: string) => void;
@@ -31,75 +33,43 @@ export function SingleInputModal({
   inputPlaceholder,
 }: SingleInputModalProps) {
   const [value, setValue] = useState('');
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { close, onOpenChange, open } = useCossModal(name);
 
-  const _onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const error = onValidate?.(value);
+  const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const error = onValidate?.(value) ?? null;
     if (error) {
       setErrorMessage(error);
       return;
     }
 
-    onSubmit?.(value);
+    onSubmit(value);
+    close();
   };
 
   return (
-    <Modal name={name}>
-      {({ state }) => (
-        <>
-          <Header
-            rightContent={<ModalCloseButton onPress={() => state.close()} />}
-          />
-          <Form
-            onSubmit={e => {
-              _onSubmit(e);
-              state.close();
-            }}
-          >
-            <View>
-              <InitialFocus>
-                <InputField
-                  placeholder={inputPlaceholder}
-                  defaultValue={value}
-                  onChangeValue={setValue}
-                />
-              </InitialFocus>
-              {errorMessage && (
-                <FormError
-                  style={{
-                    paddingTop: 5,
-                    marginLeft: styles.mobileEditingPadding,
-                    marginRight: styles.mobileEditingPadding,
-                  }}
-                >
-                  * {errorMessage}
-                </FormError>
-              )}
-            </View>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingTop: 10,
-              }}
-            >
-              <Button
-                type="submit"
-                variant="primary"
-                style={{
-                  height: styles.mobileMinHeight,
-                  marginLeft: styles.mobileEditingPadding,
-                  marginRight: styles.mobileEditingPadding,
-                }}
-              >
-                {buttonText}
-              </Button>
-            </View>
-          </Form>
-        </>
-      )}
-    </Modal>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup showCloseButton={false} data-testid={`${name}-modal`}>
+        <Header rightContent={<ModalCloseButton onPress={close} />} />
+        <form onSubmit={onFormSubmit}>
+          <Field className="w-full px-6 pb-6">
+            <InitialFocus>
+              <InputField
+                placeholder={inputPlaceholder}
+                defaultValue={value}
+                onChangeValue={setValue}
+              />
+            </InitialFocus>
+            <FieldError match={Boolean(errorMessage)}>
+              {errorMessage}
+            </FieldError>
+            <Button type="submit" variant="primary" className="self-center">
+              {buttonText}
+            </Button>
+          </Field>
+        </form>
+      </DialogPopup>
+    </Dialog>
   );
 }
