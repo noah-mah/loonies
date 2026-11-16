@@ -173,15 +173,33 @@ export function CreateLocalAccountModal() {
               )}
 
               <InlineField label={t('Account kind')} width="100%">
-                <Select
-                  value={kind}
-                  options={[
-                    ['cash', t('Cash')],
-                    ['credit', t('Credit card')],
-                    ['debt', t('Debt')],
-                  ]}
-                  onChange={setKind}
-                />
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: 6,
+                  }}
+                >
+                  {(
+                    [
+                      ['cash', t('Cash')] as const,
+                      ['credit', t('Credit card')] as const,
+                      ['debt', t('Debt')] as const,
+                    ] satisfies ReadonlyArray<
+                      readonly ['cash' | 'credit' | 'debt', string]
+                    >
+                  ).map(([value, label]) => (
+                    <Button
+                      key={value}
+                      type="button"
+                      variant={kind === value ? 'primary' : 'normal'}
+                      onPress={() => setKind(value)}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </View>
               </InlineField>
 
               {kind === 'cash' && (
