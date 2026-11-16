@@ -1,10 +1,18 @@
 import React, { useRef, useState } from 'react';
 import type { ComponentProps, ReactNode } from 'react';
-import { Dialog, DialogTrigger } from 'react-aria-components';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { Card } from '@actual-app/components/card';
+import {
+  Menu as CossMenu,
+  Popover as CossPopover,
+  MenuPopup,
+  MenuTrigger,
+  PopoverPopup,
+  PopoverTrigger,
+} from '@actual-app/components/coss';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import {
   SvgAdd,
@@ -20,7 +28,6 @@ import {
 import { InitialFocus } from '@actual-app/components/initial-focus';
 import { Input } from '@actual-app/components/input';
 import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
 import { SpaceBetween } from '@actual-app/components/space-between';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
@@ -33,6 +40,7 @@ import type {
   TransactionEntity,
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
+import { css, cx } from '@emotion/css';
 import { format as formatDate } from 'date-fns';
 
 import { isAccountFailedSync } from '#accounts/syncStatus';
@@ -54,6 +62,84 @@ import type { TableRef } from './Account';
 import { Balances } from './Balance';
 import { BalanceHistoryGraph } from './BalanceHistoryGraph';
 import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
+
+const ledgerAccountMenuPopup = css({
+  backgroundColor: `${theme.menuBackground} !important`,
+  borderColor: `${theme.menuBorder} !important`,
+  color: theme.menuItemText,
+  '&::before': {
+    display: 'none',
+  },
+});
+
+const ledgerAccountMenuList = css({
+  color: theme.menuItemText,
+  '& [role="menu"]': {
+    backgroundColor: 'transparent',
+  },
+  '& [data-slot="button"]': {
+    backgroundColor: 'transparent !important',
+    borderColor: 'transparent !important',
+    boxShadow: 'none !important',
+    color: `${theme.menuItemText} !important`,
+  },
+  '& [data-slot="button"][data-hovered]': {
+    backgroundColor: `${theme.pillBackgroundLight} !important`,
+    color: `${theme.menuItemTextHover} !important`,
+  },
+  '& [role="menu"] span': {
+    color: 'inherit',
+  },
+});
+
+type LedgerOverflowMenuProps = {
+  label: string;
+  minWidth?: boolean;
+  children: ReactNode;
+};
+
+function LedgerOverflowMenu({
+  label,
+  minWidth = false,
+  children,
+}: LedgerOverflowMenuProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <CossMenu open={open} onOpenChange={setOpen}>
+      <MenuTrigger
+        render={
+          <Button variant="bare" aria-label={label} style={{ padding: 6 }} />
+        }
+      >
+        <SvgDotsHorizontalTriple
+          width={15}
+          height={15}
+          style={{ transform: 'rotateZ(90deg)' }}
+        />
+      </MenuTrigger>
+      <MenuPopup
+        align="end"
+        className={cx(
+          ledgerAccountMenuPopup,
+          minWidth ? 'min-w-[275px]' : undefined,
+        )}
+      >
+        <div
+          className={ledgerAccountMenuList}
+          onClick={() => setOpen(false)}
+          onKeyDown={event => {
+            if (event.key === 'Enter') {
+              setOpen(false);
+            }
+          }}
+        >
+          {children}
+        </div>
+      </MenuPopup>
+    </CossMenu>
+  );
+}
 
 type AccountHeaderProps = {
   tableRef: TableRef;
@@ -185,7 +271,6 @@ export function AccountHeader({
 
   const [reconcileOpen, setReconcileOpen] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
-  const reconcileRef = useRef(null);
   const splitsExpanded = useSplitsExpanded();
   const syncServerStatus = useSyncServerStatus();
   const isUsingServer = syncServerStatus !== 'no-server';
@@ -272,308 +357,284 @@ export function AccountHeader({
   return (
     <>
       <View style={{ ...styles.pageContent, paddingBottom: 10, flexShrink: 0 }}>
-        <View
-          style={{
-            flexDirection: 'column',
-            marginTop: 2,
-            justifyContent: 'space-between',
-            gap: 10,
-          }}
-        >
+        <Card className="gap-2.5 p-4 shadow-none">
           <View
             style={{
-              flexGrow: 1,
-              alignItems: 'flex-start',
+              flexDirection: 'column',
+              marginTop: 2,
+              justifyContent: 'space-between',
               gap: 10,
             }}
           >
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 3,
+                flexGrow: 1,
+                alignItems: 'flex-start',
+                gap: 10,
               }}
             >
-              {!!account?.bank && (
-                <AccountSyncSidebar
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 3,
+                }}
+              >
+                {!!account?.bank && (
+                  <AccountSyncSidebar
+                    account={account}
+                    accountsSyncing={accountsSyncing}
+                  />
+                )}
+                <AccountNameField
                   account={account}
-                  accountsSyncing={accountsSyncing}
+                  accountName={accountName}
+                  isNameEditable={isNameEditable}
+                  saveNameError={saveNameError}
+                  onSaveName={onSaveName}
                 />
-              )}
-              <AccountNameField
+              </View>
+
+              <Balances
+                balanceQuery={balanceQuery}
+                showExtraBalances={showExtraBalances}
+                onToggleExtraBalances={onToggleExtraBalances}
                 account={account}
-                accountName={accountName}
-                isNameEditable={isNameEditable}
-                saveNameError={saveNameError}
-                onSaveName={onSaveName}
+                isFiltered={isFiltered}
+                filteredAmount={filteredAmount}
               />
             </View>
 
-            <Balances
-              balanceQuery={balanceQuery}
-              showExtraBalances={showExtraBalances}
-              onToggleExtraBalances={onToggleExtraBalances}
-              account={account}
-              isFiltered={isFiltered}
-              filteredAmount={filteredAmount}
+            <BalanceHistoryGraph
+              ref={graphRef}
+              accountId={accountId}
+              style={{
+                height: 'calc(5vh + 5vw)',
+                margin: 0,
+                display: showNetWorthChart ? 'flex' : 'none',
+              }}
             />
           </View>
-
-          <BalanceHistoryGraph
-            ref={graphRef}
-            accountId={accountId}
-            style={{
-              height: 'calc(5vh + 5vw)',
-              margin: 0,
-              display: showNetWorthChart ? 'flex' : 'none',
-            }}
-          />
-        </View>
-        <SpaceBetween gap={10} style={{ marginTop: 12 }}>
-          {canSync && (
-            <Button
-              variant="bare"
-              onPress={onSync}
-              isDisabled={isServerOffline}
-            >
-              <AnimatedRefresh
-                width={13}
-                height={13}
-                animating={
-                  account
-                    ? accountsSyncing.includes(account.id)
-                    : accountsSyncing.length > 0
-                }
-              />{' '}
-              {isServerOffline ? t('Bank Sync Offline') : t('Bank Sync')}
-            </Button>
-          )}
-
-          {account && !account.closed && (
-            <Button variant="bare" onPress={onImport}>
-              <SvgDownloadThickBottom
-                width={13}
-                height={13}
-                style={{ marginRight: 4 }}
-              />{' '}
-              <Trans>Import</Trans>
-            </Button>
-          )}
-
-          {!showEmptyMessage && (
-            <Button variant="bare" onPress={onAddTransaction}>
-              <SvgAdd width={10} height={10} style={{ marginRight: 3 }} />
-              <Trans>Add New</Trans>
-            </Button>
-          )}
-          <View style={{ flexShrink: 0 }}>
-            {/* @ts-expect-error fix me */}
-            <FilterButton onApply={onApplyFilter} />
-          </View>
-          <View style={{ flex: 1 }} />
-
-          <Search
-            placeholder={t('Search')}
-            value={search}
-            onChange={onSearch}
-            ref={searchInput}
-          />
-          {workingHard ? (
-            <View>
-              <AnimatedLoading style={{ width: 16, height: 16 }} />
-            </View>
-          ) : (
-            <SelectedTransactionsButton
-              getTransaction={id => transactions.find(t => t.id === id)}
-              onShow={onShowTransactions}
-              onDuplicate={onBatchDuplicate}
-              onDelete={onBatchDelete}
-              onEdit={onBatchEdit}
-              onRunRules={onRunRules}
-              onLinkSchedule={onBatchLinkSchedule}
-              onUnlinkSchedule={onBatchUnlinkSchedule}
-              onCreateRule={onCreateRule}
-              onSetTransfer={onSetTransfer}
-              onScheduleAction={onScheduleAction}
-              showMakeTransfer={showMakeTransfer}
-              onMakeAsSplitTransaction={onMakeAsSplitTransaction}
-              onMakeAsNonSplitTransactions={onMakeAsNonSplitTransactions}
-              onMergeTransactions={onMergeTransactions}
-            />
-          )}
-          <View style={{ flex: '0 0 auto' }}>
-            {account && (
-              <Tooltip
-                style={{
-                  ...styles.tooltip,
-                  marginBottom: 10,
-                }}
-                content={
-                  account?.last_reconciled
-                    ? t(
-                        'Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})',
-                        {
-                          relativeTimeAgo: tsToRelativeTime(
-                            account.last_reconciled,
-                            locale,
-                          ),
-                          absoluteDate: formatDate(
-                            new Date(
-                              parseInt(account.last_reconciled ?? '0', 10),
-                            ),
-                            dateFormat,
-                            { locale },
-                          ),
-                        },
-                      )
-                    : t('Not yet reconciled')
-                }
-                placement="top"
-                triggerProps={{
-                  isDisabled: reconcileOpen,
-                }}
+          <SpaceBetween gap={10} style={{ marginTop: 12 }}>
+            {canSync && (
+              <Button
+                variant="bare"
+                onPress={onSync}
+                isDisabled={isServerOffline}
               >
-                <Button
-                  ref={reconcileRef}
-                  variant="bare"
-                  aria-label={t('Reconcile')}
-                  style={{ padding: 6 }}
-                  onPress={() => {
-                    setReconcileOpen(true);
+                <AnimatedRefresh
+                  width={13}
+                  height={13}
+                  animating={
+                    account
+                      ? accountsSyncing.includes(account.id)
+                      : accountsSyncing.length > 0
+                  }
+                />{' '}
+                {isServerOffline ? t('Bank Sync Offline') : t('Bank Sync')}
+              </Button>
+            )}
+
+            {account && !account.closed && (
+              <Button variant="bare" onPress={onImport}>
+                <SvgDownloadThickBottom
+                  width={13}
+                  height={13}
+                  style={{ marginRight: 4 }}
+                />{' '}
+                <Trans>Import</Trans>
+              </Button>
+            )}
+
+            {!showEmptyMessage && (
+              <Button variant="bare" onPress={onAddTransaction}>
+                <SvgAdd width={10} height={10} style={{ marginRight: 3 }} />
+                <Trans>Add New</Trans>
+              </Button>
+            )}
+            <View style={{ flexShrink: 0 }}>
+              {/* @ts-expect-error fix me */}
+              <FilterButton onApply={onApplyFilter} />
+            </View>
+            <View style={{ flex: 1 }} />
+
+            <Search
+              placeholder={t('Search')}
+              value={search}
+              onChange={onSearch}
+              ref={searchInput}
+            />
+            {workingHard ? (
+              <View>
+                <AnimatedLoading style={{ width: 16, height: 16 }} />
+              </View>
+            ) : (
+              <SelectedTransactionsButton
+                getTransaction={id => transactions.find(t => t.id === id)}
+                onShow={onShowTransactions}
+                onDuplicate={onBatchDuplicate}
+                onDelete={onBatchDelete}
+                onEdit={onBatchEdit}
+                onRunRules={onRunRules}
+                onLinkSchedule={onBatchLinkSchedule}
+                onUnlinkSchedule={onBatchUnlinkSchedule}
+                onCreateRule={onCreateRule}
+                onSetTransfer={onSetTransfer}
+                onScheduleAction={onScheduleAction}
+                showMakeTransfer={showMakeTransfer}
+                onMakeAsSplitTransaction={onMakeAsSplitTransaction}
+                onMakeAsNonSplitTransactions={onMakeAsNonSplitTransactions}
+                onMergeTransactions={onMergeTransactions}
+              />
+            )}
+            <View style={{ flex: '0 0 auto' }}>
+              {account && (
+                <Tooltip
+                  style={{
+                    ...styles.tooltip,
+                    marginBottom: 10,
+                  }}
+                  content={
+                    account?.last_reconciled
+                      ? t(
+                          'Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})',
+                          {
+                            relativeTimeAgo: tsToRelativeTime(
+                              account.last_reconciled,
+                              locale,
+                            ),
+                            absoluteDate: formatDate(
+                              new Date(
+                                parseInt(account.last_reconciled ?? '0', 10),
+                              ),
+                              dateFormat,
+                              { locale },
+                            ),
+                          },
+                        )
+                      : t('Not yet reconciled')
+                  }
+                  placement="top"
+                  triggerProps={{
+                    isDisabled: reconcileOpen,
                   }}
                 >
-                  <View>
-                    <SvgLockClosed width={14} height={14} />
-                  </View>
-                </Button>
-                <Popover
-                  placement="bottom"
-                  triggerRef={reconcileRef}
-                  style={{ width: 275 }}
-                  isOpen={reconcileOpen}
-                  onOpenChange={() => setReconcileOpen(false)}
-                >
-                  <ReconcileMenu
-                    account={account}
-                    onClose={() => setReconcileOpen(false)}
-                    onReconcile={onReconcile}
-                  />
-                </Popover>
-              </Tooltip>
-            )}
-          </View>
-          <Button
-            variant="bare"
-            aria-label={
-              splitsExpanded.state.mode === 'collapse'
-                ? t('Collapse split transactions')
-                : t('Expand split transactions')
-            }
-            style={{ padding: 6 }}
-            onPress={onToggleSplits}
-          >
-            <View
-              title={
+                  <CossPopover
+                    open={reconcileOpen}
+                    onOpenChange={setReconcileOpen}
+                  >
+                    <PopoverTrigger
+                      render={
+                        <Button
+                          variant="bare"
+                          aria-label={t('Reconcile')}
+                          style={{ padding: 6 }}
+                        />
+                      }
+                    >
+                      <View>
+                        <SvgLockClosed width={14} height={14} />
+                      </View>
+                    </PopoverTrigger>
+                    <PopoverPopup align="end" className="w-[275px]">
+                      <ReconcileMenu
+                        account={account}
+                        onClose={() => setReconcileOpen(false)}
+                        onReconcile={onReconcile}
+                      />
+                    </PopoverPopup>
+                  </CossPopover>
+                </Tooltip>
+              )}
+            </View>
+            <Button
+              variant="bare"
+              aria-label={
                 splitsExpanded.state.mode === 'collapse'
                   ? t('Collapse split transactions')
                   : t('Expand split transactions')
               }
+              style={{ padding: 6 }}
+              onPress={onToggleSplits}
             >
-              {splitsExpanded.state.mode === 'collapse' ? (
-                <SvgArrowsShrink3 style={{ width: 14, height: 14 }} />
-              ) : (
-                <SvgArrowsExpand3 style={{ width: 14, height: 14 }} />
-              )}
-            </View>
-          </Button>
-          {account ? (
-            <View style={{ flex: '0 0 auto' }}>
-              <DialogTrigger>
-                <Button variant="bare" aria-label={t('Account menu')}>
-                  <SvgDotsHorizontalTriple
-                    width={15}
-                    height={15}
-                    style={{ transform: 'rotateZ(90deg)' }}
+              <View
+                title={
+                  splitsExpanded.state.mode === 'collapse'
+                    ? t('Collapse split transactions')
+                    : t('Expand split transactions')
+                }
+              >
+                {splitsExpanded.state.mode === 'collapse' ? (
+                  <SvgArrowsShrink3 style={{ width: 14, height: 14 }} />
+                ) : (
+                  <SvgArrowsExpand3 style={{ width: 14, height: 14 }} />
+                )}
+              </View>
+            </Button>
+            {account ? (
+              <View style={{ flex: '0 0 auto' }}>
+                <LedgerOverflowMenu label={t('Account menu')} minWidth>
+                  <AccountMenu
+                    account={account}
+                    canSync={canSync}
+                    showNetWorthChart={showNetWorthChart}
+                    isSorted={isSorted}
+                    showReconciled={showReconciled}
+                    onMenuSelect={onMenuSelect}
                   />
-                </Button>
-
-                <Popover style={{ minWidth: 275 }}>
-                  <Dialog>
-                    <AccountMenu
-                      account={account}
-                      canSync={canSync}
-                      showNetWorthChart={showNetWorthChart}
-                      isSorted={isSorted}
-                      showReconciled={showReconciled}
-                      onMenuSelect={onMenuSelect}
-                    />
-                  </Dialog>
-                </Popover>
-              </DialogTrigger>
-            </View>
-          ) : (
-            <View style={{ flex: '0 0 auto' }}>
-              <DialogTrigger>
-                <Button variant="bare" aria-label={t('Account menu')}>
-                  <SvgDotsHorizontalTriple
-                    width={15}
-                    height={15}
-                    style={{ transform: 'rotateZ(90deg)' }}
+                </LedgerOverflowMenu>
+              </View>
+            ) : (
+              <View style={{ flex: '0 0 auto' }}>
+                <LedgerOverflowMenu label={t('Account menu')}>
+                  <Menu
+                    onMenuSelect={onMenuSelect}
+                    items={[
+                      ...(isSorted
+                        ? [
+                            {
+                              name: 'remove-sorting',
+                              text: t('Remove all sorting'),
+                            } as const,
+                          ]
+                        : []),
+                      { name: 'export', text: t('Export') },
+                      {
+                        name: 'toggle-net-worth-chart',
+                        text: showNetWorthChart
+                          ? t('Hide balance chart')
+                          : t('Show balance chart'),
+                      },
+                      {
+                        name: 'toggle-reconciled',
+                        text: showReconciled
+                          ? t('Hide reconciled transactions')
+                          : t('Show reconciled transactions'),
+                      },
+                      {
+                        name: 'manage-columns',
+                        text: t('Manage table columns'),
+                      },
+                    ]}
                   />
-                </Button>
-
-                <Popover>
-                  <Dialog>
-                    <Menu
-                      slot="close"
-                      onMenuSelect={onMenuSelect}
-                      items={[
-                        ...(isSorted
-                          ? [
-                              {
-                                name: 'remove-sorting',
-                                text: t('Remove all sorting'),
-                              } as const,
-                            ]
-                          : []),
-                        { name: 'export', text: t('Export') },
-                        {
-                          name: 'toggle-net-worth-chart',
-                          text: showNetWorthChart
-                            ? t('Hide balance chart')
-                            : t('Show balance chart'),
-                        },
-                        {
-                          name: 'toggle-reconciled',
-                          text: showReconciled
-                            ? t('Hide reconciled transactions')
-                            : t('Show reconciled transactions'),
-                        },
-                        {
-                          name: 'manage-columns',
-                          text: t('Manage table columns'),
-                        },
-                      ]}
-                    />
-                  </Dialog>
-                </Popover>
-              </DialogTrigger>
-            </View>
+                </LedgerOverflowMenu>
+              </View>
+            )}
+          </SpaceBetween>
+          {filterConditions?.length > 0 && (
+            <FiltersStack
+              conditions={filterConditions}
+              conditionsOp={filterConditionsOp}
+              onUpdateFilter={onUpdateFilter}
+              onDeleteFilter={onDeleteFilter}
+              onClearFilters={onClearFilters}
+              onReloadSavedFilter={onReloadSavedFilter}
+              filterId={filterId}
+              savedFilters={savedFilters}
+              onConditionsOpChange={onConditionsOpChange}
+            />
           )}
-        </SpaceBetween>
-        {filterConditions?.length > 0 && (
-          <FiltersStack
-            conditions={filterConditions}
-            conditionsOp={filterConditionsOp}
-            onUpdateFilter={onUpdateFilter}
-            onDeleteFilter={onDeleteFilter}
-            onClearFilters={onClearFilters}
-            onReloadSavedFilter={onReloadSavedFilter}
-            filterId={filterId}
-            savedFilters={savedFilters}
-            onConditionsOpChange={onConditionsOpChange}
-          />
-        )}
+        </Card>
       </View>
       {reconcileAmount != null && (
         <ReconcilingMessage
