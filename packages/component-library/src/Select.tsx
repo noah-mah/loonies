@@ -139,6 +139,7 @@ export function Select<const Value = string>({
 
   return (
     <CossSelect
+      modal={false}
       value={selected ? optionKey(selected[0]) : null}
       disabled={disabled}
       onValueChange={next => {
