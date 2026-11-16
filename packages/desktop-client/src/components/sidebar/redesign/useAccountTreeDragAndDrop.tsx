@@ -7,13 +7,13 @@ import type {
   ItemDropTarget,
 } from 'react-aria-components';
 
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import { spacing } from '@actual-app/components/tokens';
 import type {
   AccountEntity,
   AccountGroupEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { useMoveAccountGroupMutation } from '#account-groups';
 import { useMoveAccountMutation } from '#accounts';

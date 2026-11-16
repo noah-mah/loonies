@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import { SvgChartPie } from '@actual-app/components/icons/v1';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
@@ -10,7 +11,6 @@ import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
 import type { CategoryEntity } from '@actual-app/core/types/models';
 import type { Template } from '@actual-app/core/types/models/templates';
-import { css, cx } from '@emotion/css';
 
 import {
   cleanupDefToEditor,

@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
 import { theme } from '@actual-app/components/theme';
 import { currencies, getCurrency } from '@actual-app/core/shared/currencies';
-import { css } from '@emotion/css';
 
 import { Checkbox } from '#components/forms';
 import { useSyncedPref } from '#hooks/useSyncedPref';

@@ -6,10 +6,10 @@ import type {
   CSSProperties,
 } from 'react';
 
+import { css, cx } from '@actual-app/components/css';
 import { SvgArrowThinRight } from '@actual-app/components/icons/v1';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css, cx } from '@emotion/css';
 
 import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
 import { useFeatureFlag } from '#hooks/useFeatureFlag';

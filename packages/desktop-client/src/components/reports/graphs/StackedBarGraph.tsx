@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AlignedText } from '@actual-app/components/aligned-text';
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
@@ -11,7 +12,6 @@ import type {
   LegendEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import {
   Bar,
   BarChart,

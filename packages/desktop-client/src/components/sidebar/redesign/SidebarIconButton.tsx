@@ -1,11 +1,11 @@
 import type { ComponentProps, ComponentType, SVGProps } from 'react';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { radius } from '@actual-app/components/tokens';
 import { Tooltip } from '@actual-app/components/tooltip';
-import { css } from '@emotion/css';
 
 type SidebarIconButtonProps = {
   Icon:

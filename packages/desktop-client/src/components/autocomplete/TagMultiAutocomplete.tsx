@@ -1,13 +1,13 @@
 import type { ComponentProps } from 'react';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgRemove } from '@actual-app/components/icons/v2';
 import { SpaceBetween } from '@actual-app/components/space-between';
 import { theme } from '@actual-app/components/theme';
 import type { View } from '@actual-app/components/view';
 import { extractTagsForFilter } from '@actual-app/core/shared/tags';
 import type { TagEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { useTagCSS } from '#hooks/useTagCSS';
 import { filterTags, useTags } from '#hooks/useTags';

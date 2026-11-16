@@ -1,8 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { HTMLProps, ReactNode, Ref } from 'react';
 
-import { css, cx } from '@emotion/css';
-
+import { css, cx } from './css';
 import type { CSSProperties } from './styles';
 import {
   componentSizeText,

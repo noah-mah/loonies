@@ -4,9 +4,9 @@ import type { ComponentProps, CSSProperties } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { AlignedText } from '@actual-app/components/aligned-text';
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import type { SpendingEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import {
   Area,
   AreaChart,

@@ -25,6 +25,7 @@
     "./aligned-text": "./src/AlignedText.tsx",
     "./block": "./src/Block.tsx",
     "./button": "./src/Button.tsx",
+    "./css": "./src/css.ts",
     "./coss.css": {
       "style": "./src/coss/styles/globals.css",
       "import": "./src/coss/styles/globals.css",
@@ -68,7 +69,6 @@
   "dependencies": {
     "@base-ui/react": "1.9.0",
     "@daypicker/react": "^10.0.2",
-    "@emotion/css": "^11.13.5",
     "@internationalized/date": "^3.12.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

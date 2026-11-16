@@ -4,6 +4,7 @@ import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgAdd } from '@actual-app/components/icons/v1';
 import { ModeButton } from '@actual-app/components/mode-button';
 import { Select } from '@actual-app/components/select';
@@ -15,7 +16,6 @@ import type {
   MonteCarloReturnModel,
   MonteCarloWithdrawalStrategy,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 import { v4 as uuidv4 } from 'uuid';
 
 import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';

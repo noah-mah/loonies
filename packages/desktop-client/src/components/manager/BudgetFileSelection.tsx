@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
 import { Card } from '@actual-app/components/card';
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import {
@@ -40,7 +41,6 @@ import type {
   SyncableLocalFile,
   SyncedLocalFile,
 } from '@actual-app/core/types/file';
-import { css } from '@emotion/css';
 
 import {
   closeAndDownloadBudget,

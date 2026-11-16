@@ -3,12 +3,12 @@ import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgRemove, SvgSearchAlternate } from '@actual-app/components/icons/v2';
 import { baseInputStyle, Input } from '@actual-app/components/input';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 type SearchProps = {
   ref?: Ref<HTMLInputElement>;

@@ -1,7 +1,6 @@
 import type { HTMLProps, Ref } from 'react';
 
-import { css, cx } from '@emotion/css';
-
+import { css, cx } from './css';
 import type { CSSProperties } from './styles';
 
 type BlockProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {

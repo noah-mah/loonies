@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { ComponentProps } from 'react';
 import { Popover as ReactAriaPopover } from 'react-aria-components';
 
-import { css, cx } from '@emotion/css';
+import { css, cx } from './css';
 
 type PopoverProps = ComponentProps<typeof ReactAriaPopover>;
 

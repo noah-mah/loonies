@@ -14,8 +14,7 @@ import type {
   ColorSwatchProps,
 } from 'react-aria-components';
 
-import { css } from '@emotion/css';
-
+import { css } from './css';
 import { Input } from './Input';
 import { Popover } from './Popover';
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
 import { SpaceBetween } from '@actual-app/components/space-between';
 import { Text } from '@actual-app/components/text';
@@ -13,7 +14,6 @@ import {
 } from '@actual-app/core/shared/months';
 import { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
 import type { LimitTemplate } from '@actual-app/core/types/models/templates';
-import { css } from '@emotion/css';
 import { getDay } from 'date-fns/getDay';
 import { setDay } from 'date-fns/setDay';
 

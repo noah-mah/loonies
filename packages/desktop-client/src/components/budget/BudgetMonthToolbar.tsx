@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import {
   SvgAdd,
   SvgCalendar,
@@ -13,7 +14,6 @@ import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css, cx } from '@emotion/css';
 
 import { useGlobalPref } from '#hooks/useGlobalPref';
 import { useLocale } from '#hooks/useLocale';

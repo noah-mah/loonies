@@ -2,11 +2,11 @@ import React from 'react';
 import type { ComponentProps, ReactNode } from 'react';
 
 import { Field, FieldLabel } from '@actual-app/components/coss';
+import { css, cx } from '@actual-app/components/css';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css, cx } from '@emotion/css';
 
 type SectionLabelProps = {
   title?: string;

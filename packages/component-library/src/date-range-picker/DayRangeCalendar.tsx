@@ -10,13 +10,13 @@ import {
   RangeCalendar,
 } from 'react-aria-components';
 
-import { css } from '@emotion/css';
 import { parseDate } from '@internationalized/date';
 
 import { SvgCheveronLeft, SvgCheveronRight } from '#icons/v1';
 import type { CSSProperties } from '#styles';
 import { theme } from '#theme';
 import { View } from '#View';
+import { css } from '../css';
 
 import type { DateRangePickerLabels, FirstDayOfWeek } from './util';
 import { YearSelect } from './YearSelect';

@@ -1,11 +1,11 @@
 import type { RefObject } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { SvgAdd } from '@actual-app/components/icons/v1';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import { send } from '@actual-app/core/platform/client/connection';
-import { css } from '@emotion/css';
 
 import { useCurrentWordRange } from '#hooks/useCurrentWordRange';
 import { useCursorPosition } from '#hooks/useCursorPosition';

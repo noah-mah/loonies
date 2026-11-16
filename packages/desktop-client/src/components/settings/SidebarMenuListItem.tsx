@@ -3,11 +3,11 @@ import { GridListItem } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgMenu } from '@actual-app/components/icons/v1';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { Toggle } from '@actual-app/components/toggle';
-import { css } from '@emotion/css';
 
 import { isSidebarMenuItemLocked } from '#components/sidebar/sidebarMenu';
 import type {

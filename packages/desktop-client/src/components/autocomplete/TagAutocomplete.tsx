@@ -8,12 +8,12 @@ import type {
 import { ListBox, ListBoxItem, Popover } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { SvgAdd } from '@actual-app/components/icons/v0';
 import { Input } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { send } from '@actual-app/core/platform/client/connection';
-import { css } from '@emotion/css';
 
 import { useCurrentWordRange } from '#hooks/useCurrentWordRange';
 import { useCursorPosition } from '#hooks/useCursorPosition';

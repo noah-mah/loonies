@@ -2,8 +2,8 @@ import React from 'react';
 import type { CSSProperties } from 'react';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 
 import { friendlyOp } from '#util/rule';
 

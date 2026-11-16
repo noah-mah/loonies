@@ -1,9 +1,9 @@
 import { useId } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
 import {
   Area,
   AreaChart,

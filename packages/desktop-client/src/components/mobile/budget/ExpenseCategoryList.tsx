@@ -7,12 +7,12 @@ import {
 import type { ItemDropTarget } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
 import type {
   CategoryEntity,
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { useReorderCategoryMutation } from '#budget';
 import { findSortDown } from '#components/budget/util';

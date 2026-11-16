@@ -1,9 +1,9 @@
 import React from 'react';
 import type { CSSProperties } from 'react';
 
+import { keyframes } from '@actual-app/components/css';
 import { SvgRefresh } from '@actual-app/components/icons/v1';
 import { View } from '@actual-app/components/view';
-import { keyframes } from '@emotion/css';
 
 const spin = keyframes({
   '0%': { transform: 'rotateZ(0deg)' },

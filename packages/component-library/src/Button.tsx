@@ -12,9 +12,8 @@ import {
   type ButtonProps as ReactAriaButtonProps,
 } from 'react-aria-components';
 
-import { css, cx } from '@emotion/css';
-
 import { Button as CossButton } from './coss/components/button';
+import { css, cx } from './css';
 import type { ComponentSize } from './tokens';
 
 type ButtonVariant = 'normal' | 'primary' | 'bare' | 'menu' | 'menuSelected';

@@ -1,11 +1,11 @@
 import { Trans } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { Tooltip } from '@actual-app/components/tooltip';
 import { isElectron } from '@actual-app/core/shared/environment';
-import { css } from '@emotion/css';
 
 import { Link } from '#components/common/Link';
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import { SvgSearch } from '@actual-app/components/icons/v1';
 import { Input } from '@actual-app/components/input';
 import { styles } from '@actual-app/components/styles';
@@ -12,7 +13,6 @@ import { send } from '@actual-app/core/platform/client/connection';
 import { currentDay } from '@actual-app/core/shared/months';
 import { currencyToInteger } from '@actual-app/core/shared/util';
 import type { AccountEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
 import { format, isValid, parse, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 

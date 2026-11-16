@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 
+import { css } from '@actual-app/components/css';
 import { theme as themeStyle } from '@actual-app/components/theme';
 import type { Theme } from '@actual-app/core/types/prefs';
-import { css } from '@emotion/css';
 
 import { useTheme } from '#style';
 

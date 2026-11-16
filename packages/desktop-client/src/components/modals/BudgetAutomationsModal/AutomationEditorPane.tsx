@@ -1,6 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { css } from '@actual-app/components/css';
 import { SvgDelete } from '@actual-app/components/icons/v0';
 import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
 import { Input } from '@actual-app/components/input';
@@ -14,7 +15,6 @@ import type {
   CategoryGroupEntity,
   ScheduleEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
 
 import { ActiveEditor } from '#components/budget/goals/ActiveEditor';
 import type { AutomationEntry } from '#components/budget/goals/automationExamples';

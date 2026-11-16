@@ -1,10 +1,10 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
 import { theme as themeStyle } from '@actual-app/components/theme';
 import type { Theme } from '@actual-app/core/types/prefs';
-import { css } from '@emotion/css';
 
 import { themeOptions, useTheme } from '#style';
 

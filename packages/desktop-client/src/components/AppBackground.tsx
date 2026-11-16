@@ -2,10 +2,10 @@ import React from 'react';
 import { animated, useTransition } from 'react-spring';
 
 import { Block } from '@actual-app/components/block';
+import { css } from '@actual-app/components/css';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import { useSelector } from '#redux';
 

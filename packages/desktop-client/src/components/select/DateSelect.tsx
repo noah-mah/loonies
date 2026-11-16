@@ -26,6 +26,7 @@ import {
 } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import {
   SvgCheveronLeft,
@@ -44,7 +45,6 @@ import {
   getShortYearFormat,
   getShortYearRegex,
 } from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
 import { CalendarDate } from '@internationalized/date';
 import { addDays, format, isValid, parse, parseISO, subDays } from 'date-fns';
 

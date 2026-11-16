@@ -9,6 +9,7 @@ import {
   MenuPopup,
   MenuTrigger,
 } from '@actual-app/components/coss';
+import { css } from '@actual-app/components/css';
 import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
 import {
   SvgArrowButtonDown1,
@@ -18,7 +19,6 @@ import { SpaceBetween } from '@actual-app/components/space-between';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
 
 import { useTrackingBudget } from '#components/budget/tracking/TrackingBudgetContext';
 import {

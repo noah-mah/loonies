@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { css, keyframes } from '@actual-app/components/css';
 import { theme } from '@actual-app/components/theme';
-import { css, keyframes } from '@emotion/css';
 import { t } from 'i18next';
 import {
   Layer,

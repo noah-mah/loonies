@@ -1,12 +1,12 @@
 import type { ComponentType, SVGProps } from 'react';
 import { NavLink } from 'react-router';
 
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { SvgCheveronRight } from '@actual-app/components/icons/v1';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { radius, spacing } from '@actual-app/components/tokens';
-import { css } from '@emotion/css';
 
 type SettingsNavLinkProps = {
   title: string;

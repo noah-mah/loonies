@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
 import { Button } from '@actual-app/components/button';
+import { css, cx } from '@actual-app/components/css';
 import {
   SvgCheveronDown,
   SvgCog,
@@ -15,7 +16,6 @@ import { Popover } from '@actual-app/components/popover';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css, cx } from '@emotion/css';
 
 import { getSidebarMenuItemPath } from '#components/sidebar/sidebarMenu';
 import { hasMacOSWindowButtons } from '#components/sidebar/SidebarShell';

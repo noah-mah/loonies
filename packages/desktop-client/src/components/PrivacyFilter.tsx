@@ -2,9 +2,9 @@
 import { Children, useLayoutEffect, useRef } from 'react';
 import type { ComponentPropsWithRef, ReactNode } from 'react';
 
+import { css } from '@actual-app/components/css';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
 
 import { usePrivacyMode } from '#hooks/usePrivacyMode';
 

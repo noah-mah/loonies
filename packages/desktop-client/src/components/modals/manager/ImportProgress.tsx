@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ProgressBar } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
+import { css } from '@actual-app/components/css';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
@@ -11,7 +12,6 @@ import type {
   ImportStep,
   ServerEvents,
 } from '@actual-app/core/types/server-events';
-import { css } from '@emotion/css';
 
 /**
  * Shows which stage a budget import is on and how far along it is. Renders
