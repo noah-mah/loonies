@@ -1,4 +1,8 @@
 :root {
+  /* Semantic colors. Light values stay as declared. Dark mode overrides the
+     canvas tokens and the remaining palette-tied colors below, so these
+     aliases follow the Coss .dark class. */
+
   --color-pageBackground: var(--color-surface-page);
   --color-pageBackgroundModalActive: var(--color-surface-control);
   --color-pageBackgroundTopLeft: var(--color-surface-page);
@@ -286,4 +290,93 @@
   --color-chartQual7: var(--palette-chartQual7);
   --color-chartQual8: var(--palette-chartQual8);
   --color-chartQual9: var(--palette-chartQual9);
+}
+
+.dark {
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-muted: var(--muted-foreground);
+  --color-text-subtle: var(--muted-foreground);
+  --color-surface-page: var(--background);
+  --color-surface-sidebar: var(--sidebar);
+  --color-surface-raised: var(--card);
+  --color-surface-control: var(--accent);
+  --color-border-default: var(--border);
+  --color-text-on-accent: var(--background);
+  --color-danger: var(--destructive);
+  --color-danger-surface: color-mix(in srgb, var(--destructive) 18%, transparent);
+  --color-success: var(--success);
+  --color-success-surface: color-mix(in srgb, var(--success) 18%, transparent);
+
+  --color-settingsCardTextSubdued: var(--muted-foreground);
+  --color-menuItemTextHeader: var(--muted-foreground);
+  --color-menuBorderHover: var(--border);
+  --color-menuKeybindingText: var(--muted-foreground);
+  --color-menuAutoCompleteBackground: var(--popover);
+  --color-menuAutoCompleteBackgroundHover: var(--accent);
+  --color-menuAutoCompleteText: var(--popover-foreground);
+  --color-menuAutoCompleteTextHover: var(--popover-foreground);
+  --color-menuAutoCompleteTextHeader: var(--muted-foreground);
+  --color-modalBorder: var(--border);
+  --color-mobileAccountShadow: transparent;
+  --color-mobileAccountText: var(--foreground);
+  --color-mobileTransactionSelected: var(--accent);
+  --color-mobileConfigServerViewTheme: var(--primary);
+  --color-markdownNormal: var(--foreground);
+  --color-markdownDark: var(--foreground);
+  --color-markdownLight: var(--muted-foreground);
+  --color-buttonMenuText: var(--foreground);
+  --color-buttonMenuTextHover: var(--foreground);
+  --color-buttonMenuBorder: var(--border);
+  --color-buttonMenuSelectedText: var(--primary-foreground);
+  --color-buttonMenuSelectedTextHover: var(--primary-foreground);
+  --color-buttonMenuSelectedBackground: var(--primary);
+  --color-buttonMenuSelectedBackgroundHover: var(--primary);
+  --color-buttonNormalDisabledText: var(--muted-foreground);
+  --color-calendarText: var(--popover-foreground);
+  --color-calendarBackground: var(--popover);
+  --color-calendarItemText: var(--popover-foreground);
+  --color-calendarItemBackground: var(--card);
+  --color-calendarSelectedBackground: var(--accent);
+  --color-datePickerRangeBackground: var(--accent);
+  --color-warningBackground: color-mix(in srgb, var(--warning) 18%, transparent);
+  --color-warningText: var(--warning-foreground);
+  --color-warningTextLight: var(--warning);
+  --color-warningTextDark: var(--warning-foreground);
+  --color-warningBorder: var(--warning);
+  --color-upcomingBackground: color-mix(in srgb, var(--info) 18%, transparent);
+  --color-upcomingText: var(--info-foreground);
+  --color-upcomingBorder: var(--info);
+  --color-formLabelText: var(--muted-foreground);
+  --color-formLabelBackground: var(--muted);
+  --color-formInputBackground: var(--background);
+  --color-formInputBackgroundSelected: var(--card);
+  --color-formInputBackgroundSelection: var(--accent);
+  --color-formInputBorder: var(--input);
+  --color-formInputTextReadOnlySelection: var(--foreground);
+  --color-formInputText: var(--foreground);
+  --color-formInputTextSelected: var(--foreground);
+  --color-formInputTextPlaceholder: var(--muted-foreground);
+  --color-formInputTextPlaceholderSelected: var(--muted-foreground);
+  --color-formInputTextSelection: var(--foreground);
+  --color-formInputShadowSelected: var(--ring);
+  --color-formInputTextHighlight: var(--foreground);
+  --color-checkboxShadowSelected: var(--ring);
+  --color-checkboxToggleBackground: var(--muted);
+  --color-checkboxToggleBackgroundSelected: var(--primary);
+  --color-checkboxToggleDisabled: var(--muted);
+  --color-reportsRed: var(--destructive);
+  --color-reportsBlue: var(--info);
+  --color-reportsGreen: var(--success);
+  --color-reportsGray: var(--muted-foreground);
+  --color-reportsLabel: var(--foreground);
+  --color-reportsInnerLabel: var(--muted-foreground);
+  --color-noteTagBackground: var(--accent);
+  --color-noteTagBackgroundHover: var(--muted);
+  --color-noteTagDefault: var(--accent);
+  --color-noteTagText: var(--foreground);
+  --color-tooltipText: var(--popover-foreground);
+  --color-tooltipBackground: var(--popover);
+  --color-tooltipBorder: var(--border);
+  --color-calendarCellBackground: var(--muted);
 }
