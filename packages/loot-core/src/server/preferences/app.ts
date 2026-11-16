@@ -14,7 +14,12 @@ import {
 import { getServer } from '#server/server-config';
 import { undoable } from '#server/undo';
 import { stringToInteger } from '#shared/util';
-import type { GlobalPrefs, MetadataPrefs, SyncedPrefs } from '#types/prefs';
+import type {
+  GlobalPrefs,
+  MetadataPrefs,
+  SyncedPrefs,
+  Theme,
+} from '#types/prefs';
 
 export type PreferencesHandlers = {
   'preferences/save': typeof saveSyncedPrefs;
@@ -27,6 +32,16 @@ export type PreferencesHandlers = {
 };
 
 export const app = createApp<PreferencesHandlers>();
+
+function normalizeTheme(theme: string | undefined): Theme {
+  if (theme === 'midnight') {
+    return 'dark';
+  }
+  if (theme === 'light' || theme === 'dark' || theme === 'auto') {
+    return theme;
+  }
+  return 'auto';
+}
 
 const FORMULA_FORMAT_SYNCED_PREFS = new Set<keyof SyncedPrefs>([
   'numberFormat',
@@ -101,28 +116,7 @@ async function saveGlobalPrefs(prefs: GlobalPrefs) {
     resetFormulaPreferencesCache();
   }
   if (prefs.theme !== undefined) {
-    await asyncStorage.setItem('theme', prefs.theme);
-  }
-  if (prefs.preferredDarkTheme !== undefined) {
-    await asyncStorage.setItem(
-      'preferred-dark-theme',
-      prefs.preferredDarkTheme,
-    );
-  }
-  if (prefs.installedCustomLightTheme !== undefined) {
-    await asyncStorage.setItem(
-      'installed-custom-theme',
-      prefs.installedCustomLightTheme,
-    );
-  }
-  if (prefs.installedCustomDarkTheme !== undefined) {
-    await asyncStorage.setItem(
-      'installed-custom-dark-theme',
-      prefs.installedCustomDarkTheme,
-    );
-  }
-  if (prefs.customCssOverride !== undefined) {
-    await asyncStorage.setItem('custom-css-override', prefs.customCssOverride);
+    await asyncStorage.setItem('theme', normalizeTheme(prefs.theme));
   }
   if (prefs.serverSelfSignedCert !== undefined) {
     await asyncStorage.setItem(
@@ -157,10 +151,6 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
     'encrypt-key': encryptKey,
     language,
     theme,
-    'preferred-dark-theme': preferredDarkTheme,
-    'installed-custom-theme': installedCustomLightTheme,
-    'installed-custom-dark-theme': installedCustomDarkTheme,
-    'custom-css-override': customCssOverride,
     'server-self-signed-cert': serverSelfSignedCert,
     syncServerConfig,
     notifyWhenUpdateIsAvailable,
@@ -174,10 +164,6 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
     'encrypt-key',
     'language',
     'theme',
-    'preferred-dark-theme',
-    'installed-custom-theme',
-    'installed-custom-dark-theme',
-    'custom-css-override',
     'server-self-signed-cert',
     'syncServerConfig',
     'notifyWhenUpdateIsAvailable',
@@ -191,20 +177,7 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
     documentDir: documentDir || getDefaultDocumentDir(),
     keyId: encryptKey && JSON.parse(encryptKey).id,
     language,
-    theme:
-      theme === 'light' ||
-      theme === 'dark' ||
-      theme === 'auto' ||
-      theme === 'midnight'
-        ? theme
-        : 'auto',
-    preferredDarkTheme:
-      preferredDarkTheme === 'dark' || preferredDarkTheme === 'midnight'
-        ? preferredDarkTheme
-        : 'dark',
-    installedCustomLightTheme: installedCustomLightTheme || undefined,
-    installedCustomDarkTheme: installedCustomDarkTheme || undefined,
-    customCssOverride: customCssOverride || undefined,
+    theme: normalizeTheme(theme),
     serverSelfSignedCert: serverSelfSignedCert || undefined,
     syncServerConfig: syncServerConfig || undefined,
     notifyWhenUpdateIsAvailable:

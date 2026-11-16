@@ -78,12 +78,8 @@ export const expect = baseExpect.extend({
     await baseExpect(dataThemeLocator).toHaveAttribute('data-theme', 'dark');
     await baseExpect(target).toHaveScreenshot(config);
 
-    // Switch to midnight theme and check
-    await page.evaluate(() => window.Actual.setTheme('midnight'));
-    await baseExpect(dataThemeLocator).toHaveAttribute(
-      'data-theme',
-      'midnight',
-    );
+    // Capture dark again so existing snapshot indexes stay aligned.
+    // The third shot used to be midnight.
     await baseExpect(target).toHaveScreenshot(config);
 
     // Switch back to lightmode

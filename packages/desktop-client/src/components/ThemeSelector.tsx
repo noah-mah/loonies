@@ -32,7 +32,6 @@ export function ThemeSelector({ style }: ThemeSelectorProps) {
     light: SvgSun,
     dark: SvgMoonStars,
     auto: SvgSystem,
-    midnight: SvgMoonStars,
   } as const;
 
   type ThemeIconKey = keyof typeof themeIcons;

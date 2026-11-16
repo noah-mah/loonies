@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { usePreferredDarkTheme, useTheme } from '#style/theme';
+import { useTheme } from '#style/theme';
 
 const VAR_STRING_REGEX = /^var\((--.*)\)$/;
 const DEFAULT_THEME_COLOR = '#5c3dbb';
@@ -9,17 +8,11 @@ const DEFAULT_THEME_COLOR = '#5c3dbb';
 /**
  * Sets the theme-color meta tag (for browsers that use it) and document.body
  * background-color (for Safari 26+, which derives status bar tint from body).
- * Re-runs when built-in/custom themes, CSS overrides, or the system color
- * scheme change so the status bar follows the app theme.
+ * Re-runs when the built-in theme or the system color scheme changes so the
+ * status bar follows the app theme.
  */
 export function useMetaThemeColor(color?: string) {
   const [activeTheme] = useTheme();
-  const [darkThemePreference] = usePreferredDarkTheme();
-  const [installedCustomLightTheme] = useGlobalPref(
-    'installedCustomLightTheme',
-  );
-  const [installedCustomDarkTheme] = useGlobalPref('installedCustomDarkTheme');
-  const [customCssOverride] = useGlobalPref('customCssOverride');
   const systemColorScheme = useSystemColorScheme();
 
   useEffect(() => {
@@ -31,15 +24,7 @@ export function useMetaThemeColor(color?: string) {
     ensureThemeColorMetaTag();
     setThemeColorMetaContent(resolved);
     document.body.style.backgroundColor = resolved;
-  }, [
-    color,
-    activeTheme,
-    darkThemePreference,
-    installedCustomLightTheme,
-    installedCustomDarkTheme,
-    customCssOverride,
-    systemColorScheme,
-  ]);
+  }, [color, activeTheme, systemColorScheme]);
 }
 
 function useSystemColorScheme() {

@@ -53,7 +53,7 @@ export function BudgetAutomationMigrationWarning({
               borderRadius: 4,
               // Translucent overlay rather than a theme token so the inset
               // effect works regardless of the surrounding Warning colour
-              // (which differs between light/dark/midnight themes).
+              // (which differs between the light and dark themes).
               backgroundColor: 'rgba(0, 0, 0, 0.15)',
               maxHeight: 120,
               overflowY: 'auto',

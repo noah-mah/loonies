@@ -85,7 +85,7 @@ export function FormulaEditor({
   const badgePickerPopoverRef = useRef<HTMLDivElement | null>(null);
 
   const isDarkTheme = useMemo(() => {
-    if (activeTheme === 'dark' || activeTheme === 'midnight') {
+    if (activeTheme === 'dark') {
       return true;
     }
     if (activeTheme === 'auto') {

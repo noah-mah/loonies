@@ -31,4 +31,4 @@ Calm, trustworthy, practical. The interface should feel like a dependable tool t
 
 ## Accessibility & Inclusion
 
-Target WCAG 2.1 AA: sufficient contrast in all themes (light, dark, midnight), full keyboard navigation, respect for reduced-motion preferences, and color-blind-safe use of color (never color alone to convey positive/negative amounts).
+Target WCAG 2.1 AA: sufficient contrast in both themes (light and dark), full keyboard navigation, respect for reduced-motion preferences, and color-blind-safe use of color (never color alone to convey positive/negative amounts).
