@@ -1,0 +1,83 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { expect, it } from 'vitest';
+
+import { Button } from './Button';
+import { Select } from './Select';
+import { Toggle } from './Toggle';
+
+it('calls onPress for a primary button', async () => {
+  const user = userEvent.setup();
+  let pressed = false;
+
+  render(
+    <Button variant="primary" onPress={() => (pressed = true)}>
+      Save
+    </Button>,
+  );
+
+  await user.click(screen.getByRole('button', { name: 'Save' }));
+
+  expect(pressed).toBe(true);
+  expect(screen.getByRole('button', { name: 'Save' }).className).toContain(
+    'bg-primary',
+  );
+});
+
+it('does not call onPress when the button is disabled', async () => {
+  const user = userEvent.setup();
+  let pressed = false;
+
+  render(
+    <Button isDisabled onPress={() => (pressed = true)}>
+      Save
+    </Button>,
+  );
+
+  await user.click(screen.getByRole('button', { name: 'Save' }));
+
+  expect(pressed).toBe(false);
+});
+
+it('reports the next toggle state', async () => {
+  const user = userEvent.setup();
+  let next = false;
+
+  render(
+    <Toggle
+      id="sync"
+      isOn={false}
+      aria-label="Sync"
+      onToggle={value => {
+        next = value;
+      }}
+    />,
+  );
+
+  await user.click(screen.getByRole('switch', { name: 'Sync' }));
+
+  expect(next).toBe(true);
+});
+
+it('changes the select value from the Coss list', async () => {
+  const user = userEvent.setup();
+  let next = 'light';
+
+  render(
+    <Select
+      options={[
+        ['light', 'Light'],
+        ['dark', 'Dark'],
+      ]}
+      value="light"
+      onChange={value => {
+        next = value;
+      }}
+    />,
+  );
+
+  await user.click(screen.getByRole('combobox'));
+  await user.click(await screen.findByRole('option', { name: 'Dark' }));
+
+  expect(next).toBe('dark');
+});

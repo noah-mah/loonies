@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 
 import type { Preview } from '@storybook/react-vite';
 
+import '../src/coss/styles/globals.css';
 import darkThemeCss from '../src/themes/dark.css?inline';
 import lightThemeCss from '../src/themes/light.css?inline';
 import paletteCss from '../src/themes/palette.css?inline';
@@ -25,7 +26,7 @@ const ThemedStory = ({
   }
 
   return (
-    <div>
+    <div className={themeName === 'dark' ? 'dark' : undefined}>
       <style>{paletteCss}</style>
       <style>{THEMES[themeName]}</style>
       {children}

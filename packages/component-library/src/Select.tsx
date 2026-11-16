@@ -1,12 +1,18 @@
-import { useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
-import { Button } from './Button';
-import { SvgExpandArrow } from './icons/v0';
+import { css, cx } from '@emotion/css';
+
+import {
+  Select as CossSelect,
+  SelectGroup,
+  SelectGroupLabel,
+  SelectItem,
+  SelectPopup,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from './coss/components/select';
 import { Menu } from './Menu';
-import type { MenuItem } from './Menu';
-import { Popover } from './Popover';
-import { View } from './View';
 
 /** A non-selectable heading above the options that follow it */
 export type SelectHeading = readonly [typeof Menu.label, string];
@@ -42,6 +48,10 @@ type SelectProps<Value> = {
   className?: string;
 };
 
+function optionKey<Value>(value: Value): string {
+  return String(value);
+}
+
 /**
  * @param {Array<[string, string]>} options - An array of options value-label pairs.
  *   `Menu.line` renders a divider and `[Menu.label, 'Heading']` a heading
@@ -66,94 +76,94 @@ export function Select<const Value = string>({
   onChange,
   disabled = false,
   disabledKeys = [],
-  style = {},
-  popoverStyle = {},
+  style,
+  popoverStyle,
   className,
 }: SelectProps<Value>) {
-  const targetOption = options
-    .filter(isValueOption)
-    .find(option => option[0] === value);
+  const valueOptions = options.filter(isValueOption);
+  const selected = valueOptions.find(option => option[0] === value);
+  const disabledKeySet = new Set(disabledKeys.map(optionKey));
 
-  const triggerRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const nodes: ReactNode[] = [];
+  let groupItems: ReactNode[] = [];
+  let groupLabel: string | null = null;
+  let groupIndex = 0;
+
+  const flushGroup = () => {
+    if (groupLabel === null) return;
+    nodes.push(
+      <SelectGroup key={`group-${groupIndex}`}>
+        <SelectGroupLabel>{groupLabel}</SelectGroupLabel>
+        {groupItems}
+      </SelectGroup>,
+    );
+    groupIndex += 1;
+    groupLabel = null;
+    groupItems = [];
+  };
+
+  options.forEach((option, index) => {
+    if (option === Menu.line) {
+      flushGroup();
+      nodes.push(<SelectSeparator key={`line-${index}`} />);
+      return;
+    }
+
+    if (isHeading(option)) {
+      flushGroup();
+      groupLabel = option[1];
+      return;
+    }
+
+    const item = (
+      <SelectItem
+        key={optionKey(option[0])}
+        value={optionKey(option[0])}
+        disabled={disabledKeySet.has(optionKey(option[0]))}
+        className={
+          selected && selected[0] === option[0] ? 'font-semibold' : undefined
+        }
+      >
+        {option[1]}
+      </SelectItem>
+    );
+
+    if (groupLabel === null) {
+      nodes.push(item);
+      return;
+    }
+
+    groupItems.push(item);
+  });
+  flushGroup();
 
   return (
-    <>
-      <Button
-        ref={triggerRef}
+    <CossSelect
+      value={selected ? optionKey(selected[0]) : null}
+      disabled={disabled}
+      onValueChange={next => {
+        if (next == null) return;
+        const match = valueOptions.find(
+          option => optionKey(option[0]) === next,
+        );
+        if (match) onChange?.(match[0]);
+      }}
+    >
+      <SelectTrigger
         id={id}
-        variant={bare ? 'bare' : 'normal'}
-        isDisabled={disabled}
-        onPress={() => {
-          setIsOpen(true);
-        }}
-        style={style}
-        className={className}
+        className={cx(
+          bare && 'border-transparent bg-transparent shadow-none',
+          style && css({ ...style }),
+          className,
+        )}
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 5,
-            width: '100%',
-          }}
-        >
-          <span
-            style={{
-              textAlign: 'left',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              width: 'calc(100% - 7px)',
-            }}
-          >
-            {targetOption ? targetOption[1] : defaultLabel}
-          </span>
-          <SvgExpandArrow
-            style={{
-              width: 7,
-              height: 7,
-              color: 'inherit',
-            }}
-          />
-        </View>
-      </Button>
-
-      <Popover
-        triggerRef={triggerRef}
-        placement="bottom start"
-        isOpen={isOpen}
-        onOpenChange={() => setIsOpen(false)}
-        style={popoverStyle}
+        <SelectValue placeholder={defaultLabel} />
+      </SelectTrigger>
+      <SelectPopup
+        className={popoverStyle ? css({ ...popoverStyle }) : undefined}
       >
-        <Menu<Value>
-          onMenuSelect={item => {
-            onChange?.(item);
-            setIsOpen(false);
-          }}
-          items={options.map((item): MenuItem<Value> => {
-            if (item === Menu.line) {
-              return Menu.line;
-            }
-            if (isHeading(item)) {
-              // Menu shows a label item's name as the heading text
-              return { type: Menu.label, name: item[1], text: item[1] };
-            }
-            return {
-              name: item[0],
-              text: item[1],
-              disabled: disabledKeys.includes(item[0]),
-            };
-          })}
-          getItemStyle={option => {
-            if (targetOption && targetOption[0] === option.name) {
-              return { fontWeight: 'bold' };
-            }
-            return {};
-          }}
-        />
-      </Popover>
-    </>
+        {nodes}
+      </SelectPopup>
+    </CossSelect>
   );
 }

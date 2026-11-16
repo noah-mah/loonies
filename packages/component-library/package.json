@@ -25,6 +25,11 @@
     "./aligned-text": "./src/AlignedText.tsx",
     "./block": "./src/Block.tsx",
     "./button": "./src/Button.tsx",
+    "./coss.css": {
+      "style": "./src/coss/styles/globals.css",
+      "import": "./src/coss/styles/globals.css",
+      "default": "./src/coss/styles/globals.css"
+    },
     "./card": "./src/Card.tsx",
     "./form-error": "./src/FormError.tsx",
     "./initial-focus": "./src/InitialFocus.ts",

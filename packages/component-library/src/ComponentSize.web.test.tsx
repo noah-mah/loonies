@@ -58,62 +58,41 @@ const expectMediaDeclaration = (
 };
 
 describe('Button size', () => {
-  it('keeps the legacy look when size is omitted', () => {
+  it('uses the stock Coss button when size is omitted', () => {
     render(<Button>Default</Button>);
 
     const button = screen.getByRole('button', { name: 'Default' });
-    const computed = getComputedStyle(button);
 
-    expect(computed.padding).toBe('5px 10px');
-    expect(computed.fontSize).toBe('13px');
+    expect(button.getAttribute('data-slot')).toBe('button');
+    expect(button.className).toContain('h-9');
   });
 
-  it('applies small size styles', () => {
+  it('maps small and extra-large onto Coss sizes', () => {
     render(<Button size="small">Small</Button>);
-
-    const button = screen.getByRole('button', { name: 'Small' });
-    const computed = getComputedStyle(button);
-
-    expect(computed.padding).toBe('3px 8px');
-    expect(computed.fontSize).toBe('12px');
-    expect(computed.minHeight).toBe('24px');
-  });
-
-  it('applies extra-large size styles with responsive steps', () => {
     render(<Button size="extra-large">Extra Large</Button>);
 
-    const button = screen.getByRole('button', { name: 'Extra Large' });
-    const computed = getComputedStyle(button);
-
-    // Base (narrow): comfortable mobile / tap-target scale.
-    expect(computed.fontSize).toBe('17px');
-    expect(computed.minHeight).toBe('40px');
-
-    // Steps down at the small and medium breakpoints.
-    expectMediaDeclaration(
-      button,
-      '@media (min-width: 512px)',
-      'min-height:36px',
+    expect(screen.getByRole('button', { name: 'Small' }).className).toContain(
+      'h-8',
     );
-    expectMediaDeclaration(
-      button,
-      '@media (min-width: 730px)',
-      'font-size:16px',
-    );
+    expect(
+      screen.getByRole('button', { name: 'Extra Large' }).className,
+    ).toContain('h-11');
   });
 
-  it('uses uniform padding for bare buttons with an explicit size', () => {
-    render(
-      <Button size="large" variant="bare">
-        Bare
-      </Button>,
+  it('maps primary, normal, and bare onto Coss variants', () => {
+    render(<Button variant="primary">Primary</Button>);
+    render(<Button variant="normal">Normal</Button>);
+    render(<Button variant="bare">Bare</Button>);
+
+    expect(screen.getByRole('button', { name: 'Primary' }).className).toContain(
+      'bg-primary',
     );
-
-    const button = screen.getByRole('button', { name: 'Bare' });
-    const computed = getComputedStyle(button);
-
-    expect(computed.padding).toBe('8px');
-    expectMediaDeclaration(button, '@media (min-width: 512px)', 'padding:6px');
+    expect(screen.getByRole('button', { name: 'Normal' }).className).toContain(
+      'border-input',
+    );
+    expect(screen.getByRole('button', { name: 'Bare' }).className).toContain(
+      'border-transparent',
+    );
   });
 });
 
@@ -144,47 +123,32 @@ describe('Text size', () => {
 });
 
 describe('Input size', () => {
-  it('keeps the legacy look when size is omitted', () => {
+  it('uses the stock Coss field when size is omitted', () => {
     render(<Input placeholder="Default" />);
 
     const input = screen.getByPlaceholderText('Default');
-    const computed = getComputedStyle(input);
 
-    expect(computed.padding).toBe('5px');
-    expect(computed.fontSize).toBe('13px');
+    expect(input.getAttribute('data-slot')).toBe('input');
+    expect(input.parentElement?.getAttribute('data-size')).toBe('default');
   });
 
-  it('applies size styles when provided', () => {
+  it('maps large onto the Coss large field', () => {
     render(<Input size="large" placeholder="Large" />);
 
-    const input = screen.getByPlaceholderText('Large');
-    const computed = getComputedStyle(input);
-
-    expect(computed.padding).toBe('8px');
-    expect(computed.fontSize).toBe('16px');
-    expectMediaDeclaration(input, '@media (min-width: 512px)', 'padding:6px');
+    expect(
+      screen
+        .getByPlaceholderText('Large')
+        .parentElement?.getAttribute('data-size'),
+    ).toBe('lg');
   });
 
-  it('keeps the legacy BigInput look when size is omitted', () => {
+  it('uses a large Coss field for BigInput', () => {
     render(<BigInput placeholder="Big" />);
 
-    const input = screen.getByPlaceholderText('Big');
-    const computed = getComputedStyle(input);
-
-    expect(computed.padding).toBe('10px');
-    expect(computed.fontSize).toBe('15px');
-    expect(computed.borderStyle).toBe('none');
-  });
-
-  it('applies size styles to BigInput while keeping its chrome', () => {
-    render(<BigInput size="extra-large" placeholder="Big XL" />);
-
-    const input = screen.getByPlaceholderText('Big XL');
-    const computed = getComputedStyle(input);
-
-    expect(computed.padding).toBe('10px');
-    expect(computed.fontSize).toBe('17px');
-    expect(computed.borderStyle).toBe('none');
-    expectMediaDeclaration(input, '@media (min-width: 730px)', 'padding:8px');
+    expect(
+      screen
+        .getByPlaceholderText('Big')
+        .parentElement?.getAttribute('data-size'),
+    ).toBe('lg');
   });
 });

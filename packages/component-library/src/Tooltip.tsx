@@ -1,9 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ComponentProps, ReactNode } from 'react';
-import { Tooltip as AriaTooltip, TooltipTrigger } from 'react-aria-components';
+import type {
+  Tooltip as AriaTooltip,
+  TooltipTrigger,
+} from 'react-aria-components';
 
-import { styles } from './styles';
-import { View } from './View';
+import {
+  Tooltip as CossTooltip,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger as CossTooltipTrigger,
+} from './coss/components/tooltip';
 
 type TooltipProps = Partial<ComponentProps<typeof AriaTooltip>> & {
   children: ReactNode;
@@ -12,70 +18,53 @@ type TooltipProps = Partial<ComponentProps<typeof AriaTooltip>> & {
   disablePointerEvents?: boolean;
 };
 
-export const Tooltip = ({
+function mapPlacement(placement: string | undefined) {
+  const [sideRaw = 'top', alignRaw = 'center'] = (placement ?? 'top').split(
+    ' ',
+  );
+  const side =
+    sideRaw === 'start' ? 'left' : sideRaw === 'end' ? 'right' : sideRaw;
+  const align =
+    alignRaw === 'start' || alignRaw === 'end' ? alignRaw : 'center';
+
+  return {
+    side: side as 'top' | 'bottom' | 'left' | 'right',
+    align: align as 'start' | 'center' | 'end',
+  };
+}
+
+export function Tooltip({
   children,
   content,
   triggerProps = {},
   disablePointerEvents = false,
-  ...props
-}: TooltipProps) => {
-  const triggerRef = useRef(null);
-  const [isHovered, setIsHover] = useState(false);
-
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  const handlePointerEnter = useCallback(() => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
-
-    const timeout = setTimeout(() => {
-      setIsHover(true);
-    }, triggerProps.delay ?? 300);
-
-    hoverTimeoutRef.current = timeout;
-  }, [triggerProps.delay]);
-
-  const handlePointerLeave = useCallback(() => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsHover(false);
-    }, triggerProps.closeDelay ?? 0);
-  }, [triggerProps.closeDelay]);
-
-  // Force closing the tooltip whenever the disablement state changes
-  useEffect(() => {
-    setIsHover(false);
-  }, [triggerProps.isDisabled]);
+  placement,
+  offset,
+}: TooltipProps) {
+  const { side, align } = mapPlacement(
+    typeof placement === 'string' ? placement : undefined,
+  );
 
   return (
-    <View
-      style={{ minHeight: 'auto', flexShrink: 0, maxWidth: '100%' }}
-      ref={triggerRef}
-      onMouseEnter={handlePointerEnter}
-      onMouseLeave={handlePointerLeave}
-    >
-      <TooltipTrigger
-        isOpen={isHovered && !triggerProps.isDisabled}
-        {...triggerProps}
-      >
-        {children}
-
-        <AriaTooltip
-          triggerRef={triggerRef}
-          style={{
-            ...styles.tooltip,
-            ...(disablePointerEvents && { pointerEvents: 'none' }),
-          }}
-          {...props}
+    <TooltipProvider>
+      <CossTooltip disableHoverablePopup={disablePointerEvents}>
+        <CossTooltipTrigger
+          delay={triggerProps.delay ?? 300}
+          closeDelay={triggerProps.closeDelay ?? 0}
+          disabled={triggerProps.isDisabled}
+          render={<span className="inline-flex max-w-full shrink-0" />}
+        >
+          {children}
+        </CossTooltipTrigger>
+        <TooltipPopup
+          side={side}
+          align={align}
+          sideOffset={typeof offset === 'number' ? offset : 4}
+          className={disablePointerEvents ? 'pointer-events-none' : undefined}
         >
           {content}
-        </AriaTooltip>
-      </TooltipTrigger>
-    </View>
+        </TooltipPopup>
+      </CossTooltip>
+    </TooltipProvider>
   );
-};
+}

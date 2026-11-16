@@ -9,6 +9,7 @@ import type {
 } from 'react';
 
 import { Button } from './Button';
+import { Separator } from './coss/components/separator';
 import { Text } from './Text';
 import { theme } from './theme';
 import { Toggle } from './Toggle';
@@ -168,26 +169,15 @@ export function Menu<const NameType = string>({
       {header}
       {items.map((item, idx) => {
         if (item === Menu.line) {
-          return (
-            <View key={idx} style={{ margin: '3px 0px' }}>
-              <View style={{ borderTop: '1px solid ' + theme.menuBorder }} />
-            </View>
-          );
+          return <Separator key={idx} className="my-1" />;
         } else if (isLabel(item)) {
           return (
-            <Text
+            <div
               key={idx}
-              style={{
-                color: theme.menuItemTextHeader,
-                fontSize: 11,
-                lineHeight: '1em',
-                textTransform: 'uppercase',
-                margin: '3px 9px',
-                marginTop: 5,
-              }}
+              className="px-2 py-1.5 text-xs font-medium text-muted-foreground"
             >
               {item.name}
-            </Text>
+            </div>
           );
         }
 
@@ -199,18 +189,13 @@ export function Menu<const NameType = string>({
             key={String(item.name)}
             variant="bare"
             slot={slot}
+            className="w-full justify-start"
             style={{
               cursor: 'default',
-              padding: 10,
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              color: theme.menuItemText,
-              ...(item.disabled && { color: theme.buttonBareDisabledText }),
-              ...(!item.disabled &&
-                hoveredIndex === idx && {
-                  backgroundColor: theme.menuItemBackgroundHover,
-                  color: theme.menuItemTextHover,
+              ...(hoveredIndex === idx &&
+                !item.disabled && {
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-foreground)',
                 }),
               ...(!isLabel(item) && getItemStyle?.(item)),
             }}

@@ -1,255 +1,236 @@
-import React, { forwardRef, useMemo } from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react';
-import { Button as ReactAriaButton } from 'react-aria-components';
+import { forwardRef, useState } from 'react';
+import type {
+  CSSProperties,
+  FocusEvent,
+  MouseEvent,
+  PointerEvent,
+  ReactNode,
+} from 'react';
+import {
+  ButtonContext,
+  useContextProps,
+  type ButtonProps as ReactAriaButtonProps,
+} from 'react-aria-components';
 
 import { css, cx } from '@emotion/css';
 
-import { AnimatedLoading } from './icons/AnimatedLoading';
-import { styles } from './styles';
-import { theme } from './theme';
-import {
-  componentSizeControl,
-  componentSizeText,
-  sizeResponsiveStyles,
-  type ComponentSize,
-} from './tokens';
-import { View } from './View';
-
-const backgroundColor: {
-  [key in ButtonVariant | `${ButtonVariant}Disabled`]?: string;
-} = {
-  normal: theme.buttonNormalBackground,
-  normalDisabled: theme.buttonNormalDisabledBackground,
-  primary: theme.buttonPrimaryBackground,
-  primaryDisabled: theme.buttonPrimaryDisabledBackground,
-  bare: theme.buttonBareBackground,
-  bareDisabled: theme.buttonBareDisabledBackground,
-  menu: theme.buttonMenuBackground,
-  menuSelected: theme.buttonMenuSelectedBackground,
-};
-
-const backgroundColorHover: Record<
-  ButtonVariant | `${ButtonVariant}Disabled`,
-  CSSProperties['backgroundColor']
-> = {
-  normal: theme.buttonNormalBackgroundHover,
-  primary: theme.buttonPrimaryBackgroundHover,
-  bare: theme.buttonBareBackgroundHover,
-  menu: theme.buttonMenuBackgroundHover,
-  menuSelected: theme.buttonMenuSelectedBackgroundHover,
-  normalDisabled: 'transparent',
-  primaryDisabled: 'transparent',
-  bareDisabled: 'transparent',
-  menuDisabled: 'transparent',
-  menuSelectedDisabled: 'transparent',
-};
-
-const borderColor: {
-  [
-    key in ButtonVariant | `${ButtonVariant}Disabled`
-  ]?: CSSProperties['borderColor'];
-} = {
-  normal: theme.buttonNormalBorder,
-  normalDisabled: theme.buttonNormalDisabledBorder,
-  primary: theme.buttonPrimaryBorder,
-  primaryDisabled: theme.buttonPrimaryDisabledBorder,
-  menu: theme.buttonMenuBorder,
-  menuSelected: theme.buttonMenuSelectedBorder,
-};
-
-const textColor: {
-  [key in ButtonVariant | `${ButtonVariant}Disabled`]?: CSSProperties['color'];
-} = {
-  normal: theme.buttonNormalText,
-  normalDisabled: theme.buttonNormalDisabledText,
-  primary: theme.buttonPrimaryText,
-  primaryDisabled: theme.buttonPrimaryDisabledText,
-  bare: theme.buttonBareText,
-  bareDisabled: theme.buttonBareDisabledText,
-  menu: theme.buttonMenuText,
-  menuSelected: theme.buttonMenuSelectedText,
-};
-
-const textColorHover: {
-  [key in ButtonVariant]?: string;
-} = {
-  normal: theme.buttonNormalTextHover,
-  primary: theme.buttonPrimaryTextHover,
-  bare: theme.buttonBareTextHover,
-  menu: theme.buttonMenuTextHover,
-  menuSelected: theme.buttonMenuSelectedTextHover,
-};
-
-const _getBorder = (
-  variant: ButtonVariant,
-  variantWithDisabled: keyof typeof borderColor,
-): string => {
-  switch (variant) {
-    case 'bare':
-      return 'none';
-
-    default:
-      return '1px solid ' + borderColor[variantWithDisabled];
-  }
-};
-
-const _getPadding = (variant: ButtonVariant): string => {
-  switch (variant) {
-    case 'bare':
-      return '5px';
-    default:
-      return '5px 10px';
-  }
-};
-
-const _getHoveredStyles = (variant: ButtonVariant): CSSProperties => ({
-  ...(variant !== 'bare' && styles.shadow),
-  backgroundColor: backgroundColorHover[variant],
-  color: textColorHover[variant],
-  cursor: 'pointer',
-});
-
-const _getActiveStyles = (
-  variant: ButtonVariant,
-  bounce: boolean,
-): CSSProperties => {
-  switch (variant) {
-    case 'bare':
-      return { backgroundColor: theme.buttonBareBackgroundActive };
-    default:
-      return {
-        transform: bounce ? 'translateY(1px)' : undefined,
-        boxShadow: `0 1px 4px 0 ${
-          variant === 'primary'
-            ? theme.buttonPrimaryShadow
-            : theme.buttonNormalShadow
-        }`,
-        transition: 'none',
-      };
-  }
-};
-
-// Builds the padding/typography overrides for an explicit `size`, varying
-// by breakpoint via media queries (no per-instance hooks). Bare buttons
-// use uniform padding; framed buttons use the paddingX/paddingY split.
-const getButtonSizeOverrides = (
-  size: ComponentSize,
-  isBare: boolean,
-): Record<string, unknown> => {
-  const control = componentSizeControl[size];
-  const text = componentSizeText[size];
-
-  const getGroupStyles = (group: keyof typeof control) => {
-    const { paddingY, paddingX, minHeight } = control[group];
-    const { fontSize, lineHeight } = text[group];
-
-    return {
-      padding: isBare ? `${paddingY}px` : `${paddingY}px ${paddingX}px`,
-      ...(minHeight != null ? { minHeight } : null),
-      fontSize,
-      // Medium matches today's default look, which inherits line-height;
-      // only the other sizes force their scale line-height.
-      ...(size === 'medium' ? {} : { lineHeight }),
-    };
-  };
-
-  return sizeResponsiveStyles({
-    narrow: getGroupStyles('narrow'),
-    small: getGroupStyles('small'),
-    medium: getGroupStyles('medium'),
-    wide: getGroupStyles('wide'),
-  });
-};
-
-const buttonSizeOverrides: Record<
-  ComponentSize,
-  { bare: Record<string, unknown>; framed: Record<string, unknown> }
-> = {
-  small: {
-    bare: getButtonSizeOverrides('small', true),
-    framed: getButtonSizeOverrides('small', false),
-  },
-  medium: {
-    bare: getButtonSizeOverrides('medium', true),
-    framed: getButtonSizeOverrides('medium', false),
-  },
-  large: {
-    bare: getButtonSizeOverrides('large', true),
-    framed: getButtonSizeOverrides('large', false),
-  },
-  'extra-large': {
-    bare: getButtonSizeOverrides('extra-large', true),
-    framed: getButtonSizeOverrides('extra-large', false),
-  },
-};
-
-type ButtonProps = Omit<
-  ComponentPropsWithoutRef<typeof ReactAriaButton>,
-  'size'
-> & {
-  variant?: ButtonVariant;
-  size?: ComponentSize;
-  bounce?: boolean;
-  children?: ReactNode;
-};
+import { Button as CossButton } from './coss/components/button';
+import type { ComponentSize } from './tokens';
 
 type ButtonVariant = 'normal' | 'primary' | 'bare' | 'menu' | 'menuSelected';
 
+type ButtonRenderProps = {
+  isHovered: boolean;
+  isPressed: boolean;
+  isFocused: boolean;
+  isFocusVisible: boolean;
+  isDisabled: boolean;
+  isPending: boolean;
+};
+
+type ButtonProps = Omit<ReactAriaButtonProps, 'style' | 'className'> & {
+  variant?: ButtonVariant;
+  size?: ComponentSize;
+  bounce?: boolean;
+  isLoading?: boolean;
+  children?: ReactNode;
+  style?: CSSProperties | ((renderProps: ButtonRenderProps) => CSSProperties);
+  className?: string | ((renderProps: ButtonRenderProps) => string | undefined);
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+};
+
+type CossButtonVariant = 'default' | 'outline' | 'ghost';
+type CossButtonSize = 'default' | 'sm' | 'lg' | 'xl';
+
+function mapButtonVariant(variant: ButtonVariant): CossButtonVariant {
+  if (variant === 'primary') return 'default';
+  if (variant === 'normal') return 'outline';
+  return 'ghost';
+}
+
+function mapButtonSize(
+  size: ComponentSize | undefined,
+): CossButtonSize | undefined {
+  switch (size) {
+    case 'small':
+      return 'sm';
+    case 'medium':
+      return 'default';
+    case 'large':
+      return 'lg';
+    case 'extra-large':
+      return 'xl';
+    default:
+      return undefined;
+  }
+}
+
+function toPressEvent(
+  event: PointerEvent<HTMLButtonElement> | MouseEvent<HTMLButtonElement>,
+  type: 'pressstart' | 'pressend' | 'press',
+) {
+  const pointerType =
+    'pointerType' in event && event.pointerType
+      ? event.pointerType
+      : event.detail === 0
+        ? 'keyboard'
+        : 'mouse';
+
+  return {
+    type,
+    pointerType,
+    target: event.target,
+    shiftKey: event.shiftKey,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    altKey: event.altKey,
+    x: event.clientX,
+    y: event.clientY,
+    continuePropagation() {},
+    preventDefault() {
+      event.preventDefault();
+    },
+  };
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (props, ref) => {
+  (props, forwardedRef) => {
+    const [mergedProps, ref] = useContextProps(
+      props,
+      forwardedRef,
+      ButtonContext,
+    );
     const {
       children,
       variant = 'normal',
-      bounce = true,
+      bounce: _bounce,
       size,
-      ...restProps
-    } = props;
+      isDisabled,
+      isPending,
+      isLoading,
+      excludeFromTabOrder,
+      preventFocusOnPress,
+      onPress,
+      onPressStart,
+      onPressEnd,
+      onPressChange,
+      onPressUp,
+      onHoverStart,
+      onHoverEnd,
+      onHoverChange,
+      onClick,
+      render: _render,
+      onPointerDown,
+      onPointerUp,
+      onPointerEnter,
+      onPointerLeave,
+      onMouseDown,
+      onFocus,
+      onBlur,
+      style,
+      className,
+      slot: _slot,
+      ...rest
+    } = mergedProps;
 
-    const variantWithDisabled: ButtonVariant | `${ButtonVariant}Disabled` =
-      props.isDisabled ? `${variant}Disabled` : variant;
+    const [isHovered, setHovered] = useState(false);
+    const [isPressed, setPressed] = useState(false);
+    const [isFocused, setFocused] = useState(false);
+    const [isFocusVisible, setFocusVisible] = useState(false);
+    const disabled = Boolean(isDisabled);
 
-    const sizeOverrides = size
-      ? buttonSizeOverrides[size][variant === 'bare' ? 'bare' : 'framed']
-      : null;
+    const renderProps: ButtonRenderProps = {
+      isHovered,
+      isPressed: isPressed || variant === 'menuSelected',
+      isFocused,
+      isFocusVisible,
+      isDisabled: disabled,
+      isPending: Boolean(isPending || isLoading),
+    };
 
-    const defaultButtonClassName: string = useMemo(
-      () =>
-        css({
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          padding: _getPadding(variant),
-          margin: 0,
-          overflow: 'hidden',
-          display: 'flex',
-          borderRadius: 4,
-          backgroundColor: backgroundColor[variantWithDisabled],
-          border: _getBorder(variant, variantWithDisabled),
-          color: textColor[variantWithDisabled],
-          transition: 'box-shadow .25s',
-          WebkitAppRegion: 'no-drag',
-          ...styles.smallText,
-          ...sizeOverrides,
-          '&[data-hovered]': _getHoveredStyles(variant),
-          '&[data-pressed]': _getActiveStyles(variant, bounce),
-        }),
-      [bounce, variant, variantWithDisabled, sizeOverrides],
-    );
-
-    const className = restProps.className;
+    const resolvedStyle =
+      typeof style === 'function' ? style(renderProps) : style;
+    const resolvedClassName =
+      typeof className === 'function' ? className(renderProps) : className;
 
     return (
-      <ReactAriaButton
+      <CossButton
+        {...rest}
         ref={ref}
-        {...restProps}
-        className={
-          typeof className === 'function'
-            ? renderProps => cx(defaultButtonClassName, className(renderProps))
-            : cx(defaultButtonClassName, className)
-        }
+        variant={mapButtonVariant(variant)}
+        size={mapButtonSize(size)}
+        disabled={disabled}
+        loading={Boolean(isLoading)}
+        data-pressed={variant === 'menuSelected' ? '' : undefined}
+        {...(excludeFromTabOrder ? { tabIndex: -1 } : null)}
+        className={cx(
+          variant === 'menu' || variant === 'menuSelected'
+            ? 'w-full justify-start'
+            : undefined,
+          resolvedStyle && css({ ...resolvedStyle }),
+          resolvedClassName,
+        )}
+        onMouseDown={event => {
+          if (preventFocusOnPress) event.preventDefault();
+          onMouseDown?.(event);
+        }}
+        onPointerDown={event => {
+          onPointerDown?.(event);
+          if (disabled) return;
+          setPressed(true);
+          onPressStart?.(toPressEvent(event, 'pressstart') as never);
+          onPressChange?.(true);
+        }}
+        onPointerUp={event => {
+          onPointerUp?.(event);
+          if (!isPressed) return;
+          setPressed(false);
+          onPressEnd?.(toPressEvent(event, 'pressend') as never);
+          onPressUp?.(toPressEvent(event, 'pressend') as never);
+          onPressChange?.(false);
+        }}
+        onPointerEnter={event => {
+          onPointerEnter?.(event);
+          setHovered(true);
+          onHoverStart?.({
+            type: 'hoverstart',
+            pointerType: event.pointerType === 'pen' ? 'pen' : 'mouse',
+            target: event.currentTarget,
+          });
+          onHoverChange?.(true);
+        }}
+        onPointerLeave={event => {
+          onPointerLeave?.(event);
+          setHovered(false);
+          if (isPressed) {
+            setPressed(false);
+            onPressChange?.(false);
+          }
+          onHoverEnd?.({
+            type: 'hoverend',
+            pointerType: event.pointerType === 'pen' ? 'pen' : 'mouse',
+            target: event.currentTarget,
+          });
+          onHoverChange?.(false);
+        }}
+        onFocus={event => {
+          setFocused(true);
+          setFocusVisible(event.currentTarget.matches(':focus-visible'));
+          onFocus?.(event as FocusEvent<HTMLButtonElement>);
+        }}
+        onBlur={event => {
+          setFocused(false);
+          setFocusVisible(false);
+          onBlur?.(event as FocusEvent<HTMLButtonElement>);
+        }}
+        onClick={event => {
+          if (disabled) return;
+          onPress?.(toPressEvent(event, 'press') as never);
+          onClick?.(event);
+        }}
       >
         {children}
-      </ReactAriaButton>
+      </CossButton>
     );
   },
 );
@@ -264,42 +245,8 @@ export const ButtonWithLoading = forwardRef<
   HTMLButtonElement,
   ButtonWithLoadingProps
 >((props, ref) => {
-  const { isLoading, children, style, ...buttonProps } = props;
-  return (
-    <Button
-      {...buttonProps}
-      ref={ref}
-      style={buttonRenderProps => ({
-        position: 'relative',
-        ...(typeof style === 'function' ? style(buttonRenderProps) : style),
-      })}
-    >
-      {isLoading && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <AnimatedLoading style={{ width: 20, height: 20 }} />
-        </View>
-      )}
-      <View
-        style={{
-          opacity: isLoading ? 0 : 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}
-      >
-        {children}
-      </View>
-    </Button>
-  );
+  const { isLoading, ...buttonProps } = props;
+  return <Button {...buttonProps} ref={ref} isLoading={isLoading} />;
 });
 
 ButtonWithLoading.displayName = 'ButtonWithLoading';
