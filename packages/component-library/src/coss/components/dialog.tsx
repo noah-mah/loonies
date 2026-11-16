@@ -34,15 +34,17 @@ export function DialogClose(
 
 export function DialogBackdrop({
   className,
+  style,
   ...props
 }: DialogPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        'fixed inset-0 z-50 bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
+        'fixed inset-0 z-[4000] bg-black/32 backdrop-blur-sm transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute',
         className,
       )}
       data-slot="dialog-backdrop"
+      style={{ zIndex: 4000, ...style }}
       {...props}
     />
   );
@@ -50,15 +52,17 @@ export function DialogBackdrop({
 
 export function DialogViewport({
   className,
+  style,
   ...props
 }: DialogPrimitive.Viewport.Props): React.ReactElement {
   return (
     <DialogPrimitive.Viewport
       className={cn(
-        'fixed inset-0 z-50 grid grid-rows-[1fr_auto_3fr] justify-items-center p-4',
+        'fixed inset-0 z-[4000] grid grid-rows-[1fr_auto_3fr] justify-items-center p-4',
         className,
       )}
       data-slot="dialog-viewport"
+      style={{ zIndex: 4000, ...style }}
       {...props}
     />
   );

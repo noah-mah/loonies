@@ -175,9 +175,12 @@ export const Modal = ({
       <ReactAriaModalOverlay
         data-testid={`${name}-modal`}
         className={isAnimatedSheet ? mobileSheetOverlayClassName : undefined}
-        isDismissable
-        isOpen={isOpen}
+        isDismissable={isActive(name)}
+        isOpen={isOpen && isActive(name)}
         onOpenChange={nextIsOpen => {
+          if (!isActive(name)) {
+            return;
+          }
           setIsOpen(nextIsOpen);
           if (!nextIsOpen) {
             handleOnClose();

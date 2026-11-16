@@ -4,6 +4,7 @@ import { GridList, GridListItem } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { Card } from '@actual-app/components/card';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
 import {
@@ -639,34 +640,38 @@ export function BudgetFileSelection({
           }
         />
       )}
-      <BudgetFileList
-        files={files}
-        currentUserId={currentUserId}
-        quickSwitchMode={quickSwitchMode}
-        onSelect={onSelect}
-        onDelete={(file: File) =>
-          dispatch(
-            pushModal({ modal: { name: 'delete-budget', options: { file } } }),
-          )
-        }
-        onDuplicate={(file: File) => {
-          if (file && 'id' in file) {
+      <Card className="w-full overflow-hidden p-0 shadow-none">
+        <BudgetFileList
+          files={files}
+          currentUserId={currentUserId}
+          quickSwitchMode={quickSwitchMode}
+          onSelect={onSelect}
+          onDelete={(file: File) =>
             dispatch(
               pushModal({
-                modal: {
-                  name: 'duplicate-budget',
-                  options: { file, managePage: true },
-                },
+                modal: { name: 'delete-budget', options: { file } },
               }),
-            );
-          } else {
-            console.error(
-              'Attempted to duplicate a cloud file - only local files are supported. Cloud file:',
-              file,
-            );
+            )
           }
-        }}
-      />
+          onDuplicate={(file: File) => {
+            if (file && 'id' in file) {
+              dispatch(
+                pushModal({
+                  modal: {
+                    name: 'duplicate-budget',
+                    options: { file, managePage: true },
+                  },
+                }),
+              );
+            } else {
+              console.error(
+                'Attempted to duplicate a cloud file - only local files are supported. Cloud file:',
+                file,
+              );
+            }
+          }}
+        />
+      </Card>
       {!quickSwitchMode && (
         <View
           style={{

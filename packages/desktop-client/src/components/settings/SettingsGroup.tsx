@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { Card } from '@actual-app/components/card';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
@@ -35,19 +36,18 @@ export function SettingsGroup({
           </Text>
         )}
       </View>
-      <View
-        style={{
-          color: theme.settingsCardText,
-          backgroundColor: theme.settingsCardBackground,
-          border: `1px solid ${theme.settingsCardBorder}`,
-          borderRadius: 6,
-          '&& > * + *': {
-            borderTop: `1px solid ${theme.settingsCardBorder}`,
-          },
-        }}
-      >
-        {children}
-      </View>
+      <Card className="gap-0 overflow-hidden p-0 text-card-foreground shadow-none">
+        <View
+          style={{
+            color: theme.settingsCardText,
+            '&& > * + *': {
+              borderTop: `1px solid ${theme.settingsCardBorder}`,
+            },
+          }}
+        >
+          {children}
+        </View>
+      </Card>
     </View>
   );
 }

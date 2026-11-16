@@ -2,6 +2,7 @@ import React from 'react';
 import { Trans } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { Card } from '@actual-app/components/card';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
 import { SvgLogo } from '@actual-app/components/icons/logo';
 import { Paragraph } from '@actual-app/components/paragraph';
@@ -90,9 +91,16 @@ export function WelcomeScreen() {
         </Text>
       </View>
 
-      <View
+      <Card
         className={entranceClass(150)}
-        style={{ alignItems: 'center', flexShrink: 0 }}
+        style={{
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: 400,
+          gap: 16,
+          padding: 24,
+          flexShrink: 0,
+        }}
       >
         <Paragraph
           style={{ textAlign: 'center', maxWidth: 400, marginBottom: 0 }}
@@ -103,41 +111,31 @@ export function WelcomeScreen() {
             device, no data is collected, and there is nothing to sign up for.
           </Trans>
         </Paragraph>
-      </View>
-
-      <View
-        className={entranceClass(300)}
-        style={{
-          width: '100%',
-          maxWidth: 400,
-          gap: 10,
-          flexShrink: 0,
-          marginTop: 10,
-        }}
-      >
-        <Button
-          variant="primary"
-          autoFocus={!isNarrowWidth}
-          style={buttonStyle}
-          onPress={() => dispatch(createBudget({}))}
-        >
-          <Trans>Start budgeting</Trans>
-        </Button>
-        <Button
-          style={buttonStyle}
-          onPress={() => dispatch(createBudget({ testMode: true }))}
-        >
-          <Trans>Try the demo</Trans>
-        </Button>
-        {!serverURL && (
+        <View style={{ width: '100%', gap: 10, flexShrink: 0 }}>
+          <Button
+            variant="primary"
+            autoFocus={!isNarrowWidth}
+            style={buttonStyle}
+            onPress={() => dispatch(createBudget({}))}
+          >
+            <Trans>Start budgeting</Trans>
+          </Button>
           <Button
             style={buttonStyle}
-            onPress={() => navigate('/config-server')}
+            onPress={() => dispatch(createBudget({ testMode: true }))}
           >
-            <Trans>Connect to a sync server</Trans>
+            <Trans>Try the demo</Trans>
           </Button>
-        )}
-      </View>
+          {!serverURL && (
+            <Button
+              style={buttonStyle}
+              onPress={() => navigate('/config-server')}
+            >
+              <Trans>Connect to a sync server</Trans>
+            </Button>
+          )}
+        </View>
+      </Card>
 
       <View
         className={entranceClass(450)}
