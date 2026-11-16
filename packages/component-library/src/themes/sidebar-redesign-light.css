@@ -1,9 +1,6 @@
-/* Light palette for the redesigned sidebar. ThemeStyle injects this with the
-   built-in light theme unless a custom theme or CSS override styles the classic
-   sidebar tokens. The sidebarRedesign* values can be overridden one at a time
-   from a custom theme or the CSS override, since those are declared later.
-
-   Soft gray background and 1px edge follow the Paper budget restyle. */
+/* Sidebar tokens. ThemeStyle injects this with the semantic colors. The
+   sidebarRedesign* values reference the canvas tokens, which follow the Coss
+   .dark class. */
 :root {
   --color-sidebarRedesignBackground: var(--color-surface-sidebar);
   --color-sidebarRedesignItemText: var(--color-text-primary);

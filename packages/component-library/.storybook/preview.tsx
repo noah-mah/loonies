@@ -3,32 +3,24 @@ import { type ReactNode } from 'react';
 import type { Preview } from '@storybook/react-vite';
 
 import '../src/coss/styles/globals.css';
-import darkThemeCss from '../src/themes/dark.css?inline';
-import lightThemeCss from '../src/themes/light.css?inline';
 import paletteCss from '../src/themes/palette.css?inline';
-
-const THEMES = {
-  light: lightThemeCss,
-  dark: darkThemeCss,
-} as const;
-
-type ThemeName = keyof typeof THEMES;
+import semanticCss from '../src/themes/semantic.css?inline';
 
 const ThemedStory = ({
   themeName,
   children,
 }: {
-  themeName?: ThemeName;
+  themeName?: 'light' | 'dark';
   children?: ReactNode;
 }) => {
-  if (!themeName || !THEMES[themeName]) {
+  if (themeName !== 'light' && themeName !== 'dark') {
     throw new Error(`No theme specified`);
   }
 
   return (
     <div className={themeName === 'dark' ? 'dark' : undefined}>
       <style>{paletteCss}</style>
-      <style>{THEMES[themeName]}</style>
+      <style>{semanticCss}</style>
       {children}
     </div>
   );
