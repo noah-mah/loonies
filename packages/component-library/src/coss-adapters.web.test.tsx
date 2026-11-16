@@ -83,6 +83,28 @@ it('applies input styles on the native input element', () => {
 
   const input = screen.getByDisplayValue('42');
   expect(input.getAttribute('data-slot')).toBe('input');
+  expect(control?.className).toContain('contents');
+});
+
+it('keeps className, style, and data-focused on the native input', async () => {
+  const user = userEvent.setup();
+  render(
+    <Input
+      defaultValue="rent"
+      className="payee-name"
+      style={{ color: 'rgb(1, 2, 3)' }}
+    />,
+  );
+
+  const input = screen.getByDisplayValue('rent');
+  await user.click(input);
+
+  expect(input.className).toContain('payee-name');
+  expect(input.getAttribute('data-focused')).toBe('');
+  const wrapper = input.closest('[data-slot=input-control]');
+  expect(wrapper?.className ?? '').not.toContain('payee-name');
+  expect(wrapper?.getAttribute('style')).toBeNull();
+  expect(getComputedStyle(input).color).toBe('rgb(1, 2, 3)');
 });
 
 it('changes the select value from the Coss list', async () => {
