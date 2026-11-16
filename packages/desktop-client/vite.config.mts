@@ -17,6 +17,7 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import type { PreRenderedAsset } from 'rolldown';
 import { visualizer } from 'rollup-plugin-visualizer';
 /// <reference types="vitest" />
+import tailwindcss from '@tailwindcss/vite';
 import { build, defineConfig, loadEnv } from 'vite';
 import type { Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -367,6 +368,7 @@ export default defineConfig(async ({ mode, command }) => {
       tsconfigPaths: true,
     },
     plugins: [
+      tailwindcss(),
       // electron (desktop) builds do not support PWA
       mode === 'desktop'
         ? undefined
