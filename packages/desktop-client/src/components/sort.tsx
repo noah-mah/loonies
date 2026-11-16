@@ -45,7 +45,7 @@ export function useDraggable<T>({
   const _onDragChange = useRef(onDragChange);
   const node = useRef<HTMLElement | null>(null);
 
-  const [, connectDragSource] = useDrag({
+  const [{ isDragging }, connectDragSource] = useDrag({
     type,
     item: () => {
       void _onDragChange.current({ state: 'start-preview', type, item });
@@ -86,7 +86,7 @@ export function useDraggable<T>({
     node.current?.setAttribute('draggable', String(canDrag));
   }, [canDrag, dragRef]);
 
-  return { dragRef };
+  return { dragRef, isDragging };
 }
 
 export type OnDropCallback = (
@@ -112,6 +112,7 @@ export function useDroppable<T extends { id: string }>({
 }: UseDroppableArgs) {
   const ref = useRef<HTMLDivElement | null>(null);
   const onLongHoverRef = useRef(onLongHover);
+  const dropPosRef = useRef<DropPosition | null>(null);
   const [dropPos, setDropPos] = useState<DropPosition | null>(null);
 
   const [{ isOver }, dropRef] = useDrop<
@@ -121,11 +122,18 @@ export function useDroppable<T extends { id: string }>({
   >({
     accept: types,
     drop({ item }) {
-      void onDrop(item.id, dropPos, id);
+      // hover records the edge synchronously. The state update may not have
+      // committed before this drop runs.
+      void onDrop(item.id, dropPosRef.current, id);
     },
     hover(_, monitor) {
       if (!ref.current) return;
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      // A tall row can mark the band that decides before/after. Category
+      // groups do this so the header, not the categories inside it, is the edge.
+      const edge =
+        ref.current.querySelector<HTMLElement>('[data-reorder-edge]') ??
+        ref.current;
+      const hoverBoundingRect = edge.getBoundingClientRect();
       const hoverMiddleY =
         (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       const clientOffset = monitor.getClientOffset();
@@ -133,6 +141,7 @@ export function useDroppable<T extends { id: string }>({
       const hoverClientY = clientOffset.y - hoverBoundingRect.top;
       const pos: DropPosition = hoverClientY < hoverMiddleY ? 'top' : 'bottom';
 
+      dropPosRef.current = pos;
       setDropPos(pos);
     },
     collect(monitor) {

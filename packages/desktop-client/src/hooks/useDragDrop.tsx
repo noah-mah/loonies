@@ -50,8 +50,8 @@ import { View } from '@actual-app/components/view';
 // ===========================================================================
 //
 // Mobile:
-// - ExpenseGroupList.tsx → GridList + useDragAndDrop
-// - ExpenseCategoryList.tsx → GridList + useDragAndDrop
+// - ExpenseGroupList.tsx → ReorderableList + react-dnd
+// - ExpenseCategoryList.tsx → ReorderableList + react-dnd
 // - AccountsPage.tsx (AccountList) → ListBox + useDragAndDrop
 //
 // ===========================================================================

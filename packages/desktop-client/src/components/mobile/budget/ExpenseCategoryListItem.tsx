@@ -1,6 +1,4 @@
 import { useCallback } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
@@ -15,6 +13,10 @@ import * as monthUtils from '@actual-app/core/shared/months';
 import type { IntegerAmount } from '@actual-app/core/shared/util';
 import type { CategoryEntity } from '@actual-app/core/types/models';
 
+import {
+  ReorderableItem,
+  ReorderHandle,
+} from '#components/reorderable/ReorderableList';
 import { useCategoriesById } from '#hooks/useCategories';
 import { useFormat } from '#hooks/useFormat';
 import { useNavigate } from '#hooks/useNavigate';
@@ -55,17 +57,7 @@ function ExpenseCategoryName({
         alignItems: 'flex-start',
       }}
     >
-      {/* Hidden drag button */}
-      <Button
-        slot="drag"
-        style={{
-          opacity: 0,
-          width: 1,
-          height: 1,
-          position: 'absolute',
-          overflow: 'hidden',
-        }}
-      />
+      <ReorderHandle itemId={category.id} label={category.name} hidden />
       <Button
         variant="bare"
         style={{
@@ -219,9 +211,8 @@ function ExpenseCategoryCells({
   );
 }
 
-type ExpenseCategoryListItemProps = ComponentPropsWithoutRef<
-  typeof GridListItem<CategoryEntity>
-> & {
+type ExpenseCategoryListItemProps = {
+  value: CategoryEntity;
   month: string;
   isHidden: boolean;
   style?: CSSProperties;
@@ -238,10 +229,8 @@ export function ExpenseCategoryListItem({
   onBudgetAction,
   show3Columns,
   showBudgetedColumn,
-  ...props
+  value: category,
 }: ExpenseCategoryListItemProps) {
-  const { value: category } = props;
-
   const { t } = useTranslation();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const format = useFormat();
@@ -464,10 +453,10 @@ export function ExpenseCategoryListItem({
   }
 
   return (
-    <GridListItem
+    <ReorderableItem
+      id={category.id}
       textValue={category.name}
-      data-testid="category-row"
-      {...props}
+      testId="category-row"
     >
       <View
         style={{
@@ -501,6 +490,6 @@ export function ExpenseCategoryListItem({
           onShowActivity={onShowActivity}
         />
       </View>
-    </GridListItem>
+    </ReorderableItem>
   );
 }

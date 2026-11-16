@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
@@ -18,6 +16,8 @@ import {
 } from '#components/common/Modal';
 import { Checkbox } from '#components/forms';
 import { TransactionTableColumnListItem } from '#components/modals/TransactionTableColumnListItem';
+import { ReorderableList } from '#components/reorderable/ReorderableList';
+import type { DropPosition } from '#components/sort';
 import {
   getDefaultTransactionTableColumns,
   useTransactionTableColumnLabels,
@@ -69,48 +69,25 @@ export function TransactionTableColumnsModal({
     );
   };
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(key => ({ 'text/plain': String(key) }) satisfies DragItem),
-    renderDropIndicator: target => (
-      <DropIndicator
-        target={target}
-        className={css({
-          '&[data-drop-target]': {
-            height: 4,
-            backgroundColor: theme.tableBorderSeparator,
-            opacity: 1,
-            borderRadius: 4,
-          },
-        })}
-      />
-    ),
-    onReorder: e => {
-      const [key] = e.keys;
-      const targetId = e.target.key;
-
-      setColumns(prev => {
-        const moved = prev.find(c => c.id === key);
-        if (!moved || key === targetId) {
-          return prev;
-        }
-
-        const remaining = prev.filter(c => c.id !== key);
-        const targetIdx = remaining.findIndex(c => c.id === targetId);
-        if (targetIdx === -1) {
-          return prev;
-        }
-
-        const insertAt =
-          e.target.dropPosition === 'after' ? targetIdx + 1 : targetIdx;
-        return [
-          ...remaining.slice(0, insertAt),
-          moved,
-          ...remaining.slice(insertAt),
-        ];
-      });
-    },
-  });
+  const onMove = (
+    draggedId: string,
+    targetId: string,
+    position: DropPosition,
+  ) => {
+    setColumns(prev => {
+      const moved = prev.find(column => column.id === draggedId);
+      if (!moved || draggedId === targetId) return prev;
+      const remaining = prev.filter(column => column.id !== draggedId);
+      const targetIdx = remaining.findIndex(column => column.id === targetId);
+      if (targetIdx === -1) return prev;
+      const insertAt = position === 'bottom' ? targetIdx + 1 : targetIdx;
+      return [
+        ...remaining.slice(0, insertAt),
+        moved,
+        ...remaining.slice(insertAt),
+      ];
+    });
+  };
 
   return (
     <Modal
@@ -131,22 +108,22 @@ export function TransactionTableColumnsModal({
               </Trans>
             </Text>
 
-            <GridList
-              aria-label={t('Transaction table columns')}
-              items={columns}
-              dragAndDropHooks={dragAndDropHooks}
-              dependencies={[columnLabels]}
+            <ReorderableList
+              label={t('Transaction table columns')}
+              dragType="transaction-column"
+              itemIds={columns.map(column => column.id)}
+              onMove={onMove}
               className={css({ display: 'flex', flexDirection: 'column' })}
             >
-              {column => (
+              {columns.map(column => (
                 <TransactionTableColumnListItem
                   key={column.id}
                   column={column}
                   label={columnLabels[column.id]}
                   onToggle={onToggleColumn}
                 />
-              )}
-            </GridList>
+              ))}
+            </ReorderableList>
 
             <View
               style={{

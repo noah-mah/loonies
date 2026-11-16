@@ -1,12 +1,10 @@
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
-import { css } from '@actual-app/components/css';
-import { theme } from '@actual-app/components/theme';
 import type { CategoryEntity } from '@actual-app/core/types/models';
 
 import { useMoveCategoryMutation } from '#budget';
+import { ReorderableList } from '#components/reorderable/ReorderableList';
+import type { DropPosition } from '#components/sort';
 
 import { IncomeCategoryListItem } from './IncomeCategoryListItem';
 
@@ -26,89 +24,45 @@ export function IncomeCategoryList({
   const { t } = useTranslation();
   const moveCategory = useMoveCategoryMutation();
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(
-        key =>
-          ({
-            'text/plain': key as CategoryEntity['id'],
-          }) as DragItem,
-      ),
-    renderDropIndicator: target => {
-      return (
-        <DropIndicator
-          target={target}
-          className={css({
-            '&[data-drop-target]': {
-              height: 4,
-              backgroundColor: theme.tableBorderSeparator,
-              opacity: 1,
-              borderRadius: 4,
-            },
-          })}
-        />
-      );
-    },
-    onReorder: e => {
-      const [key] = e.keys;
-      const categoryIdToMove = key as CategoryEntity['id'];
-      const categoryToMove = categories.find(c => c.id === categoryIdToMove);
-
-      if (!categoryToMove) {
-        throw new Error(
-          `Internal error: category with ID ${categoryIdToMove} not found.`,
-        );
-      }
-
-      if (!categoryToMove.group) {
-        throw new Error(
-          `Internal error: category ${categoryIdToMove} is not in a group and cannot be moved.`,
-        );
-      }
-
-      const targetCategoryId = e.target.key as CategoryEntity['id'];
-
-      if (e.target.dropPosition === 'before') {
-        moveCategory.mutate({
-          id: categoryToMove.id,
-          groupId: categoryToMove.group,
-          targetId: targetCategoryId,
-        });
-      } else if (e.target.dropPosition === 'after') {
-        const targetCategoryIndex = categories.findIndex(
-          c => c.id === targetCategoryId,
-        );
-
-        if (targetCategoryIndex === -1) {
-          throw new Error(
-            `Internal error: category with ID ${targetCategoryId} not found.`,
-          );
-        }
-
-        const nextToTargetCategory = categories[targetCategoryIndex + 1];
-
-        moveCategory.mutate({
-          id: categoryToMove.id,
-          groupId: categoryToMove.group,
-          // Due to the way `moveCategory` works, we use the category next to the
-          // actual target category here because `moveCategory` always shoves the
-          // category *before* the target category.
-          // On the other hand, using `null` as `targetId` moves the category
-          // to the end of the list.
-          targetId: nextToTargetCategory?.id || null,
-        });
-      }
-    },
-  });
+  const onMove = (
+    draggedId: string,
+    targetId: string,
+    position: DropPosition,
+  ) => {
+    const categoryToMove = categories.find(
+      category => category.id === draggedId,
+    );
+    if (categoryToMove?.group == null) return;
+    if (position === 'top') {
+      moveCategory.mutate({
+        id: categoryToMove.id,
+        groupId: categoryToMove.group,
+        targetId,
+      });
+      return;
+    }
+    const targetCategoryIndex = categories.findIndex(
+      category => category.id === targetId,
+    );
+    if (targetCategoryIndex === -1) return;
+    // moveCategory inserts before the target, so the following category
+    // places this one after the row that was dropped on.
+    const nextToTargetCategory = categories[targetCategoryIndex + 1];
+    moveCategory.mutate({
+      id: categoryToMove.id,
+      groupId: categoryToMove.group,
+      targetId: nextToTargetCategory?.id || null,
+    });
+  };
 
   return (
-    <GridList
-      aria-label={t('Income categories')}
-      items={categories}
-      dragAndDropHooks={dragAndDropHooks}
-      dependencies={[month, onEditCategory, onBudgetAction]}
+    <ReorderableList
+      label={t('Income categories')}
+      dragType="income-category"
+      itemIds={categories.map(category => category.id)}
+      onMove={onMove}
     >
-      {category => (
+      {categories.map(category => (
         <IncomeCategoryListItem
           key={category.id}
           value={category}
@@ -116,7 +70,7 @@ export function IncomeCategoryList({
           onEdit={onEditCategory}
           onBudgetAction={onBudgetAction}
         />
-      )}
-    </GridList>
+      ))}
+    </ReorderableList>
   );
 }

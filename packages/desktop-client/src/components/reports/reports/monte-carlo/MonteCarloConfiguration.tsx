@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
-import { css } from '@actual-app/components/css';
 import { SvgAdd } from '@actual-app/components/icons/v1';
 import { ModeButton } from '@actual-app/components/mode-button';
 import { Select } from '@actual-app/components/select';
@@ -19,6 +16,10 @@ import type {
 import { v4 as uuidv4 } from 'uuid';
 
 import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
+import {
+  ReorderableItem,
+  ReorderableList,
+} from '#components/reorderable/ReorderableList';
 import { MonteCarloContributions } from '#components/reports/reports/monte-carlo/MonteCarloContributions';
 import { MonteCarloHelpTooltip } from '#components/reports/reports/monte-carlo/MonteCarloHelpTooltip';
 import { MonteCarloIncomeStreams } from '#components/reports/reports/monte-carlo/MonteCarloIncomeStreams';
@@ -49,6 +50,7 @@ import {
 } from '#components/reports/reports/monte-carlo/monteCarloStyles';
 import { MonteCarloTaxConfiguration } from '#components/reports/reports/monte-carlo/MonteCarloTaxConfiguration';
 import { MonteCarloWithdrawalRuleConfiguration } from '#components/reports/reports/monte-carlo/MonteCarloWithdrawalRuleConfiguration';
+import type { DropPosition } from '#components/sort';
 
 type ConfigurationTab =
   | 'plan'
@@ -112,43 +114,21 @@ export function MonteCarloConfiguration({
     });
   }
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(key => ({ 'text/plain': String(key) }) as DragItem),
-    renderDropIndicator: target => (
-      <DropIndicator
-        target={target}
-        className={css({
-          '&[data-drop-target]': {
-            height: 4,
-            backgroundColor: theme.tableBorderSeparator,
-            opacity: 1,
-            borderRadius: 4,
-          },
-        })}
-      />
-    ),
-    onReorder: event => {
-      const [movedKey] = event.keys;
-      const fromIndex = config.pots.findIndex(pot => pot.id === movedKey);
-      const targetIndex = config.pots.findIndex(
-        pot => pot.id === event.target.key,
-      );
-      if (fromIndex === -1 || targetIndex === -1) {
-        return;
-      }
-
-      const newPots = [...config.pots];
-      const [movedPot] = newPots.splice(fromIndex, 1);
-      let insertIndex =
-        targetIndex + (event.target.dropPosition === 'after' ? 1 : 0);
-      if (fromIndex < insertIndex) {
-        insertIndex -= 1;
-      }
-      newPots.splice(insertIndex, 0, movedPot);
-      onConfigChange({ pots: newPots });
-    },
-  });
+  const onMovePot = (
+    draggedId: string,
+    targetId: string,
+    position: DropPosition,
+  ) => {
+    const fromIndex = config.pots.findIndex(pot => pot.id === draggedId);
+    const targetIndex = config.pots.findIndex(pot => pot.id === targetId);
+    if (fromIndex === -1 || targetIndex === -1) return;
+    const newPots = [...config.pots];
+    const [movedPot] = newPots.splice(fromIndex, 1);
+    let insertIndex = targetIndex + (position === 'bottom' ? 1 : 0);
+    if (fromIndex < insertIndex) insertIndex -= 1;
+    newPots.splice(insertIndex, 0, movedPot);
+    onConfigChange({ pots: newPots });
+  };
 
   return (
     <View
@@ -622,46 +602,54 @@ export function MonteCarloConfiguration({
           >
             <View style={{ minWidth: 'fit-content' }}>
               <MonteCarloPotsTableHeader />
-              <GridList
-                aria-label={t('Investment pots')}
-                // Without this, typing in the pot fields moves the list
-                // highlight to whichever pot name matches the keystroke
-                disallowTypeAhead
-                // Let Tab move between the fields inside pot rows instead of
-                // jumping out of the list (default ARIA grid behavior)
-                keyboardNavigationBehavior="tab"
-                items={config.pots}
-                dependencies={[config, onConfigChange]}
-                dragAndDropHooks={dragAndDropHooks}
+              <ReorderableList
+                label={t('Investment pots')}
+                dragType="monte-carlo-pot"
+                itemIds={config.pots.map(pot => pot.id)}
+                onMove={onMovePot}
+                navigation="none"
               >
-                {pot => (
-                  <MonteCarloPotConfiguration
+                {config.pots.map(pot => (
+                  <ReorderableItem
                     key={pot.id}
-                    pot={pot}
-                    potLabel={getMonteCarloPotLabel(
+                    id={pot.id}
+                    textValue={getMonteCarloPotLabel(
                       config.pots,
                       config.pots.indexOf(pot),
                       t,
                     )}
-                    // The surplus pot is managed by the Manage surplus toggle
-                    canRemove={ordinaryPotCount > 1 && !pot.isSurplus}
-                    usesHistoricalReturns={config.returnModel !== 'normal'}
-                    currentAge={config.currentAge}
-                    targetAge={config.targetAge}
-                    usesTaxBands={config.taxModel === 'bands'}
-                    onPotChange={changes => onPotChange(pot.id, changes)}
-                    onRemove={() =>
-                      onConfigChange({
-                        pots: config.pots.filter(other => other.id !== pot.id),
-                        // A removed pot takes its contributions with it
-                        contributions: config.contributions.filter(
-                          contribution => contribution.potId !== pot.id,
-                        ),
-                      })
-                    }
-                  />
-                )}
-              </GridList>
+                    dragOn="handle"
+                  >
+                    <MonteCarloPotConfiguration
+                      key={pot.id}
+                      pot={pot}
+                      potLabel={getMonteCarloPotLabel(
+                        config.pots,
+                        config.pots.indexOf(pot),
+                        t,
+                      )}
+                      // The surplus pot is managed by the Manage surplus toggle
+                      canRemove={ordinaryPotCount > 1 && !pot.isSurplus}
+                      usesHistoricalReturns={config.returnModel !== 'normal'}
+                      currentAge={config.currentAge}
+                      targetAge={config.targetAge}
+                      usesTaxBands={config.taxModel === 'bands'}
+                      onPotChange={changes => onPotChange(pot.id, changes)}
+                      onRemove={() =>
+                        onConfigChange({
+                          pots: config.pots.filter(
+                            other => other.id !== pot.id,
+                          ),
+                          // A removed pot takes its contributions with it
+                          contributions: config.contributions.filter(
+                            contribution => contribution.potId !== pot.id,
+                          ),
+                        })
+                      }
+                    />
+                  </ReorderableItem>
+                ))}
+              </ReorderableList>
             </View>
           </View>
           <View style={{ flexDirection: 'row', marginTop: 10 }}>

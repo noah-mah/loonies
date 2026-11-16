@@ -1,14 +1,5 @@
-import {
-  DropIndicator,
-  GridList,
-  isTextDropItem,
-  useDragAndDrop,
-} from 'react-aria-components';
-import type { ItemDropTarget } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
-import { css } from '@actual-app/components/css';
-import { theme } from '@actual-app/components/theme';
 import type {
   CategoryEntity,
   CategoryGroupEntity,
@@ -16,12 +7,10 @@ import type {
 
 import { useReorderCategoryMutation } from '#budget';
 import { findSortDown } from '#components/budget/util';
+import { ReorderableList } from '#components/reorderable/ReorderableList';
+import type { DropPosition } from '#components/sort';
 
 import { ExpenseCategoryListItem } from './ExpenseCategoryListItem';
-
-// A dedicated drag type keeps income categories and category groups out of
-// expense groups.
-const EXPENSE_CATEGORY_DRAG_TYPE = 'application/x-actual-expense-category';
 
 type ExpenseCategoryListProps = {
   categoryGroup: CategoryGroupEntity;
@@ -47,73 +36,28 @@ export function ExpenseCategoryList({
   const { t } = useTranslation();
   const reorderCategory = useReorderCategoryMutation();
 
-  // Moves a dragged category into this group, before or after the drop target.
-  // Handles drops from this group and from other expense groups.
-  const moveCategoryToTarget = (
-    categoryId: CategoryEntity['id'],
-    { key: targetKey, dropPosition }: ItemDropTarget,
+  const onMove = (
+    categoryId: string,
+    targetId: string,
+    position: DropPosition,
   ) => {
     reorderCategory.mutate({
       id: categoryId,
       groupId: categoryGroup.id,
-      ...findSortDown(
-        categories,
-        dropPosition === 'before' ? 'top' : 'bottom',
-        String(targetKey),
-      ),
+      ...findSortDown(categories, position, targetId),
     });
   };
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    acceptedDragTypes: [EXPENSE_CATEGORY_DRAG_TYPE],
-    getItems: keys =>
-      [...keys].map(key => ({ [EXPENSE_CATEGORY_DRAG_TYPE]: String(key) })),
-    renderDropIndicator: target => {
-      return (
-        <DropIndicator
-          target={target}
-          className={css({
-            '&[data-drop-target]': {
-              height: 4,
-              backgroundColor: theme.tableBorderSeparator,
-              opacity: 1,
-              borderRadius: 4,
-            },
-          })}
-        />
-      );
-    },
-    onReorder: e => {
-      const [key] = e.keys;
-      moveCategoryToTarget(String(key), e.target);
-    },
-    onInsert: async e => {
-      const [item] = e.items;
-      if (!item || !isTextDropItem(item)) {
-        return;
-      }
-      const categoryId = await item.getText(EXPENSE_CATEGORY_DRAG_TYPE);
-      moveCategoryToTarget(categoryId, e.target);
-    },
-  });
-
   return (
-    <GridList
-      aria-label={t('{{categoryGroupName}} expense group categories', {
+    <ReorderableList
+      label={t('{{categoryGroupName}} expense group categories', {
         categoryGroupName: categoryGroup.name,
       })}
-      items={categories}
-      dragAndDropHooks={dragAndDropHooks}
-      dependencies={[
-        month,
-        onEditCategory,
-        onBudgetAction,
-        shouldHideCategory,
-        show3Columns,
-        showBudgetedColumn,
-      ]}
+      dragType="expense-category"
+      itemIds={categories.map(category => category.id)}
+      onMove={onMove}
     >
-      {category => (
+      {categories.map(category => (
         <ExpenseCategoryListItem
           key={category.id}
           value={category}
@@ -124,7 +68,7 @@ export function ExpenseCategoryList({
           show3Columns={show3Columns}
           showBudgetedColumn={showBudgetedColumn}
         />
-      )}
-    </GridList>
+      ))}
+    </ReorderableList>
   );
 }

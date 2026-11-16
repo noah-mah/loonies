@@ -1,6 +1,4 @@
 import { useCallback } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
@@ -12,6 +10,10 @@ import { View } from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type { CategoryEntity } from '@actual-app/core/types/models';
 
+import {
+  ReorderableItem,
+  ReorderHandle,
+} from '#components/reorderable/ReorderableList';
 import { useNavigate } from '#hooks/useNavigate';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { pushModal } from '#modals/modalsSlice';
@@ -41,17 +43,7 @@ function IncomeCategoryName({ category, onEdit }: IncomeCategoryNameProps) {
         width: sidebarColumnWidth,
       }}
     >
-      {/* Hidden drag button */}
-      <Button
-        slot="drag"
-        style={{
-          opacity: 0,
-          width: 1,
-          height: 1,
-          position: 'absolute',
-          overflow: 'hidden',
-        }}
-      />
+      <ReorderHandle itemId={category.id} label={category.name} hidden />
       <Button
         variant="bare"
         style={{
@@ -167,9 +159,8 @@ function IncomeCategoryCells({
   );
 }
 
-type IncomeCategoryListItemProps = ComponentPropsWithoutRef<
-  typeof GridListItem<CategoryEntity>
-> & {
+type IncomeCategoryListItemProps = {
+  value: CategoryEntity;
   month: string;
   onEdit: (id: CategoryEntity['id']) => void;
   onBudgetAction: (month: string, action: string, args: unknown) => void;
@@ -179,9 +170,8 @@ export function IncomeCategoryListItem({
   month,
   onEdit,
   onBudgetAction,
-  ...props
+  value: category,
 }: IncomeCategoryListItemProps) {
-  const { value: category } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
@@ -239,10 +229,10 @@ export function IncomeCategoryListItem({
   }
 
   return (
-    <GridListItem
+    <ReorderableItem
+      id={category.id}
       textValue={category.name}
-      data-testid="category-row"
-      {...props}
+      testId="category-row"
     >
       <View
         style={{
@@ -271,6 +261,6 @@ export function IncomeCategoryListItem({
           }
         />
       </View>
-    </GridListItem>
+    </ReorderableItem>
   );
 }

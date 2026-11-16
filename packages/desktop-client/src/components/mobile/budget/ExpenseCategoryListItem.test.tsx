@@ -1,4 +1,5 @@
-import { GridList } from 'react-aria-components';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { MemoryRouter } from 'react-router';
 
 import { initServer } from '@actual-app/core/platform/client/connection';
@@ -6,6 +7,7 @@ import type { CategoryEntity } from '@actual-app/core/types/models';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { ReorderableList } from '#components/reorderable/ReorderableList';
 import { SheetNameProvider } from '#hooks/useSheetName';
 import {
   configureTestAppStore,
@@ -50,10 +52,15 @@ function renderItem() {
     <TestProviders queryClient={client} store={store}>
       <MemoryRouter>
         <SheetNameProvider name="budget202401">
-          <GridList aria-label="Categories" items={[category]}>
-            {item => (
+          <DndProvider backend={HTML5Backend}>
+            <ReorderableList
+              label="Categories"
+              dragType="expense-category"
+              itemIds={[category.id]}
+              onMove={() => undefined}
+            >
               <ExpenseCategoryListItem
-                value={item}
+                value={category}
                 month="2024-01"
                 isHidden={false}
                 show3Columns
@@ -61,8 +68,8 @@ function renderItem() {
                 onEditCategory={vi.fn()}
                 onBudgetAction={onBudgetAction}
               />
-            )}
-          </GridList>
+            </ReorderableList>
+          </DndProvider>
         </SheetNameProvider>
       </MemoryRouter>
     </TestProviders>,

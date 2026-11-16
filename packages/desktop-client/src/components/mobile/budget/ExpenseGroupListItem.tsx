@@ -1,6 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
 
 import { Button } from '@actual-app/components/button';
 import { Card } from '@actual-app/components/card';
@@ -20,6 +18,10 @@ import type {
 import { AutoTextSize } from 'auto-text-size';
 
 import { PrivacyFilter } from '#components/PrivacyFilter';
+import {
+  ReorderableItem,
+  ReorderHandle,
+} from '#components/reorderable/ReorderableList';
 import { CellValue } from '#components/spreadsheet/CellValue';
 import { useFormat } from '#hooks/useFormat';
 import { usePaymentCategoryIds } from '#hooks/usePaymentCategoryIds';
@@ -29,9 +31,8 @@ import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
 import { getColumnWidth, ROW_HEIGHT } from './BudgetTable';
 import { ExpenseCategoryList } from './ExpenseCategoryList';
 
-type ExpenseGroupListItemProps = ComponentPropsWithoutRef<
-  typeof GridListItem<CategoryGroupEntity>
-> & {
+type ExpenseGroupListItemProps = {
+  value: CategoryGroupEntity;
   month: string;
   showHiddenCategories: boolean;
   onEditCategoryGroup: (id: CategoryGroupEntity['id']) => void;
@@ -55,10 +56,8 @@ export function ExpenseGroupListItem({
   isCollapsed,
   onToggleCollapse,
   isHidden,
-  ...props
+  value: categoryGroup,
 }: ExpenseGroupListItemProps) {
-  const { value: categoryGroup } = props;
-
   const categories = useMemo(
     () =>
       !categoryGroup || isCollapsed(categoryGroup.id)
@@ -81,7 +80,7 @@ export function ExpenseGroupListItem({
   }
 
   return (
-    <GridListItem textValue={categoryGroup.name} {...props}>
+    <ReorderableItem id={categoryGroup.id} textValue={categoryGroup.name}>
       <Card
         style={{
           marginTop: 4,
@@ -110,7 +109,7 @@ export function ExpenseGroupListItem({
           showBudgetedColumn={showBudgetedColumn}
         />
       </Card>
-    </GridListItem>
+    </ReorderableItem>
   );
 }
 
@@ -138,6 +137,7 @@ export function ExpenseGroupHeader({
   return (
     <View
       data-testid="category-group-row"
+      data-reorder-edge=""
       onClick={() => onToggleCollapse(categoryGroup.id)}
       style={{
         cursor: 'pointer',
@@ -199,17 +199,7 @@ function ExpenseGroupName({
         width: sidebarColumnWidth,
       }}
     >
-      {/* Hidden drag button */}
-      <Button
-        slot="drag"
-        style={{
-          opacity: 0,
-          width: 1,
-          height: 1,
-          position: 'absolute',
-          overflow: 'hidden',
-        }}
-      />
+      <ReorderHandle itemId={group.id} label={group.name} hidden />
       <Button
         variant="bare"
         className={css({

@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
-import { css } from '@actual-app/components/css';
 import { SvgDelete } from '@actual-app/components/icons/v0';
 import {
   SvgAdd,
@@ -21,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FinancialText } from '#components/FinancialText';
 import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
+import { ReorderHandle } from '#components/reorderable/ReorderableList';
 import { MonteCarloHelpTooltip } from '#components/reports/reports/monte-carlo/MonteCarloHelpTooltip';
 import { MonteCarloInvestmentPhaseRow } from '#components/reports/reports/monte-carlo/MonteCarloInvestmentPhaseRow';
 import { MonteCarloNumberInput } from '#components/reports/reports/monte-carlo/MonteCarloNumberInput';
@@ -53,9 +51,7 @@ import { useAccounts } from '#hooks/useAccounts';
 
 const POT_ROW_HEIGHT = 43;
 
-type MonteCarloPotConfigurationProps = ComponentPropsWithoutRef<
-  typeof GridListItem<MonteCarloPot>
-> & {
+type MonteCarloPotConfigurationProps = {
   pot: MonteCarloPot;
   potLabel: string;
   canRemove: boolean;
@@ -80,7 +76,6 @@ export function MonteCarloPotConfiguration({
   targetAge,
   onPotChange,
   onRemove,
-  ...props
 }: MonteCarloPotConfigurationProps) {
   const { t } = useTranslation();
   const { data: accounts = [] } = useAccounts();
@@ -162,118 +157,103 @@ export function MonteCarloPotConfiguration({
   if (pot.isSurplus) {
     const readOnlyCellStyle = { color: theme.tableText };
     return (
-      <GridListItem
-        textValue={potLabel}
-        className={css({
-          '&[data-dragging]': {
-            opacity: 0.5,
-          },
-        })}
-        {...props}
+      <Row
+        collapsed
+        height={POT_ROW_HEIGHT}
+        style={{
+          backgroundColor: theme.tableBackground,
+          ':hover': { backgroundColor: theme.tableRowBackgroundHover },
+        }}
       >
-        <Row
-          collapsed
-          height={POT_ROW_HEIGHT}
-          style={{
-            backgroundColor: theme.tableBackground,
-            ':hover': { backgroundColor: theme.tableRowBackgroundHover },
-          }}
+        <Field width={POT_COLUMNS.expand} truncate={false}>
+          <ReorderHandle
+            itemId={pot.id}
+            label={t('Reorder {{name}}', { name: potLabel })}
+          />
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.name }}
+          truncate={false}
         >
-          <Field width={POT_COLUMNS.expand} />
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.name }}
-            truncate={false}
-          >
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
-            >
-              <Text style={readOnlyCellStyle}>{potLabel}</Text>
-              <MonteCarloHelpTooltip>
-                <Trans>
-                  Your plan&apos;s surplus pot. Income beyond your spending is
-                  saved here each year, and it is drawn on before any other pot
-                  when spending needs funding. It starts empty and holds cash:
-                  no access age, no tax, no fees. To remove it, tick Assume any
-                  unspent money is spent under Manage surplus on the Plan
-                  details tab.
-                </Trans>
-              </MonteCarloHelpTooltip>
-            </View>
-          </Field>
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.startingBalance }}
-            truncate={false}
-          >
-            <Text style={readOnlyCellStyle}>
-              <Trans>Starts empty</Trans>
-            </Text>
-          </Field>
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.linkedAccount }}
-            truncate={false}
-          >
-            <Text style={readOnlyCellStyle}>
-              <Trans>None</Trans>
-            </Text>
-          </Field>
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.allocation }}
-            truncate={false}
-          >
-            <Text style={readOnlyCellStyle}>
-              <Trans>Cash / money market</Trans>
-            </Text>
-          </Field>
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.expectedReturn }}
-            truncate={false}
-          >
-            <Text style={readOnlyCellStyle}>
-              <FinancialText as="span">
-                {historicalMixStats != null
-                  ? t('{{value}} (historical)', {
-                      value: `${(historicalMixStats.mean * 100).toFixed(1)}%`,
-                    })
-                  : `${(pot.expectedReturnMean * 100).toFixed(1)}%`}
-              </FinancialText>
-            </Text>
-          </Field>
-          <Field
-            width="flex"
-            style={{ minWidth: POT_COLUMNS.volatility }}
-            truncate={false}
-          >
-            <Text style={readOnlyCellStyle}>
-              <FinancialText as="span">
-                {historicalMixStats != null
-                  ? t('{{value}} (historical)', {
-                      value: `${(historicalMixStats.stdDev * 100).toFixed(1)}%`,
-                    })
-                  : `${(pot.returnStdDev * 100).toFixed(1)}%`}
-              </FinancialText>
-            </Text>
-          </Field>
-          <Field width={POT_COLUMNS.remove} />
-        </Row>
-      </GridListItem>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Text style={readOnlyCellStyle}>{potLabel}</Text>
+            <MonteCarloHelpTooltip>
+              <Trans>
+                Your plan&apos;s surplus pot. Income beyond your spending is
+                saved here each year, and it is drawn on before any other pot
+                when spending needs funding. It starts empty and holds cash: no
+                access age, no tax, no fees. To remove it, tick Assume any
+                unspent money is spent under Manage surplus on the Plan details
+                tab.
+              </Trans>
+            </MonteCarloHelpTooltip>
+          </View>
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.startingBalance }}
+          truncate={false}
+        >
+          <Text style={readOnlyCellStyle}>
+            <Trans>Starts empty</Trans>
+          </Text>
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.linkedAccount }}
+          truncate={false}
+        >
+          <Text style={readOnlyCellStyle}>
+            <Trans>None</Trans>
+          </Text>
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.allocation }}
+          truncate={false}
+        >
+          <Text style={readOnlyCellStyle}>
+            <Trans>Cash / money market</Trans>
+          </Text>
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.expectedReturn }}
+          truncate={false}
+        >
+          <Text style={readOnlyCellStyle}>
+            <FinancialText as="span">
+              {historicalMixStats != null
+                ? t('{{value}} (historical)', {
+                    value: `${(historicalMixStats.mean * 100).toFixed(1)}%`,
+                  })
+                : `${(pot.expectedReturnMean * 100).toFixed(1)}%`}
+            </FinancialText>
+          </Text>
+        </Field>
+        <Field
+          width="flex"
+          style={{ minWidth: POT_COLUMNS.volatility }}
+          truncate={false}
+        >
+          <Text style={readOnlyCellStyle}>
+            <FinancialText as="span">
+              {historicalMixStats != null
+                ? t('{{value}} (historical)', {
+                    value: `${(historicalMixStats.stdDev * 100).toFixed(1)}%`,
+                  })
+                : `${(pot.returnStdDev * 100).toFixed(1)}%`}
+            </FinancialText>
+          </Text>
+        </Field>
+        <Field width={POT_COLUMNS.remove} />
+      </Row>
     );
   }
 
   return (
-    <GridListItem
-      textValue={potLabel}
-      className={css({
-        '&[data-dragging]': {
-          opacity: 0.5,
-        },
-      })}
-      {...props}
-    >
+    <>
       <Row
         collapsed
         height={POT_ROW_HEIGHT}
@@ -287,6 +267,10 @@ export function MonteCarloPotConfiguration({
           truncate={false}
           style={{ alignItems: 'center' }}
         >
+          <ReorderHandle
+            itemId={pot.id}
+            label={t('Reorder {{name}}', { name: potLabel })}
+          />
           <Button
             variant="bare"
             aria-label={
@@ -837,6 +821,6 @@ export function MonteCarloPotConfiguration({
           </View>
         </View>
       )}
-    </GridListItem>
+    </>
   );
 }
