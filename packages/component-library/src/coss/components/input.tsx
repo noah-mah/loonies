@@ -13,6 +13,7 @@ export type InputProps = Omit<
   size?: 'sm' | 'default' | 'lg' | number;
   unstyled?: boolean;
   nativeInput?: boolean;
+  inputClassName?: string;
 };
 
 export function Input({
@@ -20,10 +21,12 @@ export function Input({
   size = 'default',
   unstyled = false,
   nativeInput = false,
+  inputClassName: inputClassNameProp,
   style,
   ...props
 }: InputProps): React.ReactElement {
   const inputClassName = cn(
+    inputClassNameProp,
     'h-8.5 w-full min-w-0 rounded-[inherit] px-[calc(--spacing(3)-1px)] text-foreground leading-8.5 outline-none [transition:background-color_5000000s_ease-in-out_0s] placeholder:text-muted-foreground/72 sm:h-7.5 sm:leading-7.5 autofill:[-webkit-text-fill-color:var(--foreground)]',
     size === 'sm' &&
       'h-7.5 px-[calc(--spacing(2.5)-1px)] leading-7.5 sm:h-6.5 sm:leading-6.5',

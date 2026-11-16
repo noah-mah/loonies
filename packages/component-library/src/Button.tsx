@@ -161,7 +161,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         size={mapButtonSize(size)}
         disabled={disabled}
         loading={Boolean(isLoading)}
-        data-pressed={variant === 'menuSelected' ? '' : undefined}
+        data-hovered={isHovered ? '' : undefined}
+        data-focused={isFocused ? '' : undefined}
+        data-focus-visible={isFocusVisible ? '' : undefined}
+        data-pressed={renderProps.isPressed ? '' : undefined}
+        data-disabled={disabled ? '' : undefined}
         {...(excludeFromTabOrder ? { tabIndex: -1 } : null)}
         className={cx(
           variant === 'menu' || variant === 'menuSelected'

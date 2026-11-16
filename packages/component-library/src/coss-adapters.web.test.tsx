@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { expect, it } from 'vitest';
 
 import { Button } from './Button';
+import { Input } from './Input';
 import { Select } from './Select';
 import { Toggle } from './Toggle';
 
@@ -57,6 +58,31 @@ it('reports the next toggle state', async () => {
   await user.click(screen.getByRole('switch', { name: 'Sync' }));
 
   expect(next).toBe(true);
+});
+
+it('sets React Aria-compatible data attributes on buttons', async () => {
+  const user = userEvent.setup();
+
+  render(<Button variant="bare">Hover me</Button>);
+
+  const button = screen.getByRole('button', { name: 'Hover me' });
+  expect(button.getAttribute('data-hovered')).toBeNull();
+
+  await user.hover(button);
+
+  expect(button.getAttribute('data-hovered')).toBe('');
+});
+
+it('applies input styles on the native input element', () => {
+  render(<Input data-testid="budget-field" defaultValue="42" />);
+
+  const control = screen
+    .getByTestId('budget-field')
+    .closest('[data-slot=input-control]');
+  expect(control?.className).not.toContain('border-input');
+
+  const input = screen.getByDisplayValue('42');
+  expect(input.getAttribute('data-slot')).toBe('input');
 });
 
 it('changes the select value from the Coss list', async () => {

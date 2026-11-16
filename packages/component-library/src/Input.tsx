@@ -98,26 +98,33 @@ export function Input({
     render?: unknown;
   };
 
+  const resolvedClassName =
+    typeof className === 'function'
+      ? className({
+          isHovered: false,
+          isFocused,
+          isFocusVisible: isFocused,
+          isDisabled: Boolean(isDisabled),
+          isInvalid: Boolean(isInvalid),
+        })
+      : className;
+
   return (
     <CossInput
       {...rest}
       ref={ref}
+      unstyled
       size={mapInputSize(size)}
       disabled={Boolean(isDisabled || rest.disabled)}
       readOnly={Boolean(isReadOnly || rest.readOnly)}
       required={Boolean(isRequired || rest.required)}
       aria-invalid={isInvalid || undefined}
-      className={cx(
+      data-focused={isFocused ? '' : undefined}
+      data-disabled={isDisabled || rest.disabled ? '' : undefined}
+      inputClassName={cx(
+        defaultInputClassName,
         style && css({ ...style }),
-        typeof className === 'function'
-          ? className({
-              isHovered: false,
-              isFocused,
-              isFocusVisible: isFocused,
-              isDisabled: Boolean(isDisabled),
-              isInvalid: Boolean(isInvalid),
-            })
-          : className,
+        resolvedClassName,
       )}
       onKeyUp={event => {
         rest.onKeyUp?.(event);
