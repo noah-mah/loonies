@@ -26,7 +26,12 @@ import { setI18NextLanguage } from '#i18n';
 import { addNotification } from '#notifications/notificationsSlice';
 import { loadGlobalPrefs } from '#prefs/prefsSlice';
 import { useDispatch, useSelector, useStore } from '#redux';
-import { hasHiddenScrollbars, ThemeStyle, useTheme } from '#style';
+import {
+  hasHiddenScrollbars,
+  ThemeStyle,
+  useCossDarkClass,
+  useTheme,
+} from '#style';
 import { signOut } from '#users/usersSlice';
 import { ExposeNavigate } from '#util/router-tools';
 
@@ -200,6 +205,7 @@ export function App() {
   }, [hiddenScrollbars]);
 
   const [theme] = useTheme();
+  useCossDarkClass();
 
   return (
     <BrowserRouter>
