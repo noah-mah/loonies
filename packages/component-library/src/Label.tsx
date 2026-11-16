@@ -1,31 +1,19 @@
 import { forwardRef } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
-import { styles } from './styles';
-import { Text } from './Text';
-import { theme } from './theme';
+import { Label as CossLabel } from './coss/components/label';
 
 type LabelProps = {
   title: ReactNode;
   style?: CSSProperties;
 };
 
-export const Label = forwardRef<HTMLSpanElement, LabelProps>(
-  ({ title, style }: LabelProps, ref) => {
+export const Label = forwardRef<HTMLLabelElement, LabelProps>(
+  ({ title, style }, ref) => {
     return (
-      <Text
-        ref={ref}
-        style={{
-          ...styles.text,
-          color: theme.tableRowHeaderText,
-          textAlign: 'right',
-          fontSize: 14,
-          marginBottom: 2,
-          ...style,
-        }}
-      >
+      <CossLabel ref={ref} className="justify-end text-right" style={style}>
         {title}
-      </Text>
+      </CossLabel>
     );
   },
 );
