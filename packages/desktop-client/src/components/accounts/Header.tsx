@@ -40,6 +40,7 @@ import type {
   TransactionEntity,
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
+import { css, cx } from '@emotion/css';
 import { format as formatDate } from 'date-fns';
 
 import { isAccountFailedSync } from '#accounts/syncStatus';
@@ -61,6 +62,14 @@ import type { TableRef } from './Account';
 import { Balances } from './Balance';
 import { BalanceHistoryGraph } from './BalanceHistoryGraph';
 import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
+
+const ledgerAccountMenuPopup = css({
+  backgroundColor: `${theme.menuBackground} !important`,
+  color: theme.menuItemText,
+  '& [role="menu"] button': {
+    color: theme.menuItemText,
+  },
+});
 
 type LedgerOverflowMenuProps = {
   label: string;
@@ -88,8 +97,15 @@ function LedgerOverflowMenu({
           style={{ transform: 'rotateZ(90deg)' }}
         />
       </MenuTrigger>
-      <MenuPopup align="end" className={minWidth ? 'min-w-[275px]' : undefined}>
+      <MenuPopup
+        align="end"
+        className={cx(
+          ledgerAccountMenuPopup,
+          minWidth ? 'min-w-[275px]' : undefined,
+        )}
+      >
         <div
+          style={styles.popover}
           onClick={() => setOpen(false)}
           onKeyDown={event => {
             if (event.key === 'Enter') {
