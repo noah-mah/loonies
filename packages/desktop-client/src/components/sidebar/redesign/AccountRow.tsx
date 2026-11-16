@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TreeItem, TreeItemContent } from 'react-aria-components';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
@@ -16,6 +16,7 @@ import type { AccountEntity } from '@actual-app/core/types/models';
 import { useReopenAccountMutation, useUpdateAccountMutation } from '#accounts';
 import { isAccountFailedSync } from '#accounts/syncStatus';
 import { useContextMenu } from '#hooks/useContextMenu';
+import { useNavigate } from '#hooks/useNavigate';
 import { useSheetValue } from '#hooks/useSheetValue';
 import { useUpdatedAccounts } from '#hooks/useUpdatedAccounts';
 import { openAccountCloseModal, pushModal } from '#modals/modalsSlice';
@@ -26,25 +27,31 @@ import { isTouchDevice } from '#util/isTouchDevice';
 import { AccountHoverCard } from './AccountHoverCard';
 import { DragHandle } from './DragHandle';
 import { SidebarBalance } from './SidebarBalance';
+import { useSidebarTree } from './sidebarTreeContext';
 import { SyncDot, useSyncDotLabel } from './SyncDot';
 import type { SyncDotStatus } from './SyncDot';
 import { useTreeItemEditing } from './treeItemEditing';
 import { treeKeys } from './treeKeys';
+import { useRowDrag, useTreeDropTarget } from './useTreeDropTarget';
 
 type AccountRowProps = {
   account: AccountEntity;
   isClosed?: boolean;
   showSyncDot?: boolean;
+  level?: number;
 };
 
 export function AccountRow({
   account,
   isClosed,
   showSyncDot,
+  level = 1,
 }: AccountRowProps) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
+  const tree = useSidebarTree();
   const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
   const updatedAccounts = useUpdatedAccounts();
   const isUpdated = !isClosed && updatedAccounts.includes(account.id);
@@ -58,6 +65,10 @@ export function AccountRow({
   );
   const href = `/accounts/${account.id}`;
   const isActive = location.pathname === href;
+  const key = treeKeys.account(account.id);
+  const drop = useTreeDropTarget(key);
+  const rowDrag = useRowDrag(key);
+  const isFocused = tree.focusedKey === key;
 
   const reopenAccount = useReopenAccountMutation();
   const updateAccount = useUpdateAccountMutation();
@@ -118,17 +129,55 @@ export function AccountRow({
   }
   const statusLabel = useSyncDotLabel(status);
 
+  const openAccount = (event: MouseEvent<HTMLDivElement>) => {
+    if (rowDrag.shouldIgnoreClick() || isEditing) return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest('button, input')
+    ) {
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      window.open(href, '_blank');
+      return;
+    }
+    void navigate(href);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isEditing || event.key !== 'Enter') return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest('button, input')
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void navigate(href);
+  };
+
   return (
-    <TreeItem
+    <div
       ref={setRowElement}
-      id={treeKeys.account(account.id)}
-      textValue={account.name}
-      href={isEditing ? undefined : href}
-      onAuxClick={e => {
-        if (e.button === 1 && !isEditing) {
-          window.open(href, '_blank');
-        }
+      role="treeitem"
+      aria-level={level}
+      aria-selected={isActive}
+      aria-label={account.name}
+      data-tree-key={key}
+      data-dragging={tree.draggingKey === key || undefined}
+      tabIndex={isFocused ? 0 : -1}
+      draggable={rowDrag.draggable && !isEditing}
+      onFocus={() => tree.focusKey(key)}
+      onClick={openAccount}
+      onDragStart={rowDrag.onDragStart}
+      onDragEnd={rowDrag.onDragEnd}
+      onAuxClick={event => {
+        if (event.button === 1 && !isEditing) window.open(href, '_blank');
       }}
+      onKeyDown={onKeyDown}
+      onDragOver={drop.onDragOver}
+      onDrop={drop.onDrop}
+      onDragLeave={drop.onDragLeave}
       className={css({
         outline: 'none',
         borderRadius: radius.sm,
@@ -143,100 +192,97 @@ export function AccountRow({
           color: theme.sidebarItemTextSelected,
           fontWeight: 'normal',
         }),
-        '&[data-hovered], &[data-focus-visible]': {
+        '&:hover, &:focus-visible': {
           backgroundColor: isActive
             ? theme.sidebarItemBackgroundSelected
             : theme.sidebarItemBackgroundHover,
         },
         '&[data-dragging]': { opacity: 0.5 },
+        ...drop.indicatorStyle,
       })}
     >
-      <TreeItemContent>
-        {({ level }) => (
-          <AccountHoverCard
-            account={account}
-            isDisabled={isContextMenuOpen || isEditing}
+      <AccountHoverCard
+        account={account}
+        isDisabled={isContextMenuOpen || isEditing || tree.draggingKey != null}
+      >
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.xs,
+            paddingBlock: spacing.xs,
+            paddingRight: spacing.sm,
+            paddingLeft: level > 1 ? spacing.xs + spacing.sm : spacing.xs,
+            fontSize: 13,
+            textDecoration: isClosed ? 'line-through' : 'none',
+          }}
+        >
+          <View
+            style={{
+              width: spacing.lg,
+              flexShrink: 0,
+              alignItems: 'center',
+            }}
           >
+            {showSyncDot && <SyncDot status={status} />}
+          </View>
+          {isEditing ? (
+            <InitialFocus>
+              <Input
+                aria-label={t('Account name')}
+                style={{ flex: 1, padding: 0, fontSize: 13 }}
+                defaultValue={account.name}
+                onKeyDown={e => e.stopPropagation()}
+                onEnter={newAccountName => {
+                  if (newAccountName.trim() !== '') {
+                    updateAccount.mutate({
+                      account: { id: account.id, name: newAccountName },
+                    });
+                  }
+                  setIsEditing(false);
+                }}
+                onEscape={() => setIsEditing(false)}
+                onBlur={() => setIsEditing(false)}
+              />
+            </InitialFocus>
+          ) : (
             <View
               style={{
+                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: spacing.xs,
-                paddingBlock: spacing.xs,
-                paddingRight: spacing.sm,
-                paddingLeft: level > 1 ? spacing.xs + spacing.sm : spacing.xs,
-                fontSize: 13,
-                textDecoration: isClosed ? 'line-through' : 'none',
+                gap: 6,
+                minWidth: 0,
               }}
             >
-              <View
-                style={{
-                  width: spacing.lg,
-                  flexShrink: 0,
-                  alignItems: 'center',
-                }}
-              >
-                {showSyncDot && <SyncDot status={status} />}
-              </View>
-              {isEditing ? (
-                <InitialFocus>
-                  <Input
-                    aria-label={t('Account name')}
-                    style={{ flex: 1, padding: 0, fontSize: 13 }}
-                    defaultValue={account.name}
-                    onKeyDown={e => e.stopPropagation()}
-                    onEnter={newAccountName => {
-                      if (newAccountName.trim() !== '') {
-                        updateAccount.mutate({
-                          account: { id: account.id, name: newAccountName },
-                        });
-                      }
-                      setIsEditing(false);
-                    }}
-                    onEscape={() => setIsEditing(false)}
-                    onBlur={() => setIsEditing(false)}
-                  />
-                </InitialFocus>
-              ) : (
+              <Text style={styles.ellipsisText}>{account.name}</Text>
+              {hasUncategorized && (
                 <View
+                  aria-label={t('Uncategorized transactions')}
+                  title={t('Uncategorized transactions')}
                   style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 6,
-                    minWidth: 0,
+                    width: 7,
+                    height: 7,
+                    borderRadius: radius.pill,
+                    flexShrink: 0,
+                    backgroundColor: theme.sidebarItemBackgroundFailed,
                   }}
-                >
-                  <Text style={styles.ellipsisText}>{account.name}</Text>
-                  {hasUncategorized && (
-                    <View
-                      aria-label={t('Uncategorized transactions')}
-                      title={t('Uncategorized transactions')}
-                      style={{
-                        width: 7,
-                        height: 7,
-                        borderRadius: radius.pill,
-                        flexShrink: 0,
-                        backgroundColor: theme.sidebarItemBackgroundFailed,
-                      }}
-                    />
-                  )}
-                </View>
+                />
               )}
-              <Text style={styles.visuallyHidden}>{statusLabel}</Text>
-              <SidebarBalance
-                binding={bindings.accountBalance(account.id)}
-                style={{
-                  fontSize: 12,
-                  color: 'inherit',
-                  marginLeft: spacing.xs,
-                }}
-              />
-              <DragHandle />
             </View>
-          </AccountHoverCard>
-        )}
-      </TreeItemContent>
-    </TreeItem>
+          )}
+          <Text style={styles.visuallyHidden}>{statusLabel}</Text>
+          <SidebarBalance
+            binding={bindings.accountBalance(account.id)}
+            style={{
+              fontSize: 12,
+              color: 'inherit',
+              marginLeft: spacing.xs,
+            }}
+          />
+          <DragHandle itemKey={key} />
+        </View>
+      </AccountHoverCard>
+    </div>
   );
 }

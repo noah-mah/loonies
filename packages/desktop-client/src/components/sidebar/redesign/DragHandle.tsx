@@ -1,4 +1,5 @@
-import { Button } from 'react-aria-components';
+import type { KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { css } from '@actual-app/components/css';
 import { SvgMenu } from '@actual-app/components/icons/v1';
@@ -6,13 +7,33 @@ import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
 import { radius } from '@actual-app/components/tokens';
 
-export function DragHandle() {
+import { useSidebarTree } from './sidebarTreeContext';
+
+type DragHandleProps = {
+  itemKey: string;
+};
+
+export function DragHandle({ itemKey }: DragHandleProps) {
+  const { t } = useTranslation();
+  const tree = useSidebarTree();
+
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    event.stopPropagation();
+    tree.moveWithKeyboard(itemKey, event.key === 'ArrowUp' ? 'up' : 'down');
+  };
+
   return (
-    <Button
-      slot="drag"
+    <button
+      type="button"
+      data-drag-handle=""
+      aria-label={t('Reorder')}
+      aria-disabled={tree.isDragDisabled || undefined}
       className={css({
         ...styles.visuallyHidden,
-        '&[data-focus-visible]': {
+        pointerEvents: 'none',
+        '&:focus-visible': {
           position: 'static',
           width: 'auto',
           height: 'auto',
@@ -29,8 +50,9 @@ export function DragHandle() {
           outlineOffset: 1,
         },
       })}
+      onKeyDown={onKeyDown}
     >
       <SvgMenu style={{ width: 10, height: 10 }} />
-    </Button>
+    </button>
   );
 }

@@ -1,16 +1,15 @@
 import { createContext, useContext } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { Key } from 'react-aria-components';
 
 type TreeItemEditingContextValue = {
-  editingKey: Key | null;
-  setEditingKey: Dispatch<SetStateAction<Key | null>>;
+  editingKey: string | null;
+  setEditingKey: Dispatch<SetStateAction<string | null>>;
 };
 
 export const TreeItemEditingContext =
   createContext<TreeItemEditingContextValue | null>(null);
 
-export function useTreeItemEditing(key: Key) {
+export function useTreeItemEditing(key: string) {
   const context = useContext(TreeItemEditingContext);
   if (!context) {
     throw new Error(

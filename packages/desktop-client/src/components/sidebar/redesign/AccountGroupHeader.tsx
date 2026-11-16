@@ -1,15 +1,11 @@
-import { useContext, useState } from 'react';
-import {
-  Button,
-  TreeItem,
-  TreeItemContent,
-  TreeStateContext,
-} from 'react-aria-components';
+import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { css } from '@actual-app/components/css';
 import { InitialFocus } from '@actual-app/components/initial-focus';
 import { Input } from '@actual-app/components/input';
+import type { CSSProperties } from '@actual-app/components/styles';
 import { styles } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
@@ -34,10 +30,12 @@ import { CollapseChevron } from './CollapseChevron';
 import { CountPill } from './CountPill';
 import { DragHandle } from './DragHandle';
 import { SidebarBalance } from './SidebarBalance';
+import { useSidebarTree } from './sidebarTreeContext';
 import { dropZoneStyle, groupLabelStyle } from './styles';
 import { SyncErrorRollup } from './SyncErrorRollup';
 import { useTreeItemEditing } from './treeItemEditing';
 import { treeKeys } from './treeKeys';
+import { useRowDrag, useTreeDropTarget } from './useTreeDropTarget';
 
 type AccountGroupHeaderProps = {
   group: AccountGroupEntity;
@@ -95,105 +93,145 @@ export function AccountGroupHeader({
     ],
   });
 
-  const treeState = useContext(TreeStateContext);
+  const tree = useSidebarTree();
   const key = treeKeys.group(group.id);
+  const isExpanded = tree.isExpanded(key);
+  const drop = useTreeDropTarget(key);
+  const rowDrag = useRowDrag(key);
+  const isFocused = tree.focusedKey === key;
+
+  const onHeaderClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (rowDrag.shouldIgnoreClick() || isEditing) return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest('button, input')
+    ) {
+      return;
+    }
+    tree.toggleKey(key);
+  };
 
   return (
-    <TreeItem
-      ref={setRowElement}
-      id={key}
-      textValue={group.name}
-      onAction={() => treeState?.toggleKey(key)}
+    <div
+      role="treeitem"
+      aria-level={1}
+      aria-expanded={isExpanded}
+      aria-label={group.name}
+      data-tree-key={key}
+      data-dragging={tree.draggingKey === key || undefined}
+      tabIndex={isFocused ? 0 : -1}
+      onFocus={() => tree.focusKey(key)}
       className={css({
         outline: 'none',
         borderRadius: radius.sm,
         marginBottom: spacing.xxs,
-        ...(isDropZoneActive && dropZoneStyle),
         '&[data-dragging]': { opacity: 0.5 },
       })}
     >
-      <TreeItemContent>
-        {({ isExpanded }) => (
-          <View
-            className={css({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.xs,
-              paddingBlock: spacing.xs,
-              paddingLeft: spacing.xs,
-              paddingRight: spacing.sm,
+      <View
+        ref={setRowElement}
+        draggable={rowDrag.draggable && !isEditing}
+        onClick={onHeaderClick}
+        onDragStart={rowDrag.onDragStart}
+        onDragEnd={rowDrag.onDragEnd}
+        onDragOver={drop.onDragOver}
+        onDrop={drop.onDrop}
+        onDragLeave={drop.onDragLeave}
+        style={
+          {
+            ...(isDropZoneActive || drop.placement === 'on'
+              ? dropZoneStyle
+              : null),
+            ...drop.indicatorStyle,
+          } as CSSProperties
+        }
+        className={css({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+          paddingBlock: spacing.xs,
+          paddingLeft: spacing.xs,
+          paddingRight: spacing.sm,
+          borderRadius: radius.sm,
+          cursor: 'pointer',
+          '&:hover, [data-tree-key]:focus-visible > &': {
+            backgroundColor: theme.sidebarItemBackgroundHover,
+          },
+        })}
+      >
+        <button
+          type="button"
+          aria-label={
+            isExpanded
+              ? t('Collapse {{group}}', { group: group.name })
+              : t('Expand {{group}}', { group: group.name })
+          }
+          className={css({
+            display: 'flex',
+            alignItems: 'center',
+            padding: spacing.xxs,
+            border: 'none',
+            background: 'none',
+            color: 'inherit',
+            cursor: 'pointer',
+            outline: 'none',
+            '&:focus-visible': {
+              outline: `2px solid ${theme.formInputBorderSelected}`,
               borderRadius: radius.sm,
-              cursor: 'pointer',
-              '[data-hovered] > &, [data-focus-visible] > &': {
-                backgroundColor: theme.sidebarItemBackgroundHover,
-              },
-            })}
-          >
-            <Button
-              slot="chevron"
-              aria-label={
-                isExpanded
-                  ? t('Collapse {{group}}', { group: group.name })
-                  : t('Expand {{group}}', { group: group.name })
-              }
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                padding: spacing.xxs,
-                border: 'none',
-                background: 'none',
-                color: 'inherit',
-                cursor: 'pointer',
-                outline: 'none',
-              })}
-            >
-              <CollapseChevron isOpen={isExpanded} />
-            </Button>
-            {isEditing ? (
-              <InitialFocus>
-                <Input
-                  aria-label={t('Group name')}
-                  style={{ flex: 1, padding: 0, fontSize: 12 }}
-                  defaultValue={group.name}
-                  onKeyDown={e => e.stopPropagation()}
-                  onEnter={newGroupName => {
-                    if (newGroupName.trim() !== '') {
-                      updateGroup.mutate({ id: group.id, name: newGroupName });
-                    }
-                    setIsEditing(false);
-                  }}
-                  onEscape={() => setIsEditing(false)}
-                  onBlur={() => setIsEditing(false)}
-                />
-              </InitialFocus>
-            ) : (
-              <>
-                <Text style={{ ...groupLabelStyle, ...styles.ellipsisText }}>
-                  {group.name}
-                </Text>
-                {!isExpanded && <CountPill count={accounts.length} />}
-                <SyncErrorRollup count={failedCount} />
-                <View style={{ flex: 1 }} />
-                <SidebarBalance
-                  binding={bindings.accountGroupBalance(
-                    group.id,
-                    side === 'off',
-                  )}
-                  style={{ fontSize: 11, color: groupLabelStyle.color }}
-                />
-              </>
-            )}
-            <DragHandle />
-          </View>
+            },
+          })}
+          onClick={event => {
+            event.stopPropagation();
+            tree.toggleKey(key);
+          }}
+        >
+          <CollapseChevron isOpen={isExpanded} />
+        </button>
+        {isEditing ? (
+          <InitialFocus>
+            <Input
+              aria-label={t('Group name')}
+              style={{ flex: 1, padding: 0, fontSize: 12 }}
+              defaultValue={group.name}
+              onKeyDown={e => e.stopPropagation()}
+              onEnter={newGroupName => {
+                if (newGroupName.trim() !== '') {
+                  updateGroup.mutate({ id: group.id, name: newGroupName });
+                }
+                setIsEditing(false);
+              }}
+              onEscape={() => setIsEditing(false)}
+              onBlur={() => setIsEditing(false)}
+            />
+          </InitialFocus>
+        ) : (
+          <>
+            <Text style={{ ...groupLabelStyle, ...styles.ellipsisText }}>
+              {group.name}
+            </Text>
+            {!isExpanded && <CountPill count={accounts.length} />}
+            <SyncErrorRollup count={failedCount} />
+            <View style={{ flex: 1 }} />
+            <SidebarBalance
+              binding={bindings.accountGroupBalance(group.id, side === 'off')}
+              style={{ fontSize: 11, color: groupLabelStyle.color }}
+            />
+          </>
         )}
-      </TreeItemContent>
-      {accounts.map(account => (
-        <AccountRow
-          key={treeKeys.account(account.id)}
-          account={account}
-          showSyncDot={showSyncDot}
-        />
-      ))}
-    </TreeItem>
+        <DragHandle itemKey={key} />
+      </View>
+      {isExpanded && (
+        <div role="group">
+          {accounts.map(account => (
+            <AccountRow
+              key={treeKeys.account(account.id)}
+              account={account}
+              showSyncDot={showSyncDot}
+              level={2}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
