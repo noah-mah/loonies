@@ -13,6 +13,7 @@ import * as envelopeBudget from './envelope';
 import {
   ensurePaymentCategories,
   excludedExpenseRefundSql,
+  expenseRefundOnlySql,
   installPaymentCategory,
   isPaymentCategory,
   noteDebtBalanceRefresh,
@@ -164,6 +165,31 @@ export function createCategory(cat, sheetName, prevSheetName, start, end) {
     },
   });
 
+  if (!cat.is_income) {
+    if (isPaymentCategory(cat.id)) {
+      sheet.get().createStatic(sheetName, `refund-amount-${cat.id}`, 0);
+    } else {
+      sheet.get().createDynamic(sheetName, 'refund-amount-' + cat.id, {
+        initialValue: 0,
+        run: () => {
+          const rows = db.runQuery<{ amount: number }>(
+            `SELECT SUM(t.amount) as amount FROM v_transactions_internal_alive t
+             LEFT JOIN accounts a ON a.id = t.account
+             LEFT JOIN categories c ON c.id = t.category
+           WHERE t.date >= ${start} AND t.date <= ${end}
+             AND t.category = '${cat.id}' AND a.offbudget = 0
+             ${expenseRefundOnlySql}`,
+            [],
+            true,
+          );
+          const row = rows[0];
+          const amount = row ? row.amount : 0;
+          return amount || 0;
+        },
+      });
+    }
+  }
+
   if (getBudgetType() === 'envelope') {
     envelopeBudget.createCategory(cat, sheetName, prevSheetName);
   } else {
@@ -198,9 +224,17 @@ function handleAccountChange(months, oldValue, newValue) {
       const sheetName = monthUtils.sheetForMonth(month);
 
       rows.forEach(row => {
+        const categoryId = row.category;
         sheet
           .get()
-          .recompute(resolveName(sheetName, 'sum-amount-' + row.category));
+          .recompute(resolveName(sheetName, 'sum-amount-' + categoryId));
+        const refundCell = resolveName(
+          sheetName,
+          `refund-amount-${categoryId}`,
+        );
+        if (sheet.get().hasCell(refundCell)) {
+          sheet.get().recompute(refundCell);
+        }
       });
     });
   }
@@ -224,9 +258,18 @@ function handleTransactionChange(transaction, changedFields) {
     const month = monthUtils.monthFromDate(db.fromDateRepr(transaction.date));
     const sheetName = monthUtils.sheetForMonth(month);
 
-    sheet
-      .get()
-      .recompute(resolveName(sheetName, 'sum-amount-' + transaction.category));
+    const sumCell = resolveName(
+      sheetName,
+      'sum-amount-' + transaction.category,
+    );
+    sheet.get().recompute(sumCell);
+    const refundCell = resolveName(
+      sheetName,
+      'refund-amount-' + transaction.category,
+    );
+    if (sheet.get().hasCell(refundCell)) {
+      sheet.get().recompute(refundCell);
+    }
   }
 
   recomputePaymentCellsForTransaction(transaction);

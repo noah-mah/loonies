@@ -27,13 +27,23 @@ type MonthAmount = {
 
 // Positive amounts categorized to a spending category are refunds. They are
 // kept out of that category's balance and sent to the card or to To Budget.
-export const excludedExpenseRefundSql = `
-  AND NOT (
+const expenseRefundPredicate = `
     IFNULL(c.is_income, 0) = 0
     AND t.amount > 0
     AND t.transfer_id IS NULL
     AND IFNULL(t.starting_balance_flag, 0) = 0
     AND IFNULL(t.is_parent, 0) = 0
+`;
+
+export const excludedExpenseRefundSql = `
+  AND NOT (
+    ${expenseRefundPredicate}
+  )
+`;
+
+export const expenseRefundOnlySql = `
+  AND (
+    ${expenseRefundPredicate}
   )
 `;
 

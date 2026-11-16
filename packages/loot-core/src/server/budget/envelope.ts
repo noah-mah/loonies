@@ -114,16 +114,18 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
       expenseCategories.map(cat => [
         `${prevSheetName}!leftover-${cat.id}`,
         `${prevSheetName}!carryover-${cat.id}`,
+        `${prevSheetName}!refund-amount-${cat.id}`,
       ]),
     ),
     run: (...data) => {
       data = unflatten2(data);
       return safeNumber(
-        data.reduce((total, [leftover, carryover]) => {
+        data.reduce((total, [leftover, carryover, refunds]) => {
           if (carryover) {
             return total;
           }
-          return total + Math.min(0, number(leftover));
+          const effective = number(leftover) + number(refunds);
+          return total + Math.min(0, effective);
         }, 0),
       );
     },
@@ -249,6 +251,7 @@ export function handleCategoryChange(months, oldValue, newValue) {
         [
           `${prevSheetName}!leftover-${cat.id}`,
           `${prevSheetName}!carryover-${cat.id}`,
+          `${prevSheetName}!refund-amount-${cat.id}`,
         ],
       ]);
 
