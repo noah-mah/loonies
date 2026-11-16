@@ -1,5 +1,3 @@
-import type { Key } from 'react-aria-components';
-
 export type SidebarTreeKey = `account:${string}` | `group:${string}`;
 
 export type SidebarTreeNode =
@@ -15,10 +13,8 @@ export const treeKeys = {
   },
 };
 
-export function parseTreeKey(key: Key): SidebarTreeNode | null {
-  if (typeof key !== 'string') {
-    return null;
-  }
+export function parseTreeKey(key: unknown): SidebarTreeNode | null {
+  if (typeof key !== 'string') return null;
   if (key.startsWith('account:')) {
     return { kind: 'account', accountId: key.slice('account:'.length) };
   }
