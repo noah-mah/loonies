@@ -19,6 +19,10 @@ import * as monthUtils from '@actual-app/core/shared/months';
 import { css } from '@emotion/css';
 
 import { useEnvelopeBudget } from '#components/budget/envelope/EnvelopeBudgetContext';
+import {
+  cossLegacyMenuList,
+  cossLegacyMenuPopup,
+} from '#components/cossLegacyMenuSurface';
 import { NotesButton } from '#components/NotesButton';
 import { useLocale } from '#hooks/useLocale';
 import { SheetNameProvider } from '#hooks/useSheetName';
@@ -153,77 +157,79 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     style={{ color: theme.pageTextLight }}
                   />
                 </MenuTrigger>
-                <MenuPopup align="end">
-                  <BudgetMonthMenu
-                    onCopyLastMonthBudget={() => {
-                      onBudgetAction(month, 'copy-last');
-                      onMenuClose();
-                      showUndoNotification({
-                        message: t(
-                          "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
-                          { displayMonth },
-                        ),
-                      });
-                    }}
-                    onSetBudgetsToZero={() => {
-                      onBudgetAction(month, 'set-zero');
-                      onMenuClose();
-                      showUndoNotification({
-                        message: t(
-                          '{{displayMonth}} budgets have all been set to zero.',
-                          { displayMonth },
-                        ),
-                      });
-                    }}
-                    onSetMonthsAverage={numberOfMonths => {
-                      onBudgetAction(month, `set-${numberOfMonths}-avg`);
-                      onMenuClose();
-                      showUndoNotification({
-                        message:
-                          numberOfMonths === 12
-                            ? t(
-                                `${displayMonth} budgets have all been set to yearly average.`,
-                              )
-                            : t(
-                                `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
-                              ),
-                      });
-                    }}
-                    onCheckTemplates={() => {
-                      onBudgetAction(month, 'check-templates');
-                      onMenuClose();
-                    }}
-                    onApplyBudgetTemplates={() => {
-                      onBudgetAction(month, 'apply-goal-template');
-                      onMenuClose();
-                      showUndoNotification({
-                        message: t(
-                          '{{displayMonth}} budget templates have been applied.',
-                          { displayMonth },
-                        ),
-                      });
-                    }}
-                    onOverwriteWithBudgetTemplates={() => {
-                      onBudgetAction(month, 'overwrite-goal-template');
-                      onMenuClose();
-                      showUndoNotification({
-                        message: t(
-                          '{{displayMonth}} budget templates have been overwritten.',
-                          { displayMonth },
-                        ),
-                      });
-                    }}
-                    onEndOfMonthCleanup={() => {
-                      onBudgetAction(month, 'cleanup-goal-template');
-                      onMenuClose();
-                      showUndoNotification({
-                        message: t(
-                          '{{displayMonth}} end-of-month cleanup templates have been applied.',
-                          { displayMonth },
-                        ),
-                      });
-                    }}
-                  />
+                <MenuPopup align="end" className={cossLegacyMenuPopup}>
+                  <div className={cossLegacyMenuList}>
+                    <BudgetMonthMenu
+                      onCopyLastMonthBudget={() => {
+                        onBudgetAction(month, 'copy-last');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onSetBudgetsToZero={() => {
+                        onBudgetAction(month, 'set-zero');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budgets have all been set to zero.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onSetMonthsAverage={numberOfMonths => {
+                        onBudgetAction(month, `set-${numberOfMonths}-avg`);
+                        onMenuClose();
+                        showUndoNotification({
+                          message:
+                            numberOfMonths === 12
+                              ? t(
+                                  `${displayMonth} budgets have all been set to yearly average.`,
+                                )
+                              : t(
+                                  `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
+                                ),
+                        });
+                      }}
+                      onCheckTemplates={() => {
+                        onBudgetAction(month, 'check-templates');
+                        onMenuClose();
+                      }}
+                      onApplyBudgetTemplates={() => {
+                        onBudgetAction(month, 'apply-goal-template');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budget templates have been applied.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onOverwriteWithBudgetTemplates={() => {
+                        onBudgetAction(month, 'overwrite-goal-template');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budget templates have been overwritten.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onEndOfMonthCleanup={() => {
+                        onBudgetAction(month, 'cleanup-goal-template');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} end-of-month cleanup templates have been applied.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                    />
+                  </div>
                 </MenuPopup>
               </CossMenu>
             </View>
