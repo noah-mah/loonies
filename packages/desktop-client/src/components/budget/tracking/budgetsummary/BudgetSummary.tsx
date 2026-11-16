@@ -1,14 +1,19 @@
 // @ts-strict-ignore
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
+import { Card } from '@actual-app/components/card';
+import {
+  Menu as CossMenu,
+  MenuPopup,
+  MenuTrigger,
+} from '@actual-app/components/coss';
 import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
 import {
   SvgArrowButtonDown1,
   SvgArrowButtonUp1,
 } from '@actual-app/components/icons/v2';
-import { Popover } from '@actual-app/components/popover';
 import { SpaceBetween } from '@actual-app/components/space-between';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
@@ -16,6 +21,10 @@ import * as monthUtils from '@actual-app/core/shared/months';
 import { css } from '@emotion/css';
 
 import { useTrackingBudget } from '#components/budget/tracking/TrackingBudgetContext';
+import {
+  cossLegacyMenuList,
+  cossLegacyMenuPopup,
+} from '#components/cossLegacyMenuSurface';
 import { NotesButton } from '#components/NotesButton';
 import { useLocale } from '#hooks/useLocale';
 import { SheetNameProvider } from '#hooks/useSheetName';
@@ -40,12 +49,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
   } = useTrackingBudget();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const triggerRef = useRef(null);
   const { showUndoNotification } = useUndo();
-
-  function onMenuOpen() {
-    setMenuOpen(true);
-  }
 
   function onMenuClose() {
     setMenuOpen(false);
@@ -58,20 +62,12 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
   const displayMonth = monthUtils.format(month, "MMMM ''yy", locale);
 
   return (
-    <View
+    <Card
       data-testid="budget-summary"
       data-month={month}
+      className="mx-0 mt-[5px] mb-[5px] flex-1 overflow-hidden shadow-none"
       style={{
-        backgroundColor: theme.cardBackground,
-        border: '1px solid ' + theme.cardBorder,
-        borderRadius: 8,
-        marginLeft: 0,
-        marginRight: 0,
-        marginTop: 5,
-        flex: 1,
         cursor: 'default',
-        marginBottom: 5,
-        overflow: 'hidden',
         '& .hover-visible': {
           opacity: 0,
           transition: 'opacity .25s',
@@ -145,85 +141,81 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
               />
             </View>
             <View style={{ userSelect: 'none' }}>
-              <Button
-                ref={triggerRef}
-                variant="bare"
-                aria-label={t('Menu')}
-                onPress={onMenuOpen}
-              >
-                <SvgDotsHorizontalTriple
-                  width={15}
-                  height={15}
-                  style={{ color: theme.pageTextLight }}
-                />
-              </Button>
-
-              <Popover
-                triggerRef={triggerRef}
-                isOpen={menuOpen}
-                onOpenChange={onMenuClose}
-              >
-                <BudgetMonthMenu
-                  onCopyLastMonthBudget={() => {
-                    onBudgetAction(month, 'copy-last');
-                    onMenuClose();
-                    showUndoNotification({
-                      message: t(
-                        "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
-                        { displayMonth },
-                      ),
-                    });
-                  }}
-                  onSetBudgetsToZero={() => {
-                    onBudgetAction(month, 'set-zero');
-                    onMenuClose();
-                    showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budgets have all been set to zero.',
-                        { displayMonth },
-                      ),
-                    });
-                  }}
-                  onSetMonthsAverage={numberOfMonths => {
-                    onBudgetAction(month, `set-${numberOfMonths}-avg`);
-                    onMenuClose();
-                    showUndoNotification({
-                      message:
-                        numberOfMonths === 12
-                          ? t(
-                              `${displayMonth} budgets have all been set to yearly average.`,
-                            )
-                          : t(
-                              `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
-                            ),
-                    });
-                  }}
-                  onCheckTemplates={() => {
-                    onBudgetAction(month, 'check-templates');
-                    onMenuClose();
-                  }}
-                  onApplyBudgetTemplates={() => {
-                    onBudgetAction(month, 'apply-goal-template');
-                    onMenuClose();
-                    showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been applied.',
-                        { displayMonth },
-                      ),
-                    });
-                  }}
-                  onOverwriteWithBudgetTemplates={() => {
-                    onBudgetAction(month, 'overwrite-goal-template');
-                    onMenuClose();
-                    showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been overwritten.',
-                        { displayMonth },
-                      ),
-                    });
-                  }}
-                />
-              </Popover>
+              <CossMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                <MenuTrigger
+                  render={<Button variant="bare" aria-label={t('Menu')} />}
+                >
+                  <SvgDotsHorizontalTriple
+                    width={15}
+                    height={15}
+                    style={{ color: theme.pageTextLight }}
+                  />
+                </MenuTrigger>
+                <MenuPopup align="end" className={cossLegacyMenuPopup}>
+                  <div className={cossLegacyMenuList}>
+                    <BudgetMonthMenu
+                      onCopyLastMonthBudget={() => {
+                        onBudgetAction(month, 'copy-last');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onSetBudgetsToZero={() => {
+                        onBudgetAction(month, 'set-zero');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budgets have all been set to zero.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onSetMonthsAverage={numberOfMonths => {
+                        onBudgetAction(month, `set-${numberOfMonths}-avg`);
+                        onMenuClose();
+                        showUndoNotification({
+                          message:
+                            numberOfMonths === 12
+                              ? t(
+                                  `${displayMonth} budgets have all been set to yearly average.`,
+                                )
+                              : t(
+                                  `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
+                                ),
+                        });
+                      }}
+                      onCheckTemplates={() => {
+                        onBudgetAction(month, 'check-templates');
+                        onMenuClose();
+                      }}
+                      onApplyBudgetTemplates={() => {
+                        onBudgetAction(month, 'apply-goal-template');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budget templates have been applied.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                      onOverwriteWithBudgetTemplates={() => {
+                        onBudgetAction(month, 'overwrite-goal-template');
+                        onMenuClose();
+                        showUndoNotification({
+                          message: t(
+                            '{{displayMonth}} budget templates have been overwritten.',
+                            { displayMonth },
+                          ),
+                        });
+                      }}
+                    />
+                  </div>
+                </MenuPopup>
+              </CossMenu>
             </View>
           </View>
         </View>
@@ -265,6 +257,6 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
           />
         )}
       </SheetNameProvider>
-    </View>
+    </Card>
   );
 }
