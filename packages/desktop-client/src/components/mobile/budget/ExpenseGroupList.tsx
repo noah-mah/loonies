@@ -1,20 +1,15 @@
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 
-import { css } from '@actual-app/components/css';
-import { theme } from '@actual-app/components/theme';
 import type {
   CategoryEntity,
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
 
 import { useMoveCategoryGroupMutation } from '#budget';
+import { ReorderableList } from '#components/reorderable/ReorderableList';
+import type { DropPosition } from '#components/sort';
 
-import {
-  ExpenseGroupHeader,
-  ExpenseGroupListItem,
-} from './ExpenseGroupListItem';
+import { ExpenseGroupListItem } from './ExpenseGroupListItem';
 
 type ExpenseGroupListProps = {
   categoryGroups: CategoryGroupEntity[];
@@ -44,112 +39,37 @@ export function ExpenseGroupList({
   const { t } = useTranslation();
   const moveCategoryGroup = useMoveCategoryGroupMutation();
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(
-        key =>
-          ({
-            'text/plain': key as CategoryEntity['id'],
-          }) as DragItem,
-      ),
-    renderDropIndicator: target => {
-      return (
-        <DropIndicator
-          target={target}
-          className={css({
-            '&[data-drop-target]': {
-              height: 4,
-              backgroundColor: theme.tableBorderSeparator,
-              opacity: 1,
-              borderRadius: 4,
-            },
-          })}
-        />
-      );
-    },
-    renderDragPreview: items => {
-      const draggedGroupId = items[0]['text/plain'];
-      const group = categoryGroups.find(c => c.id === draggedGroupId);
-      if (!group) {
-        throw new Error(
-          `Internal error: category group with ID ${draggedGroupId} not found.`,
-        );
-      }
-      return (
-        <ExpenseGroupHeader
-          categoryGroup={group}
-          month={month}
-          showBudgetedColumn={showBudgetedColumn}
-          show3Columns={show3Columns}
-          onEditCategoryGroup={() => {}}
-          isCollapsed={() => true}
-          onToggleCollapse={() => {}}
-          isHidden={false}
-        />
-      );
-    },
-    onReorder: e => {
-      const [key] = e.keys;
-      const groupIdToMove = key as CategoryGroupEntity['id'];
-      const groupToMove = categoryGroups.find(c => c.id === groupIdToMove);
-
-      if (!groupToMove) {
-        throw new Error(
-          `Internal error: category group with ID ${groupIdToMove} not found.`,
-        );
-      }
-
-      const targetGroupId = e.target.key as CategoryEntity['id'];
-
-      if (e.target.dropPosition === 'before') {
-        moveCategoryGroup.mutate({
-          id: groupToMove.id,
-          targetId: targetGroupId,
-        });
-      } else if (e.target.dropPosition === 'after') {
-        const targetGroupIndex = categoryGroups.findIndex(
-          c => c.id === targetGroupId,
-        );
-
-        if (targetGroupIndex === -1) {
-          throw new Error(
-            `Internal error: category group with ID ${targetGroupId} not found.`,
-          );
-        }
-
-        const nextToTargetCategory = categoryGroups[targetGroupIndex + 1];
-
-        moveCategoryGroup.mutate({
-          id: groupToMove.id,
-          // Due to the way `moveCategory` works, we use the category next to the
-          // actual target category here because `moveCategory` always shoves the
-          // category *before* the target category.
-          // On the other hand, using `null` as `targetId` moves the category
-          // to the end of the list.
-          targetId: nextToTargetCategory?.id || null,
-        });
-      }
-    },
-  });
+  const onMove = (
+    draggedId: string,
+    targetId: string,
+    position: DropPosition,
+  ) => {
+    if (position === 'top') {
+      moveCategoryGroup.mutate({ id: draggedId, targetId });
+      return;
+    }
+    const targetGroupIndex = categoryGroups.findIndex(
+      group => group.id === targetId,
+    );
+    if (targetGroupIndex === -1) return;
+    // moveCategoryGroup inserts before the target, so the following group
+    // places this one after the row that was dropped on. A missing follower
+    // moves the group to the end.
+    const nextToTargetCategory = categoryGroups[targetGroupIndex + 1];
+    moveCategoryGroup.mutate({
+      id: draggedId,
+      targetId: nextToTargetCategory?.id || null,
+    });
+  };
 
   return (
-    <GridList
-      aria-label={t('Expense category groups')}
-      items={categoryGroups}
-      dependencies={[
-        month,
-        onEditCategoryGroup,
-        onEditCategory,
-        onBudgetAction,
-        show3Columns,
-        showBudgetedColumn,
-        showHiddenCategories,
-        isCollapsed,
-        onToggleCollapse,
-      ]}
-      dragAndDropHooks={dragAndDropHooks}
+    <ReorderableList
+      label={t('Expense category groups')}
+      dragType="expense-group"
+      itemIds={categoryGroups.map(group => group.id)}
+      onMove={onMove}
     >
-      {categoryGroup => (
+      {categoryGroups.map(categoryGroup => (
         <ExpenseGroupListItem
           key={categoryGroup.id}
           value={categoryGroup}
@@ -164,7 +84,7 @@ export function ExpenseGroupList({
           onToggleCollapse={onToggleCollapse}
           isHidden={!!categoryGroup.hidden}
         />
-      )}
-    </GridList>
+      ))}
+    </ReorderableList>
   );
 }

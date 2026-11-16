@@ -1,14 +1,15 @@
 import React from 'react';
-import { GridListItem } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
 import { css } from '@actual-app/components/css';
-import { SvgMenu } from '@actual-app/components/icons/v1';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { Toggle } from '@actual-app/components/toggle';
 
+import {
+  ReorderableItem,
+  ReorderHandle,
+} from '#components/reorderable/ReorderableList';
 import { isTransactionTableColumnLocked } from '#components/transactions/table/columns';
 import type {
   TransactionTableColumn,
@@ -30,7 +31,7 @@ export function TransactionTableColumnListItem({
   const isLocked = isTransactionTableColumnLocked(column.id);
 
   return (
-    <GridListItem
+    <ReorderableItem
       id={column.id}
       textValue={label}
       className={css({
@@ -43,32 +44,18 @@ export function TransactionTableColumnListItem({
         borderRadius: 6,
         border: '1px solid ' + theme.tableBorder,
         backgroundColor: theme.tableBackground,
-        outline: 'none',
-        '&[data-hovered]': {
+        '&:hover': {
           backgroundColor: theme.tableRowBackgroundHover,
         },
-        '&[data-dragging]': {
-          opacity: 0.5,
-        },
-        '&[data-focus-visible]': {
+        '&:focus-visible': {
           boxShadow: '0 0 0 2px ' + theme.formInputBorderSelected,
         },
       })}
     >
-      <Button
-        slot="drag"
-        variant="bare"
-        aria-label={t('Reorder {{ columnName }} column', {
-          columnName: label,
-        })}
-        style={{
-          cursor: 'grab',
-          color: theme.pageTextSubdued,
-          padding: 4,
-        }}
-      >
-        <SvgMenu width={12} height={12} />
-      </Button>
+      <ReorderHandle
+        itemId={column.id}
+        label={t('Reorder {{ columnName }} column', { columnName: label })}
+      />
       <Text
         style={{
           flex: 1,
@@ -95,6 +82,6 @@ export function TransactionTableColumnListItem({
           onToggle={isVisible => onToggle(column.id, isVisible)}
         />
       )}
-    </GridListItem>
+    </ReorderableItem>
   );
 }

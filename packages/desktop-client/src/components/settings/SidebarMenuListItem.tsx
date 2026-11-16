@@ -1,14 +1,15 @@
 import type { ComponentType, SVGProps } from 'react';
-import { GridListItem } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
 import { css } from '@actual-app/components/css';
-import { SvgMenu } from '@actual-app/components/icons/v1';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { Toggle } from '@actual-app/components/toggle';
 
+import {
+  ReorderableItem,
+  ReorderHandle,
+} from '#components/reorderable/ReorderableList';
 import { isSidebarMenuItemLocked } from '#components/sidebar/sidebarMenu';
 import type {
   SidebarMenuItem,
@@ -35,7 +36,7 @@ export function SidebarMenuListItem({
   const { t } = useTranslation();
 
   return (
-    <GridListItem
+    <ReorderableItem
       id={item.id}
       textValue={label}
       className={css({
@@ -48,30 +49,18 @@ export function SidebarMenuListItem({
         borderRadius: 6,
         border: '1px solid ' + theme.tableBorder,
         backgroundColor: theme.tableBackground,
-        outline: 'none',
-        '&[data-hovered]': {
+        '&:hover': {
           backgroundColor: theme.tableRowBackgroundHover,
         },
-        '&[data-dragging]': {
-          opacity: 0.5,
-        },
-        '&[data-focus-visible]': {
+        '&:focus-visible': {
           boxShadow: '0 0 0 2px ' + theme.formInputBorderSelected,
         },
       })}
     >
-      <Button
-        slot="drag"
-        variant="bare"
-        aria-label={t('Reorder {{ pageName }}', { pageName: label })}
-        style={{
-          cursor: 'grab',
-          color: theme.pageTextSubdued,
-          padding: 4,
-        }}
-      >
-        <SvgMenu width={12} height={12} />
-      </Button>
+      <ReorderHandle
+        itemId={item.id}
+        label={t('Reorder {{ pageName }}', { pageName: label })}
+      />
       <Icon
         width={14}
         height={14}
@@ -108,6 +97,6 @@ export function SidebarMenuListItem({
           onToggle={isVisible => onToggle(item.id, isVisible)}
         />
       )}
-    </GridListItem>
+    </ReorderableItem>
   );
 }

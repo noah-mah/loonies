@@ -1,12 +1,10 @@
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { Button } from '@actual-app/components/button';
 import { css } from '@actual-app/components/css';
 import { Select } from '@actual-app/components/select';
-import { theme } from '@actual-app/components/theme';
 
+import { ReorderableList } from '#components/reorderable/ReorderableList';
 import {
   getDefaultSidebarMenuItems,
   moveSidebarMenuItem,
@@ -14,6 +12,7 @@ import {
 } from '#components/sidebar/sidebarMenu';
 import type { SidebarMenuItemId } from '#components/sidebar/sidebarMenu';
 import { useSidebarMenuItemDetails } from '#components/sidebar/useSidebarMenuItemDetails';
+import type { DropPosition } from '#components/sort';
 import { useSidebarMenu } from '#hooks/useSidebarMenu';
 
 import { SettingsGroup } from './SettingsGroup';
@@ -40,34 +39,20 @@ export function SidebarSettings() {
     saveStartPage(parseSidebarStartPage(undefined, defaultItems));
   };
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(key => ({ 'text/plain': String(key) }) satisfies DragItem),
-    renderDropIndicator: target => (
-      <DropIndicator
-        target={target}
-        className={css({
-          '&[data-drop-target]': {
-            height: 4,
-            backgroundColor: theme.tableBorderSeparator,
-            opacity: 1,
-            borderRadius: 4,
-          },
-        })}
-      />
-    ),
-    onReorder: e => {
-      const [key] = e.keys;
-      saveItems(
-        moveSidebarMenuItem(
-          items,
-          String(key),
-          String(e.target.key),
-          e.target.dropPosition,
-        ),
-      );
-    },
-  });
+  const onMove = (
+    draggedId: string,
+    targetId: string,
+    position: DropPosition,
+  ) => {
+    saveItems(
+      moveSidebarMenuItem(
+        items,
+        draggedId,
+        targetId,
+        position === 'bottom' ? 'after' : 'before',
+      ),
+    );
+  };
 
   return (
     <SettingsGroup title={t('Sidebar')}>
@@ -82,14 +67,14 @@ export function SidebarSettings() {
           </Button>
         }
       >
-        <GridList
-          aria-label={t('Sidebar pages')}
-          items={availableItems}
-          dragAndDropHooks={dragAndDropHooks}
-          dependencies={[itemDetails, startPage]}
+        <ReorderableList
+          label={t('Sidebar pages')}
+          dragType="sidebar-menu-item"
+          itemIds={availableItems.map(item => item.id)}
+          onMove={onMove}
           className={css({ display: 'flex', flexDirection: 'column' })}
         >
-          {item => (
+          {availableItems.map(item => (
             <SidebarMenuListItem
               key={item.id}
               item={item}
@@ -98,8 +83,8 @@ export function SidebarSettings() {
               isStartPage={item.id === startPage}
               onToggle={onToggleItem}
             />
-          )}
-        </GridList>
+          ))}
+        </ReorderableList>
       </SettingsRow>
       <SettingsRow
         title={t('Start page')}
