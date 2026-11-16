@@ -87,6 +87,8 @@ export function Input({
     validationBehavior: _validationBehavior,
     validate: _validate,
     render: _render,
+    className: _className,
+    style: _style,
     ...rest
   } = props as InputProps & {
     isDisabled?: boolean;

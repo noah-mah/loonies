@@ -1,11 +1,12 @@
 import React from 'react';
 import type { ComponentProps, ReactNode } from 'react';
 
+import { Field, FieldLabel } from '@actual-app/components/coss';
 import type { CSSProperties } from '@actual-app/components/styles';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 
 type SectionLabelProps = {
   title?: string;
@@ -44,16 +45,15 @@ const defaultLabelStyle: CSSProperties = {
 
 export const FormLabel = ({ style, title, id, htmlFor }: FormLabelProps) => {
   return (
-    <Text
-      style={{
-        ...defaultLabelStyle,
-        ...style,
-      }}
-    >
-      <label htmlFor={htmlFor} id={id}>
+    <Field className="gap-0">
+      <FieldLabel
+        id={id}
+        htmlFor={htmlFor}
+        className={cx(css(defaultLabelStyle), style && css(style))}
+      >
         {title}
-      </label>
-    </Text>
+      </FieldLabel>
+    </Field>
   );
 };
 
@@ -81,7 +81,11 @@ type FormFieldProps = {
 };
 
 export const FormField = ({ style, children }: FormFieldProps) => {
-  return <View style={style}>{children}</View>;
+  return (
+    <Field className={cx('min-w-0 items-stretch', style && css(style))}>
+      {children}
+    </Field>
+  );
 };
 
 // Custom inputs
