@@ -4,8 +4,7 @@ import { newsFeedFixture } from './fixtures';
 import { NEWS_FEED_SCHEMA_VERSION } from './types';
 import type { NewsEntry, NewsFeed } from './types';
 
-// Released builds read the file committed on `master`, the same way the custom
-// theme catalog is fetched (hooks/useThemeCatalog.ts).
+// Released builds read the file committed on `master`.
 /**
  * Message of the error thrown when the feed loaded but isn't in a format this
  * version understands, so callers can tell it apart from a failed download.

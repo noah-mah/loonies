@@ -4,13 +4,11 @@ import type { Preview } from '@storybook/react-vite';
 
 import darkThemeCss from '../src/themes/dark.css?inline';
 import lightThemeCss from '../src/themes/light.css?inline';
-import midnightThemeCss from '../src/themes/midnight.css?inline';
 import paletteCss from '../src/themes/palette.css?inline';
 
 const THEMES = {
   light: lightThemeCss,
   dark: darkThemeCss,
-  midnight: midnightThemeCss,
 } as const;
 
 type ThemeName = keyof typeof THEMES;
@@ -57,7 +55,6 @@ const preview: Preview = {
         items: [
           { value: 'light', title: 'Light' },
           { value: 'dark', title: 'Dark' },
-          { value: 'midnight', title: 'Midnight' },
         ],
       },
     },

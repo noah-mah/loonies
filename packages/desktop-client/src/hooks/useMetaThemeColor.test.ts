@@ -2,9 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { resetTestProviders, TestProviders } from '#mocks';
-import { mergeGlobalPrefs } from '#prefs/prefsSlice';
-import { useStore } from '#redux';
-import { usePreferredDarkTheme, useTheme } from '#style/theme';
+import { useTheme } from '#style/theme';
 
 import { useMetaThemeColor } from './useMetaThemeColor';
 
@@ -12,18 +10,11 @@ const DEFAULT_THEME_COLOR = '#5c3dbb';
 const originalMatchMedia = window.matchMedia;
 
 function renderThemeColor(color?: string) {
-  return renderHook(
-    () => {
-      useMetaThemeColor(color);
-      return useStore();
-    },
-    { wrapper: TestProviders },
-  );
+  return renderHook(() => useMetaThemeColor(color), { wrapper: TestProviders });
 }
 
 vi.mock('#style/theme', () => ({
   useTheme: vi.fn(),
-  usePreferredDarkTheme: vi.fn(),
 }));
 
 function getThemeColorMeta() {
@@ -46,7 +37,6 @@ function clearCssVar(name: string) {
 beforeEach(() => {
   resetTestProviders();
   vi.mocked(useTheme).mockReturnValue(['light', vi.fn()]);
-  vi.mocked(usePreferredDarkTheme).mockReturnValue(['dark', vi.fn()]);
   document.body.style.backgroundColor = '';
   document.documentElement.style.backgroundColor = '';
   removeThemeColorMeta();
@@ -122,40 +112,6 @@ describe('useMetaThemeColor', () => {
       vi.mocked(useTheme).mockReturnValue(['dark', vi.fn()]);
       rerender();
       expect(document.body.style.backgroundColor).toBe('rgb(34, 34, 34)');
-    });
-
-    it('re-runs effect when darkThemePreference changes', () => {
-      setCssVar('--color-mobileViewTheme', '#aaa');
-      const { rerender } = renderThemeColor('var(--color-mobileViewTheme)');
-      expect(document.body.style.backgroundColor).toBe('rgb(170, 170, 170)');
-
-      setCssVar('--color-mobileViewTheme', '#bbb');
-      vi.mocked(usePreferredDarkTheme).mockReturnValue(['midnight', vi.fn()]);
-      rerender();
-      expect(document.body.style.backgroundColor).toBe('rgb(187, 187, 187)');
-    });
-
-    it('refreshes meta colour and body background when customCssOverride changes while mounted', () => {
-      setCssVar('--color-mobileViewTheme', '#111');
-      const { result } = renderThemeColor('var(--color-mobileViewTheme)');
-      expect(getThemeColorMeta()).toBe('#111');
-      expect(document.body.style.backgroundColor).toBe('rgb(17, 17, 17)');
-
-      act(() => {
-        // Supply the updated CSS; the preference subscription must trigger
-        // the colour refresh without remounting or changing the hook argument.
-        setCssVar('--color-mobileViewTheme', '#222');
-        result.current.dispatch(
-          mergeGlobalPrefs({
-            customCssOverride: ':root { --color-mobileViewTheme: #222; }',
-          }),
-        );
-      });
-
-      expect({
-        meta: getThemeColorMeta(),
-        background: document.body.style.backgroundColor,
-      }).toEqual({ meta: '#222', background: 'rgb(34, 34, 34)' });
     });
 
     it('re-runs effect when system color scheme changes', async () => {

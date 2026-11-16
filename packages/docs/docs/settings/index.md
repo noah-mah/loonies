@@ -14,7 +14,7 @@ The option **Show in-app notifications (release notes and announcements)** contr
 
 ### Themes
 
-Themes change the user interface colors. Pick from the built-in **Light**, **Dark**, **Midnight**, or **Auto** themes, or install a community-built theme from the catalog. See [Custom Themes](../custom-themes.md) for the full guide.
+Themes change the user interface colors. Pick **Light**, **Dark**, or **System default**. System default follows the color scheme of your device.
 
 ### Sidebar
 

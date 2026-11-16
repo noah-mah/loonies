@@ -26,12 +26,7 @@ import { setI18NextLanguage } from '#i18n';
 import { addNotification } from '#notifications/notificationsSlice';
 import { loadGlobalPrefs } from '#prefs/prefsSlice';
 import { useDispatch, useSelector, useStore } from '#redux';
-import {
-  CustomThemeStyle,
-  hasHiddenScrollbars,
-  ThemeStyle,
-  useTheme,
-} from '#style';
+import { hasHiddenScrollbars, ThemeStyle, useTheme } from '#style';
 import { signOut } from '#users/usersSlice';
 import { ExposeNavigate } from '#util/router-tools';
 
@@ -240,7 +235,6 @@ export function App() {
                         <AppInner />
                       </ErrorBoundary>
                       <ThemeStyle />
-                      <CustomThemeStyle />
                       <ErrorBoundary FallbackComponent={FatalError}>
                         <Modals />
                       </ErrorBoundary>

@@ -1,8 +1,8 @@
 ---
 name: Actual Budget
 description: Local-first personal finance, built around envelope budgeting
-# All color values are the light-theme palette mapping; dark and midnight
-# remap the same semantic roles via `theme.*` tokens (see The Semantic Token Rule).
+# All color values are the light-theme palette mapping; dark remaps the
+# same semantic roles via `theme.*` tokens (see The Semantic Token Rule).
 colors:
   actual-purple: '#8719e0'
   actual-purple-hover: '#a368fc'
@@ -77,7 +77,7 @@ components:
 
 Actual feels like a tidy personal desk: familiar, unpretentious, everything within reach. It is a tool people open weekly for years to reconcile accounts and move envelope money around, so the interface optimizes for routine, not first impressions. Density is moderate-to-high (this is a table-driven app), feedback is instant, and decoration is close to zero. The financial numbers are the interface; everything else exists to keep them legible and trustworthy.
 
-The system explicitly rejects fintech-startup gloss (gradient heroes, glassmorphism, crypto-dashboard neon) and corporate banking UI (navy-and-gold enterprise-portal density). It is calm, trustworthy, and practical, and it must render identically well in three themes: light, dark, and midnight.
+The system explicitly rejects fintech-startup gloss (gradient heroes, glassmorphism, crypto-dashboard neon) and corporate banking UI (navy-and-gold enterprise-portal density). It is calm, trustworthy, and practical, and it must render identically well in two themes: light and dark.
 
 **Key Characteristics:**
 
@@ -91,7 +91,7 @@ The system explicitly rejects fintech-startup gloss (gradient heroes, glassmorph
 
 A calm navy-neutral base with one confident purple accent and strict semantic roles for money.
 
-All hex values in this file (frontmatter included) are the light-theme palette mapping. The dark and midnight themes remap the same semantic roles to different palette values, so never use these hexes directly in components — route every color through the `theme.*` semantic tokens (see The Semantic Token Rule below).
+All hex values in this file (frontmatter included) are the light-theme palette mapping. The dark theme remaps the same semantic roles to different palette values, so never use these hexes directly in components — route every color through the `theme.*` semantic tokens (see The Semantic Token Rule below).
 
 ### Primary
 
@@ -115,7 +115,7 @@ All hex values in this file (frontmatter included) are the light-theme palette m
 
 ### Named Rules
 
-**The Semantic Token Rule.** Components never use raw palette values or hex codes. Every color goes through the `theme.*` semantic layer (`--color-*` custom properties) so all three themes (light, dark, midnight) stay correct. A hardcoded hex in a component is a bug.
+**The Semantic Token Rule.** Components never use raw palette values or hex codes. Every color goes through the `theme.*` semantic layer (`--color-*` custom properties) so both themes (light and dark) stay correct. A hardcoded hex in a component is a bug.
 
 **The One Accent Rule.** Actual Purple appears on well under 10% of any screen: primary action, current selection, active nav. It never decorates.
 
@@ -221,7 +221,7 @@ The core surface of the app. White rows on 1px Navy Mist borders, Frost hover, p
 
 ### Do:
 
-- **Do** route every color through `theme.*` semantic tokens so light, dark, and midnight themes all work. Test all three.
+- **Do** route every color through `theme.*` semantic tokens so light and dark themes both work. Test both.
 - **Do** wrap standalone financial numbers in `FinancialText` or apply `styles.tnum`.
 - **Do** keep components compact and quick: 4px radii, 5-10px paddings, instant hover/press states.
 - **Do** reuse the existing component library (`@actual-app/components`) before writing new UI.

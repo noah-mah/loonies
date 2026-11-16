@@ -44,7 +44,7 @@ const CONFIG_PANEL_CLASS = css({
     textTransform: 'uppercase',
   },
   // Match Select borders to text inputs (Button uses buttonNormalBorder which
-  // is brighter than formInputBorder in dark/midnight themes).
+  // is brighter than formInputBorder in the dark theme).
   '& button[type="button"]:not([aria-pressed])': {
     borderColor: theme.formInputBorder,
   },

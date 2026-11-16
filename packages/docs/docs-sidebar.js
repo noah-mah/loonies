@@ -198,7 +198,6 @@ const sidebars = {
           items: ['reports/custom-reports'],
         },
         'settings/index',
-        'custom-themes',
         'notifications',
         {
           type: 'category',
