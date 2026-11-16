@@ -371,6 +371,9 @@
   --color-reportsGray: var(--muted-foreground);
   --color-reportsLabel: var(--foreground);
   --color-reportsInnerLabel: var(--muted-foreground);
+  --color-toBudgetPositive: var(--color-success);
+  --color-toBudgetZero: var(--color-success);
+  --color-toBudgetNegative: var(--color-danger);
   --color-noteTagBackground: var(--accent);
   --color-noteTagBackgroundHover: var(--muted);
   --color-noteTagDefault: var(--accent);
