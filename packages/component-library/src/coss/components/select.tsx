@@ -133,7 +133,7 @@ export function SelectPopup({
         alignItemWithTrigger={alignItemWithTrigger}
         alignOffset={alignOffset}
         anchor={anchor}
-        className="z-50 select-none"
+        className="z-[4100] select-none"
         data-slot="select-positioner"
         side={side}
         sideOffset={sideOffset}
