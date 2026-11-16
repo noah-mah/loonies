@@ -65,9 +65,30 @@ import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
 
 const ledgerAccountMenuPopup = css({
   backgroundColor: `${theme.menuBackground} !important`,
+  borderColor: `${theme.menuBorder} !important`,
   color: theme.menuItemText,
-  '& [role="menu"] button': {
-    color: theme.menuItemText,
+  '&::before': {
+    display: 'none',
+  },
+});
+
+const ledgerAccountMenuList = css({
+  color: theme.menuItemText,
+  '& [role="menu"]': {
+    backgroundColor: 'transparent',
+  },
+  '& [data-slot="button"]': {
+    backgroundColor: 'transparent !important',
+    borderColor: 'transparent !important',
+    boxShadow: 'none !important',
+    color: `${theme.menuItemText} !important`,
+  },
+  '& [data-slot="button"][data-hovered]': {
+    backgroundColor: `${theme.pillBackgroundLight} !important`,
+    color: `${theme.menuItemTextHover} !important`,
+  },
+  '& [role="menu"] span': {
+    color: 'inherit',
   },
 });
 
@@ -105,7 +126,7 @@ function LedgerOverflowMenu({
         )}
       >
         <div
-          style={styles.popover}
+          className={ledgerAccountMenuList}
           onClick={() => setOpen(false)}
           onKeyDown={event => {
             if (event.key === 'Enter') {
